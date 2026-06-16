@@ -1,0 +1,15 @@
+{
+  "Sharpe": 2.2101,
+  "Sortino": 3.0895,
+  "Calmar": 4.5926,
+  "Max Drawdown %": 10.17,
+  "Max DD Duration (days)": 76,
+  "Time in Market %": 76.1,
+  "CAGR %": 46.68,
+  "Win Rate %": 41.2,
+  "Profit Factor": 1.5,
+  "Expectancy ($)": 723.93,
+  "Avg Bars Held": 20.9,
+  "Total Trades": 17,
+  "Strategy": "ImprovedLongOnlyStrategy"
+}

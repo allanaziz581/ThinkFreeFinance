@@ -1,0 +1,43 @@
+# ── Secrets (NEVER commit) ──
+.env
+.env.*
+*.key
+*.pem
+secrets*
+*credential*
+
+# ── Virtual environments (huge, machine-specific) ──
+tf_env/
+venv/
+venv_qlib/
+.venv/
+env/
+
+# ── Python caches / build ──
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.ipynb_checkpoints/
+
+# ── ML / experiment tracking ──
+mlruns/
+
+# ── Large data & generated artifacts ──
+qlib_data/
+raw_data/
+ta_raw/
+news_output/
+GPT_Economy/
+congress_ticker_clusters/
+Economic_Books/
+
+# ── OS / editor ──
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# ── Large media not needed in repo ──
+*.zip

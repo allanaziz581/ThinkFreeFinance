@@ -1,0 +1,34 @@
+# ThinkFree Finance — Python dependencies
+# Install with: ./tf_env/bin/pip install -r requirements.txt
+# NOTE: numpy<2 and sentence-transformers==2.7.0 must be pinned for
+#       compatibility with torch 2.2.x on macOS (Python 3.10).
+
+numpy<2
+pandas>=2.0.0
+python-dotenv>=1.0.0
+openai>=1.0.0
+langchain==1.3.9
+langchain-community>=0.3
+langchain-openai>=0.2
+faiss-cpu
+tiktoken
+backtrader
+yfinance
+scikit-learn
+sentence-transformers==2.7.0
+transformers==4.41.2
+torch==2.2.2
+tqdm
+vaderSentiment
+ta
+requests
+feedparser
+beautifulsoup4
+streamlit>=1.32.0
+plotly>=5.0.0
+fredapi
+QuantLib
+scipy
+pydantic>=2.0.0
+validators
+ratelimit

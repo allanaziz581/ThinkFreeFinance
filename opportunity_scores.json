@@ -1,0 +1,355 @@
+{
+  "generated_at": "2026-06-14T19:35:24.728343Z",
+  "recession_risk_used": 0.0,
+  "user_profile_id": "A1_<25_R2_Mod",
+  "sector_opportunities": [
+    {
+      "sector": "Communication Services",
+      "opportunity_score": 10.0,
+      "direction": "Bullish",
+      "direction_emoji": "📈",
+      "components": {
+        "economic_outlook": 10.0,
+        "recession_discount": 1.0,
+        "profile_match": 1.0
+      },
+      "rationale": "Economic analysis shows positive momentum in this sector."
+    },
+    {
+      "sector": "Real Estate",
+      "opportunity_score": 10.0,
+      "direction": "Bullish",
+      "direction_emoji": "📈",
+      "components": {
+        "economic_outlook": 10.0,
+        "recession_discount": 1.0,
+        "profile_match": 1.15
+      },
+      "rationale": "Economic analysis shows positive momentum in this sector. This sector aligns well with your investment profile."
+    },
+    {
+      "sector": "Health Care",
+      "opportunity_score": 10.0,
+      "direction": "Bullish",
+      "direction_emoji": "📈",
+      "components": {
+        "economic_outlook": 10.0,
+        "recession_discount": 1.0,
+        "profile_match": 1.0
+      },
+      "rationale": "Economic analysis shows positive momentum in this sector."
+    },
+    {
+      "sector": "Financials",
+      "opportunity_score": 5.8,
+      "direction": "Neutral",
+      "direction_emoji": "➡️",
+      "components": {
+        "economic_outlook": 5.0,
+        "recession_discount": 1.0,
+        "profile_match": 1.15
+      },
+      "rationale": "This sector shows neutral economic signals. This sector aligns well with your investment profile."
+    },
+    {
+      "sector": "Utilities",
+      "opportunity_score": 5.8,
+      "direction": "Neutral",
+      "direction_emoji": "➡️",
+      "components": {
+        "economic_outlook": 5.0,
+        "recession_discount": 1.0,
+        "profile_match": 1.15
+      },
+      "rationale": "This sector shows neutral economic signals. This sector aligns well with your investment profile."
+    },
+    {
+      "sector": "Consumer Staples",
+      "opportunity_score": 5.0,
+      "direction": "Neutral",
+      "direction_emoji": "➡️",
+      "components": {
+        "economic_outlook": 5.0,
+        "recession_discount": 1.0,
+        "profile_match": 1.0
+      },
+      "rationale": "This sector shows neutral economic signals."
+    },
+    {
+      "sector": "Industrials",
+      "opportunity_score": 5.0,
+      "direction": "Neutral",
+      "direction_emoji": "➡️",
+      "components": {
+        "economic_outlook": 5.0,
+        "recession_discount": 1.0,
+        "profile_match": 1.0
+      },
+      "rationale": "This sector shows neutral economic signals."
+    },
+    {
+      "sector": "Information Technology",
+      "opportunity_score": 5.0,
+      "direction": "Neutral",
+      "direction_emoji": "➡️",
+      "components": {
+        "economic_outlook": 5.0,
+        "recession_discount": 1.0,
+        "profile_match": 1.0
+      },
+      "rationale": "This sector shows neutral economic signals."
+    },
+    {
+      "sector": "Materials",
+      "opportunity_score": 5.0,
+      "direction": "Neutral",
+      "direction_emoji": "➡️",
+      "components": {
+        "economic_outlook": 5.0,
+        "recession_discount": 1.0,
+        "profile_match": 1.0
+      },
+      "rationale": "This sector shows neutral economic signals."
+    },
+    {
+      "sector": "Consumer Discretionary",
+      "opportunity_score": 0.0,
+      "direction": "Bearish",
+      "direction_emoji": "📉",
+      "components": {
+        "economic_outlook": 0.0,
+        "recession_discount": 1.0,
+        "profile_match": 1.0
+      },
+      "rationale": "Economic analysis indicates headwinds for this sector."
+    }
+  ],
+  "ticker_opportunities": [
+    {
+      "ticker": "ALGN",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "ALGN is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "AMGN",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "AMGN is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "AMT",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "AMT is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "BIIB",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "BIIB is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "BMY",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "BMY is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "CI",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "CI is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "CZR",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "CZR is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "DECK",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "DECK is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "DGX",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "DGX is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "DOC",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "DOC is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "DRI",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "DRI is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "EA",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "EA is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "EXR",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "EXR is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "FOX",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "FOX is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "FOXA",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "FOXA is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "GRMN",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "GRMN is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "HLT",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "HLT is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "JNJ",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "JNJ is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "LLY",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "LLY is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "LYV",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "LYV is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "MAR",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "MAR is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "MOH",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "MOH is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "MRK",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "MRK is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "MRNA",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "MRNA is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    },
+    {
+      "ticker": "O",
+      "opportunity_score": 7.0,
+      "signal": "BUY",
+      "direction": "Buy Signal",
+      "direction_emoji": "🟢",
+      "confidence": 2,
+      "plain_english_signal": "O is showing momentum signals that suggest it may be gaining strength. Multiple technical indicators are aligned in a positive direction (confidence: 2/5). This is a signal to watch, not a guarantee."
+    }
+  ],
+  "methodology": "Opportunity scores combine economic sector outlook, recession risk discount, technical signal alignment, and user profile compatibility. Scores are 0–10 where 10 = strongest opportunity alignment. This is not investment advice."
+}

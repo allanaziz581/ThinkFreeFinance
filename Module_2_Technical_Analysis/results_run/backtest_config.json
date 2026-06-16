@@ -1,0 +1,18 @@
+{
+  "signals_csv": "/Users/allanaziz/Desktop/ThinkFree/ThinkFree-main/Module_2_Technical_Analysis/ta_analysis_detailed.csv",
+  "out_dir": "/Users/allanaziz/Desktop/ThinkFree/ThinkFree-main/Module_2_Technical_Analysis/results_run",
+  "initial_cash": 100000,
+  "commission": 0.0005,
+  "slippage_pct": 0.0005,
+  "max_positions": 10,
+  "risk_free": 0.05,
+  "dd_stop": 0.25,
+  "min_align": 2,
+  "use_recalc": false,
+  "verbose_mismatch": false,
+  "min_price": 5.0,
+  "min_volume": 100000,
+  "long_only": true,
+  "trend_filter": false,
+  "risk_pct": 0.02
+}

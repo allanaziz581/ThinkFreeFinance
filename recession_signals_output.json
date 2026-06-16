@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-06-14T19:35:40.953989Z",
+  "recession_risk": {
+    "score": 2.3,
+    "max_score": 10,
+    "label": "Moderate",
+    "plain_english_summary": "There are some warning signs but no imminent recession signal. Worth keeping an eye on.",
+    "factors": [
+      "The yield curve is flattening (spread: 0.87%). It is positive but historically narrow \u2014 when a curve steepens back up after an inversion, recessions have often followed.",
+      "Market volatility (VIX: 17.68) is creeping above its calm baseline.",
+      "GDP growth is 1.6% \u2014 below the ~2% trend. Sustained 'stall speed' growth has historically preceded recessions.",
+      "Unemployment (4.3%) is stable."
+    ]
+  },
+  "raw_indicators": {
+    "yield_curve": {
+      "ten_year": 4.487,
+      "three_month": 3.618,
+      "spread": 0.869,
+      "inverted": false
+    },
+    "vix": {
+      "vix": 17.68,
+      "stress_level": "Normal \u2014 typical market conditions"
+    },
+    "fred": {
+      "available": true,
+      "unemployment_rate": 4.3,
+      "unemployment_rising": false,
+      "gdp_growth": 1.6,
+      "gdp_negative": false
+    }
+  },
+  "real_world_impact": {
+    "mortgages": "No immediate concern. Fixed rates are relatively stable.",
+    "credit_cards": "No major rate changes expected in the near term.",
+    "jobs": "Job market remains relatively healthy.",
+    "groceries_gas": "No recession-driven price pressure detected.",
+    "savings": "A good time to build your emergency fund \u2014 always valuable regardless of conditions."
+  }
+}

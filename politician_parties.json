@@ -1,0 +1,464 @@
+{
+  "John Mcguire": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Virginia",
+    "bioguide": "M001239"
+  },
+  "Tim Moore": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "North Carolina",
+    "bioguide": "M001236"
+  },
+  "Robert E. Latta": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Ohio",
+    "bioguide": "L000566"
+  },
+  "Gilbert Cisneros": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "California",
+    "bioguide": "C001123"
+  },
+  "Tim Walberg": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Michigan",
+    "bioguide": "W000798"
+  },
+  "Maria Elvira Salazar": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Florida",
+    "bioguide": "S000168"
+  },
+  "April Mcclain Delaney": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Maryland",
+    "bioguide": "M001232"
+  },
+  "Christian D. Menefee": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Texas",
+    "bioguide": "M001245"
+  },
+  "Josh Gottheimer": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "New Jersey",
+    "bioguide": "G000583"
+  },
+  "Jake Auchincloss": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Massachusetts",
+    "bioguide": "A000148"
+  },
+  "Virginia Foxx": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "North Carolina",
+    "bioguide": "F000450"
+  },
+  "David J. Taylor": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Ohio",
+    "bioguide": "T000490"
+  },
+  "Lloyd Doggett": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Texas",
+    "bioguide": "D000399"
+  },
+  "Cleo Fields": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Louisiana",
+    "bioguide": "F000110"
+  },
+  "Ed Case": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Hawaii",
+    "bioguide": "C001055"
+  },
+  "Chip Roy": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Texas",
+    "bioguide": "R000614"
+  },
+  "Dwight Evans": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Pennsylvania",
+    "bioguide": "E000296"
+  },
+  "Kevin Hern": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Oklahoma",
+    "bioguide": "H001082"
+  },
+  "Mike Kelly": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Pennsylvania",
+    "bioguide": "K000376"
+  },
+  "Sara Jacobs": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "California",
+    "bioguide": "J000305"
+  },
+  "Greg Stanton": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Arizona",
+    "bioguide": "S001211"
+  },
+  "Brian Babin": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Texas",
+    "bioguide": "B001291"
+  },
+  "Thomas H. Kean Jr": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "New Jersey",
+    "bioguide": "K000398"
+  },
+  "Jonathan Jackson": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Illinois",
+    "bioguide": "J000309"
+  },
+  "Daniel Meuser": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Pennsylvania",
+    "bioguide": "M001204"
+  },
+  "Lloyd K. Smucker": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Pennsylvania",
+    "bioguide": "S001199"
+  },
+  "Susie Lee": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Nevada",
+    "bioguide": "L000590"
+  },
+  "Debbie Dingell": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Michigan",
+    "bioguide": "D000624"
+  },
+  "Richard Dean Dr Mccormick": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Georgia",
+    "bioguide": "M001218"
+  },
+  "Richard W. Allen": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Georgia",
+    "bioguide": "A000372"
+  },
+  "Cliff Bentz": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Oregon",
+    "bioguide": "B000668"
+  },
+  "Greg Steube": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Florida",
+    "bioguide": "S001214"
+  },
+  "Elizabeth Fletcher": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Texas",
+    "bioguide": "F000468"
+  },
+  "Laura Friedman": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "California",
+    "bioguide": "F000483"
+  },
+  "Rick Larsen": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Washington",
+    "bioguide": "L000560"
+  },
+  "Jennifer Mcclellan": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Virginia",
+    "bioguide": "M001227"
+  },
+  "Byron Donalds": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Florida",
+    "bioguide": "D000032"
+  },
+  "Jared Moskowitz": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Florida",
+    "bioguide": "M001217"
+  },
+  "Terri A. Sewell": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Alabama",
+    "bioguide": "S001185"
+  },
+  "Warren Davidson": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Ohio",
+    "bioguide": "D000626"
+  },
+  "Mark Alford": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Missouri",
+    "bioguide": "A000379"
+  },
+  "August Lee Pfluger Ii": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Texas",
+    "bioguide": "P000048"
+  },
+  "Pete Sessions": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Texas",
+    "bioguide": "S000250"
+  },
+  "Kelly Louise Morrison": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Minnesota",
+    "bioguide": "M001234"
+  },
+  "Sheri Biggs": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "South Carolina",
+    "bioguide": "B001325"
+  },
+  "Julia Letlow": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Louisiana",
+    "bioguide": "L000595"
+  },
+  "Thomas Suozzi": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "New York",
+    "bioguide": "S001201"
+  },
+  "Austin Scott": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Georgia",
+    "bioguide": "S001189"
+  },
+  "Scott Scott Franklin": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Florida",
+    "bioguide": "F000472"
+  },
+  "Lisa Mcclain": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Michigan",
+    "bioguide": "M001136"
+  },
+  "Nancy Pelosi": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "California",
+    "bioguide": "P000197"
+  },
+  "Michael Patrick Guest": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Mississippi",
+    "bioguide": "G000591"
+  },
+  "Dan Newhouse": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Washington",
+    "bioguide": "N000189"
+  },
+  "James French Hill": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Arkansas",
+    "bioguide": "H001072"
+  },
+  "Steve Cohen": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Tennessee",
+    "bioguide": "C001068"
+  },
+  "Roger Williams": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Texas",
+    "bioguide": "W000816"
+  },
+  "Julie Johnson": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Texas",
+    "bioguide": "J000310"
+  },
+  "Rob Bresnahan": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Pennsylvania",
+    "bioguide": "B001327"
+  },
+  "David Rouzer": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "North Carolina",
+    "bioguide": "R000603"
+  },
+  "Debbie Wasserman Schultz": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Florida",
+    "bioguide": "W000797"
+  },
+  "Marjorie Taylor Greene": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Georgia",
+    "bioguide": "G000596"
+  },
+  "Brandon Gill": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Texas",
+    "bioguide": "G000603"
+  },
+  "Scott Desjarlais": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Tennessee",
+    "bioguide": "D000616"
+  },
+  "Linda T. Sanchez": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "California",
+    "bioguide": "S001156"
+  },
+  "James D Jordan": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Ohio",
+    "bioguide": "J000289"
+  },
+  "Peter Allen Stauber": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Minnesota",
+    "bioguide": "S001212"
+  },
+  "Eleanor Holmes Norton": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "District of Columbia",
+    "bioguide": "N000147"
+  },
+  "Valerie Hoyle": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Oregon",
+    "bioguide": "H001094"
+  },
+  "Katherine M. Clark": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Massachusetts",
+    "bioguide": "C001101"
+  },
+  "Andrew Garbarino": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "New York",
+    "bioguide": "G000597"
+  },
+  "Judy Chu": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "California",
+    "bioguide": "C001080"
+  },
+  "Adam Smith": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "Washington",
+    "bioguide": "S000510"
+  },
+  "Robert B. Aderholt": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Alabama",
+    "bioguide": "A000055"
+  },
+  "Laurel Lee": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Florida",
+    "bioguide": "L000597"
+  },
+  "Ritchie John Torres": {
+    "party": "Democratic",
+    "party_abbr": "D",
+    "state": "New York",
+    "bioguide": "T000486"
+  },
+  "James Comer": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Kentucky",
+    "bioguide": "C001108"
+  },
+  "John W. Rose": {
+    "party": "Republican",
+    "party_abbr": "R",
+    "state": "Tennessee",
+    "bioguide": "R000612"
+  }
+}

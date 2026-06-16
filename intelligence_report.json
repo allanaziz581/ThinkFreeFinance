@@ -1,0 +1,82 @@
+{
+  "generated_at": "2026-06-14T20:24:57.182907Z",
+  "profile_match": "Today's market conditions align well with your interest in income-focused investments and your strategy of buying more when markets drop.",
+  "headline": "Health Care, Real Estate, and Communication Services sectors show strong growth potential, making them attractive for income-focused investors.",
+  "market_overview": {
+    "what_happened": "The economy is experiencing mixed signals with some sectors like Health Care and Real Estate showing growth, while others like Consumer Discretionary face challenges.",
+    "why_it_happened": "Growth in certain sectors is driven by strategic innovations and strong financial performance, while challenges in others are due to market volatility and regulatory issues.",
+    "who_benefits": "Investors in Health Care, Real Estate, and Communication Services sectors stand to gain due to their growth potential.",
+    "who_is_hurt": "Companies in the Consumer Discretionary sector may struggle due to market volatility and regulatory challenges."
+  },
+  "consumer_impact": {
+    "summary": "For everyday people, stable sectors like Health Care and Real Estate could mean more reliable investment returns, while volatile sectors might pose risks.",
+    "rent_and_housing": "Real Estate is looking strong, which might mean stable housing prices or good investment opportunities.",
+    "groceries_and_gas": "No major changes expected, keeping prices relatively stable.",
+    "credit_cards_and_loans": "Interest rates are stable, so borrowing costs should remain steady.",
+    "jobs_and_income": "The job market is healthy, which is good news for job security and potential wage growth."
+  },
+  "sector_outlook": {
+    "bullish": [
+      "Health Care",
+      "Real Estate",
+      "Communication Services"
+    ],
+    "bearish": [
+      "Consumer Discretionary"
+    ],
+    "why": "Health Care and Real Estate sectors are benefiting from strategic innovations and strong financial performance. Communication Services is also seeing growth due to strategic investments. Meanwhile, Consumer Discretionary is facing challenges due to market volatility and regulatory issues."
+  },
+  "political_intelligence": {
+    "summary": "Recent government disclosures highlight significant investments in AI and strategic moves by major tech companies.",
+    "notable_events": [
+      "Meta is in talks to invest over $10 billion in Scale AI.",
+      "Meta's strategic hiring of Scale AI's founder to enhance AI efforts."
+    ],
+    "disclaimer": "This analysis identifies timing relationships between publicly available government disclosures and market events. It does not imply or allege wrongdoing of any kind."
+  },
+  "market_signals": {
+    "summary": "Technical indicators suggest strong buy signals for certain stocks, while others are flagged for caution.",
+    "top_opportunities": [
+      "ALGN: Strong buy signal indicating potential for price increase.",
+      "AMGN: Buy signal suggesting growth potential.",
+      "AMT: Buy signal indicating favorable conditions."
+    ],
+    "caution_flags": [
+      "A: Sell signal suggesting potential decline.",
+      "DASH: Sell signal indicating possible downturn.",
+      "DIS: Sell signal suggesting market challenges."
+    ]
+  },
+  "historical_context": "During the 2023–2024 AI boom, technology companies saw rapid growth, similar to today's conditions in Health Care and Real Estate sectors.",
+  "recession_risk": {
+    "score": "0.0",
+    "label": "Low",
+    "plain_english": "The economy shows no significant signs of a recession right now, with stable interest rates and a healthy job market.",
+    "what_to_watch": "Keep an eye on employment trends as a key indicator of economic health."
+  },
+  "what_it_means_for_you": "Given your moderate risk tolerance and focus on income, investing in Health Care and Real Estate sectors could align well with your goals. These sectors are showing strong growth potential, which might provide stable returns.",
+  "bottom_line": "Health Care, Real Estate, and Communication Services sectors are promising for income-focused investors, while Consumer Discretionary may pose risks.",
+  "disclaimer": "ThinkFree provides financial intelligence and economic education for informational purposes only. This is not investment advice. All investment decisions are yours to make.",
+  "data_sources_used": [
+    "Economic Reasoning",
+    "Sector Summaries",
+    "Technical Signals",
+    "Recession Indicators",
+    "Political Intelligence",
+    "Backtest Results",
+    "Historical Parallels",
+    "Opportunity Scores",
+    "QuantLib Risk Metrics"
+  ],
+  "user_profile": {
+    "created_at": "2025-06-21T20:44:26.116905",
+    "age": 21,
+    "experience_level": "intermediate",
+    "investment_goal": "income",
+    "timeline": "mid-term",
+    "emotional_response": "buy more",
+    "risk_tolerance": "moderate",
+    "risk_score": 6,
+    "profile_id": "A1_<25_R2_Mod"
+  }
+}

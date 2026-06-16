@@ -1,0 +1,439 @@
+{
+  "generated_at": "2026-06-14T18:56:02.569069Z",
+  "events_analyzed": 3,
+  "historical_parallels": [
+    {
+      "event_type": "fed_rate_cut",
+      "label": "Federal Reserve Rate Cut",
+      "trigger_keywords_matched": [],
+      "plain_english_context": "Rate cuts make borrowing cheaper for everyone. Mortgages become more affordable, businesses can expand more cheaply, and consumers have lower monthly payments. Stocks — especially real estate, utilities, and growth companies — tend to benefit.",
+      "historical_periods": [
+        {
+          "label": "2020 Emergency Cuts (COVID)",
+          "start": "2020-03-01",
+          "end": "2020-12-31",
+          "context": "The Fed cut rates to near zero in March 2020. Markets crashed then rallied strongly.",
+          "sector_performance": {
+            "Broad Market": {
+              "ticker": "SPY",
+              "start_price": 282.47,
+              "end_price": 346.3,
+              "total_return_pct": 22.6,
+              "max_drawdown_pct": -40.8,
+              "trading_days": 212
+            },
+            "Technology": {
+              "ticker": "XLK",
+              "start_price": 44.34,
+              "end_price": 62.35,
+              "total_return_pct": 40.6,
+              "max_drawdown_pct": -46.5,
+              "trading_days": 212
+            },
+            "Energy": {
+              "ticker": "XLE",
+              "start_price": 18.16,
+              "end_price": 15.72,
+              "total_return_pct": -13.4,
+              "max_drawdown_pct": -49.9,
+              "trading_days": 212
+            },
+            "Financials": {
+              "ticker": "XLF",
+              "start_price": 24.86,
+              "end_price": 26.57,
+              "total_return_pct": 6.9,
+              "max_drawdown_pct": -40.4,
+              "trading_days": 212
+            },
+            "Health Care": {
+              "ticker": "XLV",
+              "start_price": 87.62,
+              "end_price": 103.22,
+              "total_return_pct": 17.8,
+              "max_drawdown_pct": -34.5,
+              "trading_days": 212
+            },
+            "Consumer Staples": {
+              "ticker": "XLP",
+              "start_price": 51.81,
+              "end_price": 58.4,
+              "total_return_pct": 12.7,
+              "max_drawdown_pct": -29.6,
+              "trading_days": 212
+            },
+            "Bonds": {
+              "ticker": "TLT",
+              "start_price": 127.7,
+              "end_price": 132.18,
+              "total_return_pct": 3.5,
+              "max_drawdown_pct": -16.4,
+              "trading_days": 212
+            },
+            "Gold": {
+              "ticker": "GLD",
+              "start_price": 149.2,
+              "end_price": 177.7,
+              "total_return_pct": 19.1,
+              "max_drawdown_pct": -28.8,
+              "trading_days": 212
+            }
+          },
+          "winners": [
+            "Technology (+40.6%)",
+            "Broad Market (+22.6%)",
+            "Gold (+19.1%)"
+          ],
+          "losers": [
+            "Financials (+6.9%)",
+            "Bonds (+3.5%)",
+            "Energy (-13.4%)"
+          ]
+        },
+        {
+          "label": "2008 Rate Cuts (Financial Crisis)",
+          "start": "2008-09-01",
+          "end": "2009-06-01",
+          "context": "The Fed slashed rates from 2% to 0% during the financial crisis. Markets fell 50% before recovering.",
+          "sector_performance": {
+            "Broad Market": {
+              "ticker": "SPY",
+              "start_price": 92.31,
+              "end_price": 68.15,
+              "total_return_pct": -26.2,
+              "max_drawdown_pct": -46.0,
+              "trading_days": 187
+            },
+            "Technology": {
+              "ticker": "XLK",
+              "start_price": 8.89,
+              "end_price": 7.03,
+              "total_return_pct": -20.9,
+              "max_drawdown_pct": -41.5,
+              "trading_days": 187
+            },
+            "Energy": {
+              "ticker": "XLE",
+              "start_price": 20.13,
+              "end_price": 14.95,
+              "total_return_pct": -25.7,
+              "max_drawdown_pct": -46.2,
+              "trading_days": 187
+            },
+            "Financials": {
+              "ticker": "XLF",
+              "start_price": 12.62,
+              "end_price": 7.36,
+              "total_return_pct": -41.7,
+              "max_drawdown_pct": -72.1,
+              "trading_days": 187
+            },
+            "Health Care": {
+              "ticker": "XLV",
+              "start_price": 23.93,
+              "end_price": 19.31,
+              "total_return_pct": -19.3,
+              "max_drawdown_pct": -32.5,
+              "trading_days": 187
+            },
+            "Consumer Staples": {
+              "ticker": "XLP",
+              "start_price": 17.59,
+              "end_price": 14.6,
+              "total_return_pct": -17.0,
+              "max_drawdown_pct": -32.4,
+              "trading_days": 187
+            },
+            "Bonds": {
+              "ticker": "TLT",
+              "start_price": 55.61,
+              "end_price": 56.91,
+              "total_return_pct": 2.3,
+              "max_drawdown_pct": -24.9,
+              "trading_days": 187
+            },
+            "Gold": {
+              "ticker": "GLD",
+              "start_price": 79.2,
+              "end_price": 96.2,
+              "total_return_pct": 21.5,
+              "max_drawdown_pct": -28.4,
+              "trading_days": 187
+            }
+          },
+          "winners": [
+            "Gold (+21.5%)",
+            "Bonds (+2.3%)",
+            "Consumer Staples (-17.0%)"
+          ],
+          "losers": [
+            "Energy (-25.7%)",
+            "Broad Market (-26.2%)",
+            "Financials (-41.7%)"
+          ]
+        }
+      ],
+      "narrative": "**Historical context: Federal Reserve Rate Cut**\n\nRate cuts make borrowing cheaper for everyone. Mortgages become more affordable, businesses can expand more cheaply, and consumers have lower monthly payments. Stocks — especially real estate, utilities, and growth companies — tend to benefit.\n\n**What happened in similar past situations:**\n\n• **2020 Emergency Cuts (COVID)**: The Fed cut rates to near zero in March 2020. Markets crashed then rallied strongly.\n  Overall market rose 22.6%.\n  Best performers: Technology (+40.6%), Broad Market (+22.6%), Gold (+19.1%)\n  Worst performers: Financials (+6.9%), Bonds (+3.5%), Energy (-13.4%)\n\n• **2008 Rate Cuts (Financial Crisis)**: The Fed slashed rates from 2% to 0% during the financial crisis. Markets fell 50% before recovering.\n  Overall market fell 26.2%.\n  Best performers: Gold (+21.5%), Bonds (+2.3%), Consumer Staples (-17.0%)\n  Worst performers: Energy (-25.7%), Broad Market (-26.2%), Financials (-41.7%)\n\n*Historical patterns are informative but do not guarantee future outcomes.*",
+      "key_takeaway": "In similar historical periods, markets were mixed, averaging -1.8%. Past outcomes do not guarantee future results."
+    },
+    {
+      "event_type": "inflation_spike",
+      "label": "Inflation Surge",
+      "trigger_keywords_matched": [],
+      "plain_english_context": "Inflation means prices rise faster than wages, reducing purchasing power. Groceries, rent, and gas become more expensive. Savings accounts lose real value. Companies that sell physical goods or energy often do well. Growth stocks and bonds typically underperform.",
+      "historical_periods": [
+        {
+          "label": "2021–2022 Post-COVID Inflation",
+          "start": "2021-04-01",
+          "end": "2023-01-01",
+          "context": "CPI peaked at 9.1% in June 2022 — the highest since 1981. Energy and commodity stocks outperformed.",
+          "sector_performance": {
+            "Broad Market": {
+              "ticker": "SPY",
+              "start_price": 374.16,
+              "end_price": 366.62,
+              "total_return_pct": -2.0,
+              "max_drawdown_pct": -24.5,
+              "trading_days": 442
+            },
+            "Technology": {
+              "ticker": "XLK",
+              "start_price": 65.2,
+              "end_price": 60.81,
+              "total_return_pct": -6.7,
+              "max_drawdown_pct": -33.6,
+              "trading_days": 442
+            },
+            "Energy": {
+              "ticker": "XLE",
+              "start_price": 20.91,
+              "end_price": 39.26,
+              "total_return_pct": 87.8,
+              "max_drawdown_pct": -54.0,
+              "trading_days": 442
+            },
+            "Financials": {
+              "ticker": "XLF",
+              "start_price": 31.59,
+              "end_price": 32.42,
+              "total_return_pct": 2.6,
+              "max_drawdown_pct": -25.8,
+              "trading_days": 442
+            },
+            "Health Care": {
+              "ticker": "XLV",
+              "start_price": 107.39,
+              "end_price": 128.73,
+              "total_return_pct": 19.9,
+              "max_drawdown_pct": -19.7,
+              "trading_days": 442
+            },
+            "Consumer Staples": {
+              "ticker": "XLP",
+              "start_price": 59.6,
+              "end_price": 68.38,
+              "total_return_pct": 14.7,
+              "max_drawdown_pct": -17.6,
+              "trading_days": 442
+            },
+            "Bonds": {
+              "ticker": "TLT",
+              "start_price": 115.83,
+              "end_price": 86.84,
+              "total_return_pct": -25.0,
+              "max_drawdown_pct": -39.1,
+              "trading_days": 442
+            },
+            "Gold": {
+              "ticker": "GLD",
+              "start_price": 161.98,
+              "end_price": 169.64,
+              "total_return_pct": 4.7,
+              "max_drawdown_pct": -21.0,
+              "trading_days": 442
+            }
+          },
+          "winners": [
+            "Energy (+87.8%)",
+            "Health Care (+19.9%)",
+            "Consumer Staples (+14.7%)"
+          ],
+          "losers": [
+            "Broad Market (-2.0%)",
+            "Technology (-6.7%)",
+            "Bonds (-25.0%)"
+          ]
+        },
+        {
+          "label": "1979–1982 Great Inflation",
+          "start": "1979-01-01",
+          "end": "1982-12-31",
+          "context": "Inflation reached 14.8% in 1980. The Fed raised rates to 20%, causing a severe recession but breaking inflation.",
+          "sector_performance": {},
+          "winners": [],
+          "losers": []
+        }
+      ],
+      "narrative": "**Historical context: Inflation Surge**\n\nInflation means prices rise faster than wages, reducing purchasing power. Groceries, rent, and gas become more expensive. Savings accounts lose real value. Companies that sell physical goods or energy often do well. Growth stocks and bonds typically underperform.\n\n**What happened in similar past situations:**\n\n• **2021–2022 Post-COVID Inflation**: CPI peaked at 9.1% in June 2022 — the highest since 1981. Energy and commodity stocks outperformed.\n  Overall market fell 2.0%.\n  Best performers: Energy (+87.8%), Health Care (+19.9%), Consumer Staples (+14.7%)\n  Worst performers: Broad Market (-2.0%), Technology (-6.7%), Bonds (-25.0%)\n\n• **1979–1982 Great Inflation**: Inflation reached 14.8% in 1980. The Fed raised rates to 20%, causing a severe recession but breaking inflation.\n\n*Historical patterns are informative but do not guarantee future outcomes.*",
+      "key_takeaway": "In similar historical periods, markets were mixed, averaging -2.0%. Past outcomes do not guarantee future results."
+    },
+    {
+      "event_type": "ai_boom",
+      "label": "AI / Technology Boom",
+      "trigger_keywords_matched": [],
+      "plain_english_context": "Technology booms create wealth rapidly for those invested in the sector, but also risk overvaluation. The companies building the infrastructure (chips, data centers, energy) often outperform the end-application companies.",
+      "historical_periods": [
+        {
+          "label": "2023–2024 Generative AI Surge",
+          "start": "2023-01-01",
+          "end": "2024-12-31",
+          "context": "ChatGPT's launch triggered massive AI infrastructure investment. Nvidia rose 800%+. Cloud providers surged.",
+          "sector_performance": {
+            "Broad Market": {
+              "ticker": "SPY",
+              "start_price": 365.07,
+              "end_price": 579.81,
+              "total_return_pct": 58.8,
+              "max_drawdown_pct": -39.1,
+              "trading_days": 501
+            },
+            "Technology": {
+              "ticker": "XLK",
+              "start_price": 60.23,
+              "end_price": 116.36,
+              "total_return_pct": 93.2,
+              "max_drawdown_pct": -50.5,
+              "trading_days": 501
+            },
+            "Energy": {
+              "ticker": "XLE",
+              "start_price": 37.88,
+              "end_price": 40.64,
+              "total_return_pct": 7.3,
+              "max_drawdown_pct": -25.5,
+              "trading_days": 501
+            },
+            "Financials": {
+              "ticker": "XLF",
+              "start_price": 32.54,
+              "end_price": 47.37,
+              "total_return_pct": 45.6,
+              "max_drawdown_pct": -41.4,
+              "trading_days": 501
+            },
+            "Health Care": {
+              "ticker": "XLV",
+              "start_price": 128.36,
+              "end_price": 134.32,
+              "total_return_pct": 4.6,
+              "max_drawdown_pct": -22.9,
+              "trading_days": 501
+            },
+            "Consumer Staples": {
+              "ticker": "XLP",
+              "start_price": 68.12,
+              "end_price": 75.86,
+              "total_return_pct": 11.4,
+              "max_drawdown_pct": -23.2,
+              "trading_days": 501
+            },
+            "Bonds": {
+              "ticker": "TLT",
+              "start_price": 88.5,
+              "end_price": 82.5,
+              "total_return_pct": -6.8,
+              "max_drawdown_pct": -22.4,
+              "trading_days": 501
+            },
+            "Gold": {
+              "ticker": "GLD",
+              "start_price": 171.06,
+              "end_price": 240.63,
+              "total_return_pct": 40.7,
+              "max_drawdown_pct": -34.6,
+              "trading_days": 501
+            }
+          },
+          "winners": [
+            "Technology (+93.2%)",
+            "Broad Market (+58.8%)",
+            "Financials (+45.6%)"
+          ],
+          "losers": [
+            "Energy (+7.3%)",
+            "Health Care (+4.6%)",
+            "Bonds (-6.8%)"
+          ]
+        },
+        {
+          "label": "1995–2000 Internet Boom",
+          "start": "1995-01-01",
+          "end": "2000-03-31",
+          "context": "The internet boom drove Nasdaq up 400%. Ultimately a bubble burst, but the underlying technology transformed the economy.",
+          "sector_performance": {
+            "Broad Market": {
+              "ticker": "SPY",
+              "start_price": 26.51,
+              "end_price": 93.65,
+              "total_return_pct": 253.2,
+              "max_drawdown_pct": -72.6,
+              "trading_days": 1325
+            },
+            "Technology": {
+              "ticker": "XLK",
+              "start_price": 11.92,
+              "end_price": 22.11,
+              "total_return_pct": 85.5,
+              "max_drawdown_pct": -50.3,
+              "trading_days": 321
+            },
+            "Energy": {
+              "ticker": "XLE",
+              "start_price": 5.74,
+              "end_price": 7.41,
+              "total_return_pct": 29.2,
+              "max_drawdown_pct": -30.3,
+              "trading_days": 321
+            },
+            "Financials": {
+              "ticker": "XLF",
+              "start_price": 11.16,
+              "end_price": 11.73,
+              "total_return_pct": 5.1,
+              "max_drawdown_pct": -26.5,
+              "trading_days": 321
+            },
+            "Health Care": {
+              "ticker": "XLV",
+              "start_price": 16.79,
+              "end_price": 20.32,
+              "total_return_pct": 21.1,
+              "max_drawdown_pct": -24.2,
+              "trading_days": 321
+            },
+            "Consumer Staples": {
+              "ticker": "XLP",
+              "start_price": 13.99,
+              "end_price": 11.42,
+              "total_return_pct": -18.4,
+              "max_drawdown_pct": -31.9,
+              "trading_days": 321
+            }
+          },
+          "winners": [
+            "Broad Market (+253.2%)",
+            "Technology (+85.5%)",
+            "Energy (+29.2%)"
+          ],
+          "losers": [
+            "Health Care (+21.1%)",
+            "Financials (+5.1%)",
+            "Consumer Staples (-18.4%)"
+          ]
+        }
+      ],
+      "narrative": "**Historical context: AI / Technology Boom**\n\nTechnology booms create wealth rapidly for those invested in the sector, but also risk overvaluation. The companies building the infrastructure (chips, data centers, energy) often outperform the end-application companies.\n\n**What happened in similar past situations:**\n\n• **2023–2024 Generative AI Surge**: ChatGPT's launch triggered massive AI infrastructure investment. Nvidia rose 800%+. Cloud providers surged.\n  Overall market rose 58.8%.\n  Best performers: Technology (+93.2%), Broad Market (+58.8%), Financials (+45.6%)\n  Worst performers: Energy (+7.3%), Health Care (+4.6%), Bonds (-6.8%)\n\n• **1995–2000 Internet Boom**: The internet boom drove Nasdaq up 400%. Ultimately a bubble burst, but the underlying technology transformed the economy.\n  Overall market rose 253.2%.\n  Best performers: Broad Market (+253.2%), Technology (+85.5%), Energy (+29.2%)\n  Worst performers: Health Care (+21.1%), Financials (+5.1%), Consumer Staples (-18.4%)\n\n*Historical patterns are informative but do not guarantee future outcomes.*",
+      "key_takeaway": "In similar historical periods, markets generally rose an average of 156.0%. Past outcomes do not guarantee future results."
+    }
+  ]
+}

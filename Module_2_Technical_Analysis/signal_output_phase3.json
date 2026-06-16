@@ -1,0 +1,2250 @@
+[
+  {
+    "date": "2026-06-12",
+    "ticker": "A",
+    "final_signal": "SELL",
+    "confidence_score": -2,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Bearish signals dominate across indicators. Supporting: MACD bearish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "ABBV",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "ABNB",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "ABT",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "ALGN",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "AMGN",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "AMT",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "AMZN",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "APTV",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "ARE",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "AVB",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "AZO",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "BAX",
+    "final_signal": "HOLD",
+    "confidence_score": -1,
+    "supporting_indicators": [
+      "RSI (overbought at 70.78)",
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 70.78), MACD bullish crossover, SMA 50 < SMA 200 (death cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "BBY",
+    "final_signal": "HOLD",
+    "confidence_score": -1,
+    "supporting_indicators": [
+      "RSI (overbought at 73.01)",
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 73.01), MACD bullish crossover, SMA 50 < SMA 200 (death cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "BDX",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "BIIB",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "BKNG",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "BMY",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "BSX",
+    "final_signal": "HOLD",
+    "confidence_score": 1,
+    "supporting_indicators": [
+      "RSI (oversold at 29.11)",
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (oversold at 29.11), MACD bullish crossover, SMA 50 < SMA 200 (death cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "BXP",
+    "final_signal": "HOLD",
+    "confidence_score": -1,
+    "supporting_indicators": [
+      "RSI (overbought at 71.81)",
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 71.81), MACD bullish crossover, SMA 50 < SMA 200 (death cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CAH",
+    "final_signal": "HOLD",
+    "confidence_score": 1,
+    "supporting_indicators": [
+      "RSI (overbought at 76.11)",
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 76.11), MACD bullish crossover, SMA 50 > SMA 200 (golden cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CBRE",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CCI",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CCL",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CHTR",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CI",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CMCSA",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CMG",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CNC",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "COO",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "COR",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CPT",
+    "final_signal": "HOLD",
+    "confidence_score": 1,
+    "supporting_indicators": [
+      "RSI (overbought at 73.87)",
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 73.87), MACD bullish crossover, SMA 50 > SMA 200 (golden cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CRL",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CSGP",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CVS",
+    "final_signal": "HOLD",
+    "confidence_score": 1,
+    "supporting_indicators": [
+      "RSI (overbought at 74.73)",
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 74.73), MACD bullish crossover, SMA 50 > SMA 200 (golden cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "CZR",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "DASH",
+    "final_signal": "SELL",
+    "confidence_score": -2,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Bearish signals dominate across indicators. Supporting: MACD bearish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "DECK",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "DGX",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "DHI",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "DHR",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "DIS",
+    "final_signal": "SELL",
+    "confidence_score": -2,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Bearish signals dominate across indicators. Supporting: MACD bearish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "DLR",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "DOC",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "DPZ",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "DRI",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "DVA",
+    "final_signal": "HOLD",
+    "confidence_score": -1,
+    "supporting_indicators": [
+      "RSI (overbought at 71.29)",
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 71.29), MACD bearish crossover, SMA 50 > SMA 200 (golden cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "DXCM",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "EA",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "EBAY",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "ELV",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "EQIX",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "EQR",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "ESS",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "EW",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "EXPE",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "EXR",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "F",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "FOX",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "FOXA",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "FRT",
+    "final_signal": "HOLD",
+    "confidence_score": 1,
+    "supporting_indicators": [
+      "RSI (overbought at 74.87)",
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 74.87), MACD bullish crossover, SMA 50 > SMA 200 (golden cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "GEHC",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "GILD",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "GM",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "GOOG",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "GOOGL",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "GPC",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "GRMN",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "HAS",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "HCA",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "HD",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "HLT",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "HSIC",
+    "final_signal": "HOLD",
+    "confidence_score": 1,
+    "supporting_indicators": [
+      "RSI (overbought at 71.22)",
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 71.22), MACD bullish crossover, SMA 50 > SMA 200 (golden cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "HST",
+    "final_signal": "HOLD",
+    "confidence_score": 1,
+    "supporting_indicators": [
+      "RSI (overbought at 72.50)",
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 72.50), MACD bullish crossover, SMA 50 > SMA 200 (golden cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "HUM",
+    "final_signal": "HOLD",
+    "confidence_score": 1,
+    "supporting_indicators": [
+      "RSI (overbought at 85.93)",
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 85.93), MACD bullish crossover, SMA 50 > SMA 200 (golden cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "IDXX",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "INCY",
+    "final_signal": "HOLD",
+    "confidence_score": 1,
+    "supporting_indicators": [
+      "RSI (overbought at 70.26)",
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 70.26), MACD bullish crossover, SMA 50 > SMA 200 (golden cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "INVH",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "IQV",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "IRM",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "ISRG",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "JNJ",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "KIM",
+    "final_signal": "HOLD",
+    "confidence_score": 1,
+    "supporting_indicators": [
+      "RSI (overbought at 77.61)",
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 77.61), MACD bullish crossover, SMA 50 > SMA 200 (golden cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "KMX",
+    "final_signal": "HOLD",
+    "confidence_score": -1,
+    "supporting_indicators": [
+      "RSI (overbought at 77.20)",
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 77.20), MACD bullish crossover, SMA 50 < SMA 200 (death cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "LEN",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "LH",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "LKQ",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "LLY",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "LOW",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "LULU",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "LVS",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "LYV",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "MAA",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "MAR",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "MCD",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "MCK",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "MDT",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "META",
+    "final_signal": "SELL",
+    "confidence_score": -2,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Bearish signals dominate across indicators. Supporting: MACD bearish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "MGM",
+    "final_signal": "HOLD",
+    "confidence_score": 1,
+    "supporting_indicators": [
+      "RSI (overbought at 72.19)",
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 72.19), MACD bullish crossover, SMA 50 > SMA 200 (golden cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "MHK",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "MOH",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "MRK",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "MRNA",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "MTCH",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "MTD",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "NCLH",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "NFLX",
+    "final_signal": "HOLD",
+    "confidence_score": -1,
+    "supporting_indicators": [
+      "RSI (oversold at 29.05)",
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (oversold at 29.05), MACD bearish crossover, SMA 50 < SMA 200 (death cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "NKE",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "NVR",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "NWS",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "NWSA",
+    "final_signal": "SELL",
+    "confidence_score": -2,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Bearish signals dominate across indicators. Supporting: MACD bearish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "O",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "OMC",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "ORLY",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "PFE",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "PHM",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "PLD",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "PODD",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "POOL",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "PSA",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "RCL",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "REG",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "REGN",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "RL",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "RMD",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "ROST",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "RVTY",
+    "final_signal": "SELL",
+    "confidence_score": -2,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Bearish signals dominate across indicators. Supporting: MACD bearish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "SBAC",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "SBUX",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "SOLV",
+    "final_signal": "SELL",
+    "confidence_score": -2,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Bearish signals dominate across indicators. Supporting: MACD bearish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "SPG",
+    "final_signal": "HOLD",
+    "confidence_score": 1,
+    "supporting_indicators": [
+      "RSI (overbought at 73.45)",
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 73.45), MACD bullish crossover, SMA 50 > SMA 200 (golden cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "STE",
+    "final_signal": "SELL",
+    "confidence_score": -2,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Bearish signals dominate across indicators. Supporting: MACD bearish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "SYK",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "T",
+    "final_signal": "SELL",
+    "confidence_score": -2,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Bearish signals dominate across indicators. Supporting: MACD bearish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "TECH",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "TJX",
+    "final_signal": "HOLD",
+    "confidence_score": 1,
+    "supporting_indicators": [
+      "RSI (overbought at 70.62)",
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 70.62), MACD bullish crossover, SMA 50 > SMA 200 (golden cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "TKO",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "TMO",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "TMUS",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "TPR",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "TSCO",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "TSLA",
+    "final_signal": "SELL",
+    "confidence_score": -2,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Bearish signals dominate across indicators. Supporting: MACD bearish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "TTWO",
+    "final_signal": "SELL",
+    "confidence_score": -2,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Bearish signals dominate across indicators. Supporting: MACD bearish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "UDR",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "UHS",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "ULTA",
+    "final_signal": "SELL",
+    "confidence_score": -2,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Bearish signals dominate across indicators. Supporting: MACD bearish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "UNH",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "VICI",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "VRTX",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "VTR",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "VTRS",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "VZ",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "WAT",
+    "final_signal": "SELL",
+    "confidence_score": -2,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Bearish signals dominate across indicators. Supporting: MACD bearish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "WBD",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bearish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bearish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "WELL",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "WSM",
+    "final_signal": "HOLD",
+    "confidence_score": -1,
+    "supporting_indicators": [
+      "RSI (overbought at 70.65)",
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [],
+    "reasoning": "Indicators are mixed or weak. Supporting: RSI (overbought at 70.65), MACD bullish crossover, SMA 50 < SMA 200 (death cross)"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "WST",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "WY",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "WYNN",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "YUM",
+    "final_signal": "BUY",
+    "confidence_score": 2,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 > SMA 200 (golden cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators suggest a bullish setup. Supporting: MACD bullish crossover, SMA 50 > SMA 200 (golden cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "ZBH",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  },
+  {
+    "date": "2026-06-12",
+    "ticker": "ZTS",
+    "final_signal": "HOLD",
+    "confidence_score": 0,
+    "supporting_indicators": [
+      "MACD bullish crossover",
+      "SMA 50 < SMA 200 (death cross)"
+    ],
+    "contradicting_indicators": [
+      "RSI in neutral zone"
+    ],
+    "reasoning": "Indicators are mixed or weak. Supporting: MACD bullish crossover, SMA 50 < SMA 200 (death cross). Conflicting: RSI in neutral zone"
+  }
+]

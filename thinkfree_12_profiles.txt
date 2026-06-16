@@ -1,0 +1,12 @@
+A1_<25_R1_Cons: Young adults under 25 with Conservative risk tolerance
+A1_<25_R2_Mod: Young adults under 25 with Moderate risk tolerance
+A1_<25_R3_High: Young adults under 25 with High risk tolerance
+A2_25-34_R1_Cons: Young professionals aged 25–34 with Conservative risk tolerance
+A2_25-34_R2_Mod: Young professionals aged 25–34 with Moderate risk tolerance
+A2_25-34_R3_High: Young professionals aged 25–34 with High risk tolerance
+A3_35-50_R1_Cons: Mid-career individuals aged 35–50 with Conservative risk tolerance
+A3_35-50_R2_Mod: Mid-career individuals aged 35–50 with Moderate risk tolerance
+A3_35-50_R3_High: Mid-career individuals aged 35–50 with High risk tolerance
+A4_50+_R1_Cons: Older investors aged 50+ with Conservative risk tolerance
+A4_50+_R2_Mod: Older investors aged 50+ with Moderate risk tolerance
+A4_50+_R3_High: Older investors aged 50+ with High risk tolerance
