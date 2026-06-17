@@ -91,6 +91,25 @@
     { name: "Consumer Goods", icon: "consumer", t: ["WMT","PG","KO","COST","CLX","CAG","AZO","CL","PEP","MDLZ","KHC"] },
   ];
 
+  // Merge the full S&P 500 into the sectors. Curated names stay first; the rest
+  // of each sector's real membership is appended (shown via "View More").
+  const SP = (window.SP500 || {}).byTicker || {};
+  const PX = (window.PRICES_DATA || {}).byTicker || {};
+  (function mergeSP500() {
+    const bySec = {};
+    Object.keys(SP).forEach((tk) => { const s = SP[tk].sector; (bySec[s] = bySec[s] || []).push(tk); });
+    const byName = {}; SECTORS.forEach((sec) => (byName[sec.name] = sec));
+    const EXTRA_ICON = { Industrials: "transportation", Materials: "energy" };
+    Object.keys(bySec).forEach((name) => {
+      if (!byName[name]) { const sec = { name, icon: EXTRA_ICON[name] || "subsidiaries", t: [] }; SECTORS.push(sec); byName[name] = sec; }
+    });
+    SECTORS.forEach((sec) => {
+      const have = new Set(sec.t);
+      (bySec[sec.name] || []).forEach((tk) => { if (!have.has(tk)) { have.add(tk); sec.t.push(tk); } });
+    });
+  })();
+  const marketCap = (tk) => (PX[tk] && PX[tk].market_cap) || 0;
+
   // ---- index our data ----
   const tradeCount = {}, billsByTicker = {}, polsByTicker = {}, lobbyBySector = {};
   const personIndex = {};   // person name -> [{ticker, company, title, current, role}]
@@ -113,15 +132,17 @@
     all.forEach((b) => {
       if (seen.has(b.bill_id)) return; seen.add(b.bill_id);
       (b.sectors || []).forEach((s) => { (lobbyBySector[s] = lobbyBySector[s] || new Set()); (b.lobbying || []).forEach((l) => lobbyBySector[s].add(l.org)); });
-      (b.tickers || []).forEach((tk) => { (billsByTicker[tk] = billsByTicker[tk] || []); if (billsByTicker[tk].length < 8 && !billsByTicker[tk].some((x) => x.bill_id === b.bill_id)) billsByTicker[tk].push(b); });
+      (b.tickers || []).forEach((tk) => { (billsByTicker[tk] = billsByTicker[tk] || []); if (!billsByTicker[tk].some((x) => x.bill_id === b.bill_id)) billsByTicker[tk].push(b); });
     });
     (D.recent_trades || []).forEach((t) => { if (!t.ticker) return; tradeCount[t.ticker] = (tradeCount[t.ticker] || 0) + 1; (polsByTicker[t.ticker] = polsByTicker[t.ticker] || new Set()).add(t.politician); });
   }
 
-  const compName = (tk) => (IWD[tk] && IWD[tk].name) || (SECD[tk] && SECD[tk].entityName) || tk;
+  const compName = (tk) => (IWD[tk] && IWD[tk].name) || (SECD[tk] && SECD[tk].entityName) || (PX[tk] && PX[tk].name) || (SP[tk] && SP[tk].name) || tk;
   function companyHasData(tk) { return IWD[tk] || SECD[tk] || tradeCount[tk] || (billsByTicker[tk] || []).length; }
+  // Full sector membership, most important first (market cap, then influence).
+  // The graph shows the top SHOW_LIMIT and reveals the rest via the "More" node.
   function sectorCompanies(sec) {
-    return (sec.t || []).filter(companyHasData).sort((a, b) => companyInfluence(b) - companyInfluence(a));
+    return (sec.t || []).slice().sort((a, b) => (marketCap(b) - marketCap(a)) || (companyInfluence(b) - companyInfluence(a)) || a.localeCompare(b));
   }
   function companyInfluence(tk) {
     const lis = IWD[tk] || {};
@@ -133,8 +154,9 @@
   }
   function sectorInfluence(sec) {
     const comps = sectorCompanies(sec);
-    let s = comps.length * 6;
-    comps.forEach((tk) => { s += companyInfluence(tk) * 0.25; });
+    // count contribution is bounded so density reflects real activity, not raw S&P size
+    let s = Math.min(comps.length, 14) * 3.2;
+    comps.forEach((tk) => { s += companyInfluence(tk) * 0.18; });
     s += (lobbyBySector[sec.name] ? lobbyBySector[sec.name].size : 0) * 4;
     return s;
   }
@@ -153,10 +175,11 @@
   // ============================================================
   let nodes = [], edges = [], nodeById = {}, seq = 0;
   let scene, edgesSvg, canvas, panel, tip, hud, W = 0, H = 0;
-  let cam = { x: 0, y: 0, zoom: 1 }, camT = null;
+  let cam = { x: 0, y: 0, zoom: 1 }, camT = null, preZoomCam = null;
   let drag = null, started = false, active = false, selectedId = null, settle = 0;
   let leaving = [], sweepTimer = null, showXlinks = true, focusedSector = null;
-  const ZOOM_MIN = 0.5, ZOOM_MAX = 3.2;   // clamp so the user can't lose the map
+  const ZOOM_MIN = 0.3, ZOOM_MAX = 3.2;   // hard bounds so the user can't lose the map
+  const FIT_MAX = 1.5;                     // never auto-fit closer than this
 
   function addNode(o) {
     o.id = "n" + seq++;
@@ -238,7 +261,8 @@
     layoutChildren(sn);
     linkSharedOwners();
     rebuild();
-    fitSubtree(sn);
+    // re-fit to the now-larger ring so the newly revealed companies stay on-page
+    fitSubtree(sn, 0.74);
   }
 
   // evenly distribute all of a parent's children around it (dynamic radius)
@@ -449,10 +473,12 @@
     }
   }
 
-  // camera auto-fit to a node and all its children (uses target positions)
-  function fitSubtree(parent) {
+  // camera auto-fit to a node and all its children (uses target positions).
+  // pad < 1 leaves margin around the bbox: lower pad = more zoomed-out / more room.
+  function fitSubtree(parent, pad) {
     const group = nodes.filter((n) => (n.id === parent.id || n.parent === parent.id) && !n.collapsing);
     if (!group.length) return;
+    pad = pad || 0.85;
     let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
     group.forEach((n) => {
       const px = n.tx != null ? n.tx : n.x, py = n.ty != null ? n.ty : n.y;
@@ -461,7 +487,8 @@
       minY = Math.min(minY, py - r); maxY = Math.max(maxY, py + r);
     });
     const bw = maxX - minX, bh = maxY - minY;
-    const z = Math.max(ZOOM_MIN, Math.min(1.6, Math.min(W / bw, H / bh) * 0.88));
+    // fit the whole bbox inside the viewport with margin, bounded by hard zoom limits
+    const z = Math.max(ZOOM_MIN, Math.min(FIT_MAX, Math.min(W / bw, H / bh) * pad));
     const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
     camT = { x: W / 2 - cx * z, y: H / 2 - cy * z, zoom: z };
   }
@@ -500,8 +527,9 @@
     // mark focus emphasis
     scene.querySelectorAll(".iw-focus").forEach((el) => el.classList.remove("iw-focus"));
     if (n.el) n.el.classList.add("iw-focus");
-    // auto-fit camera to the node + its revealed children
-    if (n.expanded && nodes.some((x) => x.parent === n.id)) fitSubtree(n);
+    // auto-fit camera to the node + its revealed children. Sectors fit slightly
+    // zoomed-out (more margin) so the whole ring sits comfortably on the page.
+    if (n.expanded && nodes.some((x) => x.parent === n.id)) fitSubtree(n, n.type === "sector" ? 0.78 : 0.85);
     else { const z = Math.max(cam.zoom, 1.1); camT = { x: W / 2 - n.x * z, y: H / 2 - n.y * z, zoom: z }; }
     if (hud) hud.style.opacity = "0";
     settle = 90; // let physics actively run after a change
@@ -516,15 +544,15 @@
   function scoreBlock(tk) {
     if (!window.TFScores) return "";
     const inf = TFScores.influenceScore(tk), dep = TFScores.dependencyScore(tk);
-    const meter = (label, v, hint) => {
+    const meter = (label, v, hint, kind) => {
       const c = v >= 70 ? "#EF4444" : v >= 40 ? "#E9C46A" : "#14B8A6";
-      return `<div class="iw-meter"><div class="iw-meter-top"><span>${label} <span class="iw-dim" style="text-transform:none;letter-spacing:0;">${E(TFScores.label(v))}</span></span><span>${v}/100</span></div>
+      return `<div class="iw-meter si" data-si-kind="${kind}" data-si-key="${E(tk)}" data-si-val="${v}"><div class="iw-meter-top"><span>${label} <span class="iw-dim" style="text-transform:none;letter-spacing:0;">${E(TFScores.label(v))}</span><i class="si-i">&#9432;</i></span><span>${v}/100</span></div>
         <div class="iw-meter-track"><div class="iw-meter-fill" style="width:${v}%;background:${c}"></div></div>
         <div class="iw-dim" style="font-size:10.5px;margin-top:3px;">${E(hint)}</div></div>`;
     };
     return `<div class="iw-sec">ThinkFree Scores</div>
-      ${meter("Influence Score", inf, "Entanglement with government: contracts, bills, lobbying, congressional trading.")}
-      ${meter("Government Dependency", dep, "Federal contract dollars relative to company revenue.")}`;
+      ${meter("Influence Score", inf, "Entanglement with government: contracts, bills, lobbying, congressional trading.", "company-influence")}
+      ${meter("Government Dependency", dep, "Federal contract dollars relative to company revenue.", "company-dependency")}`;
   }
 
   // real SEC EDGAR financials block (from bulk companyfacts)
@@ -748,7 +776,7 @@
     }
     if (n.cat === "bills") {
       const bills = billsByTicker[tk] || [];
-      return `<div class="iw-back" data-up="${n.parent}">&lsaquo; Back</div><div class="iw-eyebrow">${E(compName(tk))}</div><h3>Related Legislation</h3>
+      return `<div class="iw-back" data-up="${n.parent}">&lsaquo; Back</div><div class="iw-eyebrow">${E(compName(tk))}</div><h3>Related Legislation (${bills.length})</h3>
         <div class="iw-cc">${bills.map((b) => `<div class="iw-cc-item" data-bill="${E(b.bill_id)}"><span class="iw-av sm" style="background:rgba(129,140,248,.18);color:#818CF8">B</span><span>${E(b.bill_id)}</span></div>`).join("") || "<p class='iw-hint'>None.</p>"}</div>`;
     }
     if (n.cat === "lobbying") {
@@ -820,6 +848,12 @@
       if (!el) return;
       const n = nodeById[el.dataset.id]; if (!n) return;
       if (n.type === "more") { revealMore(n); return; }
+      // Congress -> animated zoom into the node, then open the branches-of-power drill-down
+      if (n.type === "congress" && window.CongressDrill) {
+        if (window.IW && window.IW.zoomToCongress) window.IW.zoomToCongress(() => window.CongressDrill.open());
+        else window.CongressDrill.open();
+        return;
+      }
       // toggle: if already expanded, clicking retracts its branch (root stays open)
       if (n.type !== "congress" && n.expanded && nodes.some((x) => x.parent === n.id)) {
         collapse(n);
@@ -944,6 +978,33 @@
       if (!nodes.length) reset(); else applyCam();
     },
     deactivate() { active = false; if (tip) tip.classList.remove("open"); },
+    // animated zoom toward the Congress hub: sectors fade back, camera pushes in,
+    // then the callback (open the drill overlay) fires once the push completes.
+    zoomToCongress(cb) {
+      const c = nodes.find((n) => n.type === "congress");
+      if (!c || !scene) { cb && cb(); return; }
+      if (!preZoomCam) preZoomCam = { x: cam.x, y: cam.y, zoom: cam.zoom };
+      nodes.forEach((n) => { if (n.el) { n.el.style.transition = "opacity .45s ease"; n.el.style.opacity = n.type === "congress" ? "1" : "0.06"; } });
+      if (edgesSvg) edgesSvg.querySelectorAll(".iw-line").forEach((el) => { el.style.transition = "opacity .45s ease"; el.style.opacity = "0.04"; });
+      const z = 2.4;
+      camT = { x: W / 2 - c.x * z, y: H / 2 - c.y * z, zoom: z };
+      if (hud) hud.style.opacity = "0";
+      setTimeout(() => { cb && cb(); }, 540);
+    },
+    // reverse the Congress zoom (called when the drill overlay closes)
+    zoomOut() {
+      nodes.forEach((n) => { if (n.el) n.el.style.opacity = "1"; });
+      if (edgesSvg) edgesSvg.querySelectorAll(".iw-line").forEach((el) => { el.style.opacity = ""; });
+      if (preZoomCam) { camT = preZoomCam; preZoomCam = null; }
+      if (hud) hud.style.opacity = "1";
+    },
+    // hard reset back to the default graph (close drill, clear zoom, rebuild).
+    // used when closing the drill and when re-entering the InfluenceWeb page.
+    resetView() {
+      const d = document.getElementById("iw-drill"); if (d) d.classList.remove("open");
+      preZoomCam = null;
+      if (scene) reset();
+    },
     // open a specific company: find its sector, expand to it, focus it
     openCompany(tk) {
       this.activate();

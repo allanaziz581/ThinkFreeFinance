@@ -117,8 +117,28 @@
     return `$${a.toFixed(0)}`;
   }
 
+  /* ---------- SCORE TRANSPARENCY: plain-English formulas ---------- */
+  const FORMULAS = {
+    company: ["How we calculate company scores", [
+      "<b>Influence Score</b> = 12 base + federal contracts (log scale, up to 40) + bill mentions (×3, up to 18) + congressional trades (×0.4, up to 18) + distinct members trading it (×1.4, up to 12) + registered lobbying (×7) + board size (×0.4, up to 5). Capped 0–100.",
+      "<b>Government Dependency</b> = federal contract dollars ÷ ~5 years of revenue, scaled ×140 and capped at 100 (≈70% government revenue → ~98).",
+    ]],
+    pol: ["How we calculate member scores", [
+      "<b>Influence</b> = 30 base + disclosed trades (×0.3) + PAC share of funding % (×0.6) + absolute estimated return % (×0.5). Capped at 100.",
+      "<b>Public Impact</b> = 70 − PAC share % (×0.5) + individual-donation share % (×0.2). Higher means funding leans toward individuals. Floor 10.",
+      "<b>Transparency</b> = 100 − PAC share % (×1.4) − disclosed trades (×0.15). Floor 5.",
+    ]],
+  };
+  function formula(kind) {
+    const f = FORMULAS[kind]; if (!f) return "";
+    return `<details class="formula"><summary>Want to know how we calculated this score?</summary>`
+      + `<div class="formula-body"><div class="formula-title">Here's the formula we used:</div>`
+      + f[1].map((l) => `<p>${l}</p>`).join("")
+      + `<div class="formula-note">All inputs come from public data (FEC, USASpending, SEC EDGAR, Congress.gov, public trade disclosures). These are transparency estimates, not accusations of wrongdoing.</div></div></details>`;
+  }
+
   window.TFScores = {
-    influenceScore, dependencyScore, politicalExposure, industryRollup, label, money,
+    influenceScore, dependencyScore, politicalExposure, industryRollup, label, money, formula,
     raw: { tradeCount, polsByTicker, billsByTicker },
   };
 })();

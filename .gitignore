@@ -41,3 +41,6 @@ Economic_Books/
 
 # ── Large media not needed in repo ──
 *.zip
+
+# ── Local Claude config (may contain keys in allowlist) ──
+.claude/

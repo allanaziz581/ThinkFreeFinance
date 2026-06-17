@@ -1,0 +1,36 @@
+# XcodeGen spec - generates ThinkFree.xcodeproj
+# Install XcodeGen:  brew install xcodegen
+# Generate project:  cd iphone-app && xcodegen generate
+# Then:  open ThinkFree.xcodeproj  (build to a simulator or device)
+
+name: ThinkFree
+options:
+  bundleIdPrefix: com.thinkfree
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+targets:
+  ThinkFree:
+    type: application
+    platform: iOS
+    sources:
+      - path: ThinkFree
+    resources:
+      - path: ThinkFree/Resources
+    info:
+      path: ThinkFree/Info.plist
+      properties:
+        CFBundleDisplayName: ThinkFree
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIUserInterfaceStyle: Dark
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.thinkfree.app
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.0"

@@ -68,6 +68,9 @@ const C = { green: "#00C46A", red: "#EF4444", blue: "#38BDF8", amber: "#F59E0B",
 
 /* state economics (Constituent Accountability layer) */
 const STATES = (window.STATES_DATA || {}).byState || {};
+/* state legislatures (LegiScan bills/votes/legislators + Open States photos) */
+const LEGIS = (window.LEGISCAN_DATA || {}).byState || {};
+const OSTATES = (window.OPENSTATES_DATA || {}).byState || {};
 const STATE_ABBR = { Alabama:"AL",Alaska:"AK",Arizona:"AZ",Arkansas:"AR",California:"CA",Colorado:"CO",Connecticut:"CT",Delaware:"DE",Florida:"FL",Georgia:"GA",Hawaii:"HI",Idaho:"ID",Illinois:"IL",Indiana:"IN",Iowa:"IA",Kansas:"KS",Kentucky:"KY",Louisiana:"LA",Maine:"ME",Maryland:"MD",Massachusetts:"MA",Michigan:"MI",Minnesota:"MN",Mississippi:"MS",Missouri:"MO",Montana:"MT",Nebraska:"NE",Nevada:"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND",Ohio:"OH",Oklahoma:"OK",Oregon:"OR",Pennsylvania:"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD",Tennessee:"TN",Texas:"TX",Utah:"UT",Vermont:"VT",Virginia:"VA",Washington:"WA","West Virginia":"WV",Wisconsin:"WI",Wyoming:"WY","District of Columbia":"DC" };
 const money0 = (n) => n == null ? "n/a" : "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
 
@@ -116,6 +119,21 @@ function accountabilityBlock(p) {
 
 /* OpenFEC campaign-finance block for a politician profile */
 const FEC = (window.FEC_DATA || {}).byName || {};
+/* politician accountability scores (mirrors ScoreInfo pol-* explainers) + explain badge */
+function polFundingShare(name) {
+  const f = FEC[name]; if (!f || !f.receipts) return null;
+  const t = f.receipts || 1;
+  return { ind: Math.round((f.from_individuals || 0) / t * 100), pac: Math.round((f.from_pacs || 0) / t * 100) };
+}
+function polScore3(p) {
+  const fs = polFundingShare(p.name), pac = fs ? fs.pac : 0;
+  return {
+    influence: Math.round(Math.min(100, 30 + (p.trades || 0) * 0.3 + pac * 0.6 + Math.abs(p.ret || 0) * 0.5)),
+    publicImpact: Math.round(Math.max(10, 70 - pac * 0.5 + (fs ? fs.ind : 0) * 0.2)),
+    transparency: Math.round(Math.max(5, 100 - pac * 1.4 - (p.trades || 0) * 0.15)),
+  };
+}
+function polBadge(kind, name, val) { return window.ScoreInfo ? window.ScoreInfo.badge(kind, name, val) : String(val); }
 function fecBlock(name) {
   const f = FEC[name];
   if (!f) return "";
@@ -159,6 +177,7 @@ function politicianProfile(name) {
   const p = polByName(name);
   if (!p) return;
   const bills = p.related_bills || [];
+  const s = polScore3(p);
   const html = `
     <div class="profile-head">
       ${photoEl(p.name, p.bioguide, "pf-photo")}
@@ -174,6 +193,13 @@ function politicianProfile(name) {
       <div class="profile-stat"><div class="l">Est. Portfolio Value</div><div class="v">${esc((p.est_portfolio_value_fmt && p.est_portfolio_value_fmt !== "$0") ? p.est_portfolio_value_fmt : "Not disclosed")}</div></div>
       <div class="profile-stat"><div class="l">Est. Return (6mo)</div><div class="v ${colorFor(p.ret)}">${pct(p.ret || 0)}</div></div>
       <div class="profile-stat"><div class="l">Est. P&amp;L</div><div class="v ${colorFor(p.pnl)}">${esc(p.pnl_fmt)}</div></div>
+    </div>
+
+    <div class="section-title">ThinkFree Accountability Scores</div>
+    <div class="profile-stats">
+      <div class="profile-stat"><div class="l">Influence</div><div class="v">${polBadge("pol-influence", p.name, s.influence + "/100")}</div></div>
+      <div class="profile-stat"><div class="l">Public Impact</div><div class="v">${polBadge("pol-public", p.name, s.publicImpact + "/100")}</div></div>
+      <div class="profile-stat"><div class="l">Transparency</div><div class="v">${polBadge("pol-transparency", p.name, s.transparency + "/100")}</div></div>
     </div>
 
     <div class="section-title">Summary</div>
@@ -310,6 +336,53 @@ function joinList(arr) {
   if (arr.length === 1) return arr[0];
   return arr.slice(0, -1).join(", ") + " and " + arr[arr.length - 1];
 }
+
+/* ---- Generation Impact (shared) tied to sectors, used on stocks/bills ---- */
+const GEN_LIST = ["Gen Z", "Millennials", "Gen X", "Baby Boomers", "Retirees"];
+const GEN_SECTOR_W = {
+  "Real Estate": { "Gen Z": -0.7, "Millennials": -0.9, "Gen X": -0.4, "Baby Boomers": 0.3, "Retirees": 0.4 },
+  "Financials": { "Gen Z": -0.4, "Millennials": -0.6, "Gen X": -0.3, "Baby Boomers": 0.1, "Retirees": -0.2 },
+  "Health Care": { "Gen Z": -0.1, "Millennials": -0.2, "Gen X": -0.3, "Baby Boomers": -0.6, "Retirees": -0.8 },
+  "Pharmaceuticals": { "Gen Z": -0.1, "Millennials": -0.2, "Gen X": -0.3, "Baby Boomers": -0.6, "Retirees": -0.8 },
+  "Energy": { "Gen Z": -0.5, "Millennials": -0.5, "Gen X": -0.4, "Baby Boomers": -0.3, "Retirees": -0.3 },
+  "Oil & Gas": { "Gen Z": -0.5, "Millennials": -0.4, "Gen X": -0.3, "Baby Boomers": -0.2, "Retirees": -0.2 },
+  "Technology": { "Gen Z": 0.3, "Millennials": 0.2, "Gen X": 0.0, "Baby Boomers": -0.1, "Retirees": -0.2 },
+  "Consumer Discretionary": { "Gen Z": -0.3, "Millennials": -0.3, "Gen X": -0.2, "Baby Boomers": -0.1, "Retirees": -0.2 },
+  "default": { "Gen Z": -0.2, "Millennials": -0.3, "Gen X": -0.2, "Baby Boomers": -0.2, "Retirees": -0.2 },
+};
+const GEN_WHY = {
+  "Gen Z": "early in their careers and renting, most exposed to job-market and cost-of-living shifts",
+  "Millennials": "more likely to be first-time homebuyers exposed to higher mortgage rates",
+  "Gen X": "juggling mortgages, kids, and retirement saving at once",
+  "Baby Boomers": "nearing or in retirement and more reliant on healthcare and fixed income",
+  "Retirees": "on fixed incomes and most exposed to healthcare and drug pricing",
+};
+function genImpact(sectors) {
+  const sets = (sectors && sectors.length) ? sectors : ["default"];
+  return GEN_LIST.map((g) => {
+    let w = 0;
+    sets.forEach((s) => { w += (GEN_SECTOR_W[s] || GEN_SECTOR_W.default)[g] || 0; });
+    return { gen: g, score: Math.round(w / sets.length * 70) };
+  });
+}
+function genImpactBlock(sectors, title) {
+  if (window.GenImpact) {
+    const res = window.GenImpact.forSectors(sectors || []);
+    return `<div class="section-title">${esc(title || "Generation Impact")}</div>${window.GenImpact.panel(res, { dims: true })}`;
+  }
+  const impacts = genImpact(sectors);
+  const worst = [...impacts].sort((a, b) => a.score - b.score)[0];
+  const rows = impacts.map((g) => {
+    const neg = g.score < 0, c = neg ? "down" : "up", w = Math.min(100, Math.abs(g.score) * 1.3);
+    return `<div class="gi-row"><span class="gi-gen">${esc(g.gen)}</span>
+      <div class="gi-track"><div class="gi-fill ${neg ? "neg" : "pos"}" style="width:${w}%"></div></div>
+      <b class="${colorFor(g.score)}">${g.score > 0 ? "+" : ""}${g.score}</b></div>`;
+  }).join("");
+  return `<div class="section-title">${esc(title || "Generation Impact")}</div>
+    <div class="gi-wrap">${rows}</div>
+    <div class="sample-note">Most exposed: <b>${esc(worst.gen)}</b>, who are ${esc(GEN_WHY[worst.gen])}. Estimates based on the sectors involved.</div>`;
+}
+
 // readable source name from a URL + a clickable "view source" link
 function sourceName(url) {
   if (!url) return "";
@@ -345,13 +418,14 @@ function stockDetail(tk) {
   const fin = SECBULK[tk] || {};
   const usa = USASTOCK[tk] || {};
   const lis = IWCOS[tk] || {};
+  const px = ((window.PRICES_DATA || {}).byTicker || {})[tk] || {};
   const S = window.TFScores;
   const inf = S ? S.influenceScore(tk) : null;
   const dep = S ? S.dependencyScore(tk) : null;
   const trades = (D.recent_trades || []).filter((t) => t.ticker === tk);
   const traders = [...new Set(trades.map((t) => t.politician))];
   const bills = [...(D.bills || []), ...(((D.correlation || {}).top_bills) || [])]
-    .filter((b, i, arr) => (b.tickers || []).includes(tk) && arr.findIndex((x) => x.bill_id === b.bill_id) === i).slice(0, 8);
+    .filter((b, i, arr) => (b.tickers || []).includes(tk) && arr.findIndex((x) => x.bill_id === b.bill_id) === i);
   const news = (D.news || []).filter((n) => n.symbol === tk);
 
   // ---- holistic summary: lead with what THIS company's news is actually about ----
@@ -370,38 +444,56 @@ function stockDetail(tk) {
   if (traders.length) bits.push(`${traders.length} member${traders.length === 1 ? "" : "s"} of Congress ${traders.length === 1 ? "has" : "have"} traded its stock, and it shows up in ${bills.length} bill${bills.length === 1 ? "" : "s"} we track.`);
   const summary = bits.join(" ");
 
-  const meterRow = (label, v) => {
+  const meterRow = (label, v, kind) => {
     if (v == null) return "";
     const c = v >= 70 ? "down" : v >= 40 ? "warn" : "up";
-    return `<div class="profile-stat"><div class="l">${label}</div><div class="v"><span class="pill ${c}">${v}/100</span></div></div>`;
+    return `<div class="profile-stat si" data-si-kind="${kind}" data-si-key="${esc(tk)}" data-si-val="${v}"><div class="l">${label} <i class="si-i">&#9432;</i></div><div class="v"><span class="pill ${c}">${v}/100</span></div></div>`;
   };
   const sentiment = (sec) => { const h = String(sec || "").length; return h % 3 === 0 ? ["Positive", "up"] : h % 3 === 1 ? ["Neutral", "info"] : ["Cautious", "warn"]; };
 
+  const coName = px.name || stockName(tk);
+  const industry = fin.sic || px.industry || "Public Company";
+  const logo = px.logo ? `<img src="${esc(px.logo)}" alt="" style="width:54px;height:54px;border-radius:12px;object-fit:contain;background:#fff;padding:4px;" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'iw-av',style:'width:54px;height:54px;font-size:17px;background:var(--info-dim);color:var(--info);',textContent:'${esc(tk)}'}))">`
+    : `<span class="iw-av" style="width:54px;height:54px;font-size:17px;background:var(--info-dim);color:var(--info);">${esc(tk)}</span>`;
+  const chgCls = px.change_pct > 0 ? "up" : px.change_pct < 0 ? "down" : "info";
+
   openModal(`
     <div class="profile-head" style="align-items:center;gap:16px;">
-      <span class="iw-av" style="width:54px;height:54px;font-size:17px;background:var(--info-dim);color:var(--info);">${esc(tk)}</span>
-      <div><div class="iw-eyebrow">${esc(fin.sic || lis.blurb || "Public Company")}</div><h3 style="margin:2px 0 0;">${esc(stockName(tk))} <span class="faint">${esc(tk)}</span></h3></div>
+      ${logo}
+      <div style="flex:1;min-width:0;"><div class="iw-eyebrow">${esc(industry)}</div><h3 style="margin:2px 0 0;">${esc(coName)} <span class="faint">${esc(tk)}</span></h3></div>
+      ${px.price ? `<div style="text-align:right;"><div style="font-size:22px;font-weight:800;">$${esc(px.price)}</div><div class="pill ${chgCls}">${px.change_pct > 0 ? "+" : ""}${esc(px.change_pct)}%</div></div>` : ""}
     </div>
 
     <div class="section-title">Holistic Summary</div>
     <div class="summary-box">${esc(summary)}</div>
 
-    <div class="section-title">Key Figures</div>
-    <div class="profile-stats">
-      <div class="profile-stat"><div class="l">Revenue${fin.fy ? " FY" + fin.fy : ""}</div><div class="v">${esc(fin.revenue_fmt || "n/a")}</div></div>
-      <div class="profile-stat"><div class="l">Net Income</div><div class="v">${esc(fin.net_income_fmt || "n/a")}</div></div>
-      <div class="profile-stat"><div class="l">Assets</div><div class="v">${esc(fin.assets_fmt || "n/a")}</div></div>
-      <div class="profile-stat"><div class="l">Fed Contracts</div><div class="v">${esc(usa.total_contracts_fmt || "None")}</div></div>
-      ${meterRow("Influence Score", inf)}
-      ${meterRow("Govt Dependency", dep)}
-    </div>
+    ${(() => {
+      const cells = [];
+      const cell = (l, v) => cells.push(`<div class="profile-stat"><div class="l">${l}</div><div class="v">${esc(v)}</div></div>`);
+      if (px.market_cap_fmt) cell("Market Cap", px.market_cap_fmt);
+      if (fin.revenue_fmt) cell("Revenue" + (fin.fy ? " FY" + fin.fy : ""), fin.revenue_fmt);
+      if (fin.net_income_fmt) cell("Net Income", fin.net_income_fmt);
+      if (fin.assets_fmt) cell("Assets", fin.assets_fmt);
+      if (usa.total_contracts_fmt) cell("Fed Contracts", usa.total_contracts_fmt);
+      if (px.exchange) cell("Exchange", px.exchange.replace(/ -.*$/, ""));
+      const meters = (inf != null ? meterRow("Influence Score", inf, "company-influence") : "") + (dep != null ? meterRow("Govt Dependency", dep, "company-dependency") : "");
+      if (!cells.length && !meters) return `<div class="section-title">Key Figures</div><div class="sample-note">Awaiting source connection. Financial data unavailable for this company.</div>`;
+      return `<div class="section-title">Key Figures</div><div class="profile-stats">${cells.join("")}${meters}</div>`;
+    })()}
+
+    ${(() => {
+      if (!window.GenImpact) return genImpactBlock((bills.flatMap((b) => b.sectors || [])).concat(news.map((n) => n.sector)).filter(Boolean), "Generation Impact");
+      const secs = [...new Set(bills.flatMap((b) => b.sectors || []).concat(news.map((n) => n.sector)).filter(Boolean))];
+      const res = window.GenImpact.forCompany(tk, industry, secs);
+      return `<div class="section-title">Generation Impact</div>${window.GenImpact.panel(res, { dims: true })}`;
+    })()}
 
     ${traders.length ? `<div class="section-title">Congressional Trading (${trades.length})</div>
       <table class="tf"><thead><tr><th>Politician</th><th>Type</th><th>Date</th><th class="num">Return</th></tr></thead><tbody>
-        ${trades.slice(0, 8).map((t) => `<tr><td>${polLink(t.politician)} <span class="tag ${esc(t.party_abbr)}">${esc(t.party_abbr)}</span></td><td class="${/sale/i.test(t.transaction) ? "txn-sell" : "txn-buy"}">${/sale/i.test(t.transaction) ? "SELL" : "BUY"}</td><td class="muted">${esc(t.date)}</td><td class="num ${colorFor(t.pct_return)}">${pct(t.pct_return)}</td></tr>`).join("")}
+        ${trades.map((t) => `<tr><td>${polLink(t.politician)} <span class="tag ${esc(t.party_abbr)}">${esc(t.party_abbr)}</span></td><td class="${/sale/i.test(t.transaction) ? "txn-sell" : "txn-buy"}">${/sale/i.test(t.transaction) ? "SELL" : "BUY"}</td><td class="muted">${esc(t.date)}</td><td class="num ${colorFor(t.pct_return)}">${pct(t.pct_return)}</td></tr>`).join("")}
       </tbody></table>` : ""}
 
-    ${bills.length ? `<div class="section-title">Related Legislation</div>
+    ${bills.length ? `<div class="section-title">Related Legislation (${bills.length})</div>
       <div class="chip-row">${bills.map((b) => `<span class="bill-chip" data-bill="${esc(b.bill_id)}">${esc(b.bill_id)}</span>`).join("")}</div>` : ""}
 
     ${news.length ? `<div class="section-title">Recent News (${news.length})</div>
@@ -430,6 +522,8 @@ function billDetail(id) {
 
     <div class="section-title">What This Bill Does</div>
     <div class="summary-box">${esc(b.plain_summary || b.action_text || "This measure affects federal policy in the sectors above.")}</div>
+
+    ${genImpactBlock(b.sectors || [], "Generation Impact" + (b.action_text && /became public law|passed|enacted/i.test(b.action_text) ? " · Status: Passed" : " · Status: In progress"))}
 
     ${traders.length ? `
       <div class="section-title">Who Traded It &amp; How They Benefited</div>
@@ -840,9 +934,9 @@ function renderPolitical() {
       <div class="card span-2 pad-lg">
         <div class="card-head"><div class="card-title">Top 10 Politicians by Estimated Trading Gains</div></div>
         <table class="tf">
-          <thead><tr><th>#</th><th>Politician</th><th>Party</th><th>State</th><th class="num">Trades</th><th class="num">Return</th><th class="num">Est. P&amp;L</th></tr></thead>
+          <thead><tr><th>#</th><th>Politician</th><th>Party</th><th>State</th><th class="num">Trades</th><th class="num">Return</th><th class="num">Est. P&amp;L</th><th class="num">Influence</th><th class="num">Public</th><th class="num">Transp.</th></tr></thead>
           <tbody>
-            ${(D.politicians || []).slice(0, 10).map((p, i) => `
+            ${(D.politicians || []).slice(0, 10).map((p, i) => { const s = polScore3(p); return `
               <tr>
                 <td class="faint">${i + 1}</td>
                 <td style="font-weight:700;">${polLink(p.name)}</td>
@@ -851,7 +945,10 @@ function renderPolitical() {
                 <td class="num">${esc(p.trades)}</td>
                 <td class="num ${colorFor(p.ret)}">${pct(p.ret)}</td>
                 <td class="num ${colorFor(p.pnl)}" style="font-weight:700;">${esc(p.pnl_fmt)}</td>
-              </tr>`).join("")}
+                <td class="num">${polBadge("pol-influence", p.name, s.influence)}</td>
+                <td class="num">${polBadge("pol-public", p.name, s.publicImpact)}</td>
+                <td class="num">${polBadge("pol-transparency", p.name, s.transparency)}</td>
+              </tr>`; }).join("")}
           </tbody>
         </table>
       </div>
@@ -1174,6 +1271,77 @@ function renderIntelligence() {
 /* ============================================================
    PAGE: STATES (Constituent Accountability rankings)
    ============================================================ */
+/* ---- State Legislature Watch (LegiScan + Open States) ---- */
+const _osIndex = {};
+function osPhotoIndex(ab) {
+  if (_osIndex[ab]) return _osIndex[ab];
+  const map = {};
+  ((OSTATES[ab] || {}).legislators || []).forEach((p) => {
+    const k = osKey(p.name);
+    if (k && p.image) map[k] = { image: p.image, url: p.openstates_url, email: p.email };
+  });
+  return (_osIndex[ab] = map);
+}
+function osKey(name) {
+  const parts = String(name || "").toLowerCase().replace(/[.,]/g, "").trim().split(/\s+/);
+  if (parts.length < 2) return parts[0] || "";
+  return parts[parts.length - 1] + "|" + parts[0][0];   // lastname|firstInitial
+}
+function partyColor(p) { return p === "D" ? C.blue : p === "R" ? C.red : p === "I" ? C.amber : "#7C8AA5"; }
+function chamberBar(name, c) {
+  const total = c.D + c.R + c.I + c.Other;
+  if (!total) return "";
+  const seg = (v, col) => v ? `<span style="width:${(v / total) * 100}%;background:${col}"></span>` : "";
+  return `<div class="leg-chamber">
+    <div class="leg-chamber-head"><span>${esc(name)}</span><span class="faint">${total} seats</span></div>
+    <div class="leg-bar">${seg(c.D, C.blue)}${seg(c.I, C.amber)}${seg(c.Other, "#7C8AA5")}${seg(c.R, C.red)}</div>
+    <div class="leg-bar-legend"><span style="color:${C.blue}">${c.D} D</span><span style="color:${C.red}">${c.R} R</span>${c.I ? `<span style="color:${C.amber}">${c.I} I</span>` : ""}${c.Other ? `<span class="faint">${c.Other} other</span>` : ""}</div>
+  </div>`;
+}
+function renderLegDetail(ab) {
+  const s = LEGIS[ab];
+  if (!s) return `<p class="faint">No legislative data loaded for this state.</p>`;
+  const photos = osPhotoIndex(ab);
+  const comp = s.composition || { Senate: {}, House: {} };
+  const sb = s.status_breakdown || {};
+  const sbOrder = ["Introduced", "Engrossed", "Enrolled", "Passed", "Vetoed", "Failed"];
+  const statusPills = sbOrder.filter((k) => sb[k]).map((k) => `<span class="pill mini">${sb[k]} ${esc(k)}</span>`).join("");
+  const billRow = (b) => {
+    const stClass = b.status === "Passed" || b.status === "Enrolled" ? "up" : b.status === "Failed" || b.status === "Vetoed" ? "down" : "warn";
+    const topics = (b.topics || []).slice(0, 3).map((t) => `<span class="pill mini">${esc(t)}</span>`).join(" ");
+    const votes = (b.votes || []).length ? `<div class="leg-votes">${b.votes.slice(0, 2).map((v) => `<span class="leg-vote ${v.passed ? "up" : "down"}">${v.chamber} ${v.yea}-${v.nay} ${v.passed ? "passed" : "failed"}</span>`).join(" ")}</div>` : "";
+    return `<tr>
+      <td><a href="${esc(b.url)}" target="_blank" rel="noopener" style="font-weight:700;">${esc(b.number)}</a></td>
+      <td><div style="font-weight:600;">${esc(b.title)}</div><div class="leg-topics">${topics}</div>${votes}</td>
+      <td class="num"><span class="pill ${stClass}">${esc(b.status)}</span><div class="faint" style="margin-top:4px;">${esc(b.last_action_date || "")}</div></td>
+    </tr>`;
+  };
+  const rosterChip = (p) => {
+    const ph = photos[osKey(p.name)];
+    const av = ph && ph.image ? `<img src="${esc(ph.image)}" alt="" loading="lazy" onerror="this.style.display='none'">` : `<span class="leg-ini" style="background:${partyColor(p.party)}">${esc(initials(p.name))}</span>`;
+    const nm = ph && ph.url ? `<a href="${esc(ph.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name);
+    return `<div class="leg-chip"><div class="leg-av">${av}</div><div class="leg-chip-main"><div class="leg-chip-name">${nm}</div><div class="faint">${esc(p.party)} · ${esc(p.chamber)} ${esc(p.district || "")}</div></div></div>`;
+  };
+  const roster = (s.legislators || []).slice(0, 24).map(rosterChip).join("");
+  return `
+    <div class="leg-meta">
+      <div><span class="faint">Session</span><div style="font-weight:700;">${esc(s.session.name || "")}</div></div>
+      <div><span class="faint">Bills tracked</span><div style="font-weight:700;">${s.bill_total.toLocaleString()} <span class="faint">(${s.relevant_count} economic)</span></div></div>
+      <div><span class="faint">Legislators</span><div style="font-weight:700;">${s.legislator_total}</div></div>
+    </div>
+    <div class="leg-status-row">${statusPills}</div>
+    <div class="grid cols-2">${chamberBar("Senate", { D: 0, R: 0, I: 0, Other: 0, ...comp.Senate })}${chamberBar("House", { D: 0, R: 0, I: 0, Other: 0, ...comp.House })}</div>
+    <div class="card-title" style="margin:18px 0 8px;">Recent economically-relevant bills</div>
+    <table class="tf"><thead><tr><th>Bill</th><th>What it does</th><th class="num">Status</th></tr></thead>
+      <tbody>${(s.bills || []).slice(0, 20).map(billRow).join("") || `<tr><td colspan="3" class="faint">No economically-tagged bills this session.</td></tr>`}</tbody></table>
+    <div class="card-title" style="margin:18px 0 8px;">Who serves here <span class="faint" style="font-weight:400;">(photos via Open States)</span></div>
+    <div class="leg-roster">${roster || `<span class="faint">Roster unavailable.</span>`}</div>`;
+}
+window.tfShowLegState = function (ab) {
+  const el = document.getElementById("leg-detail");
+  if (el) el.innerHTML = renderLegDetail(ab);
+};
+
 function renderStates() {
   const states = Object.entries(STATES).map(([ab, s]) => ({ ab, ...s }))
     .filter((s) => s.prosperity_score != null);
@@ -1203,6 +1371,28 @@ function renderStates() {
         ${byReal.slice(0, 20).map((s, i) => `<tr><td class="faint">${i + 1}</td><td style="font-weight:600;">${esc(s.name)}</td><td class="num" style="font-weight:700;">${money0(s.real_purchasing_power)}</td><td class="num muted">${money0(s.median_household_income)}</td><td class="num">${s.cost_of_living} <span class="faint">US=100</span></td></tr>`).join("")}
       </tbody></table>
       <div class="sample-note">Real income = median household income adjusted by BEA Regional Price Parity. A high nominal income in an expensive state buys less.</div>
+    </div>
+    ${renderLegWatch()}`;
+}
+
+function renderLegWatch() {
+  const opts = Object.keys(LEGIS).sort((a, b) => LEGIS[a].name.localeCompare(LEGIS[b].name));
+  if (!opts.length) return "";
+  const totBills = opts.reduce((n, ab) => n + (LEGIS[ab].bill_total || 0), 0);
+  const totLeg = opts.reduce((n, ab) => n + (LEGIS[ab].legislator_total || 0), 0);
+  const def = opts.includes("CA") ? "CA" : opts[0];
+  return `
+    <div class="card pad-lg">
+      <div class="card-head">
+        <div><div class="card-title">State Legislature Watch</div>
+          <div class="faint" style="margin-top:2px;">${totBills.toLocaleString()} bills and ${totLeg.toLocaleString()} legislators tracked across ${opts.length} statehouses. What your state is doing on taxes, rent, wages, and healthcare, and who is voting.</div>
+        </div>
+        <select id="leg-select" class="leg-select" onchange="window.tfShowLegState(this.value)">
+          ${opts.map((ab) => `<option value="${ab}"${ab === def ? " selected" : ""}>${esc(LEGIS[ab].name)}</option>`).join("")}
+        </select>
+      </div>
+      <div id="leg-detail">${renderLegDetail(def)}</div>
+      <div class="sample-note">Bills and votes from LegiScan; legislator photos from Open States. This describes publicly available legislative activity and does not imply or allege wrongdoing of any kind.</div>
     </div>`;
 }
 
@@ -1211,6 +1401,7 @@ function renderStates() {
    ============================================================ */
 function renderInfluence() {
   return `
+    ${window.Predictions ? window.Predictions.render() : ""}
     <div class="iw-header">
       <div>
         <h2>InfluenceWeb&trade; <span class="iw-info" title="Explore how sectors, companies, and organizations connect to Congress.">&#9432;</span></h2>
@@ -1246,6 +1437,7 @@ function renderInfluence() {
 
       <div id="iw-tip" class="iw-tip"></div>
       <div class="iw-hud" id="iw-hud">Click any sector or company to explore connections</div>
+      <div id="iw-drill" class="iw-drill"></div>
 
       <aside id="iw-panel" class="iw-panel">
         <button class="iw-panel-close" aria-label="Close">&times;</button>
@@ -1367,9 +1559,11 @@ function go(page) {
   document.querySelector(".viewport").scrollTop = 0;
   location.hash = page;
 
-  // InfluenceWeb graph engine: activate when shown, pause otherwise
+  // InfluenceWeb graph engine: activate when shown, pause otherwise.
+  // Re-entering the page resets to the default graph (closes any open drill,
+  // clears zoom) so you never return to where you left off mid-drill.
   if (window.IW) {
-    if (page === "influence") requestAnimationFrame(() => window.IW.activate());
+    if (page === "influence") requestAnimationFrame(() => { window.IW.activate(); if (window.IW.resetView) window.IW.resetView(); });
     else window.IW.deactivate();
   }
 }
