@@ -79,9 +79,29 @@ def norm_sector(s):
     return SECTOR_ALIASES.get(s, s)
 
 
+COMMON_TK = {"ON", "IT", "ALL", "NOW", "HAS", "A", "ARE", "SO", "D", "T", "K", "DD", "BY", "OR", "AN", "GO", "ONE", "KEY", "CAR"}
+GENERIC_CO = {"inc", "corp", "corporation", "company", "co", "ltd", "plc", "group", "holdings", "the", "technologies", "international", "systems", "industries", "financial"}
+
+
+def news_relevant(item, tk, names):
+    """True if the article actually names the company (filters common-word ticker mismatches)."""
+    import re as _re
+    blob = (item.get("headline", "") or "") + " " + (item.get("summary", "") or "")
+    low = blob.lower()
+    toks = [t for t in (names.get(tk, "") or tk).lower().replace(".", "").replace(",", "").split() if len(t) >= 4 and t not in GENERIC_CO]
+    if any(t in low for t in toks):
+        return True
+    if _re.search(r"\$" + tk + r"\b|\(" + tk + r"\)", blob):
+        return True
+    if tk not in COMMON_TK and len(tk) >= 3 and _re.search(r"\b" + tk + r"\b", blob):
+        return True
+    return False
+
+
 def main():
     d = load_window("data.js", "window.TF_DATA =")
     quant = load_window("quant_data.js", "window.QUANT_DATA =").get("byTicker", {}) if (JS / "quant_data.js").exists() else {}
+    names = {tk: v.get("name", "") for tk, v in (load_window("prices_data.js", "window.PRICES_DATA =").get("byTicker", {}) if (JS / "prices_data.js").exists() else {}).items()}
     ta_list = load_json(ROOT / "Module_2_Technical_Analysis" / "signal_output_phase3.json", [])
     ta = {x.get("ticker"): x for x in ta_list if x.get("ticker")}
     sector_sum = load_json(ROOT / "news_output" / "sector_summaries.json", {})
@@ -126,6 +146,8 @@ def main():
         brief = []
         for n in items:
             tk = n.get("symbol", "")
+            if tk and not news_relevant(n, tk, names):
+                tk = ""   # generic article mis-tagged to a common-word ticker: don't attribute
             t = ta.get(tk, {})
             q = quant.get(tk, {})
             sig = t.get("final_signal") or q.get("ta_signal")

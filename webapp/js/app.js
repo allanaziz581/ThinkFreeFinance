@@ -331,6 +331,33 @@ const USASTOCK = (window.USA_DATA || {}).byTicker || {};
 const IWCOS = (window.IW_DATA || { companies: {} }).companies || {};
 function stockName(tk) { return (IWCOS[tk] && IWCOS[tk].name) || (SECBULK[tk] && SECBULK[tk].name) || tk; }
 
+/* news relevance: common-word tickers (ON, IT, ALL, NOW...) get over-matched to
+   generic articles. Keep a story only if it actually names the company. */
+const COMMON_TK = new Set(["ON", "IT", "ALL", "NOW", "HAS", "A", "ARE", "SO", "D", "T", "K", "DD", "BY", "OR", "AN", "GO", "ONE", "KEY", "CAR"]);
+const GENERIC_CO = new Set(["inc", "corp", "corporation", "company", "co", "ltd", "plc", "group", "holdings", "holding", "the", "technologies", "international", "systems", "industries", "financial"]);
+function tickerCompanyName(tk) { return (((window.PRICES_DATA || {}).byTicker || {})[tk] || {}).name || stockName(tk) || tk; }
+function newsRelevant(a, tk) {
+  const blob = (a.headline || "") + " " + (a.summary || "");
+  const low = blob.toLowerCase();
+  const toks = String(tickerCompanyName(tk) || "").toLowerCase().replace(/[.,]/g, "").split(/\s+/).filter((t) => t.length >= 4 && !GENERIC_CO.has(t));
+  if (toks.some((t) => low.includes(t))) return true;                       // names the company
+  if (new RegExp("\\$" + tk + "\\b|\\(" + tk + "\\)").test(blob)) return true; // explicit $TK or (TK)
+  if (!COMMON_TK.has(tk) && tk.length >= 3 && new RegExp("\\b" + tk + "\\b").test(blob)) return true; // distinctive ticker token
+  return false;
+}
+function newsForTicker(tk) { return (D.news || []).filter((n) => n.symbol === tk && newsRelevant(n, tk)); }
+
+/* trim a source-truncated preview so it ends on a complete sentence, never an abrupt "..." */
+function tidySummary(s) {
+  s = String(s || "").trim();
+  if (!/(\.\.\.|…)\s*$/.test(s)) return s;          // not truncated
+  s = s.replace(/(\.\.\.|…)\s*$/, "").trim();
+  let idx = -1, re = /[.!?](?=\s|$)/g, m;
+  while ((m = re.exec(s))) idx = m.index;                // last sentence boundary
+  if (idx >= 40) return s.slice(0, idx + 1).trim();
+  return s.replace(/\s+\S*$/, "").trim() + ".";          // fallback: drop dangling word
+}
+
 /* plain-English themes detected from a set of news items */
 const NEWS_THEMES = [
   ["its latest earnings and revenue", /earnings|revenue|profit|quarter|guidance|\beps\b|sales/i],
@@ -446,7 +473,7 @@ function stockDetail(tk) {
   const traders = [...new Set(trades.map((t) => t.politician))];
   const bills = [...(D.bills || []), ...(((D.correlation || {}).top_bills) || [])]
     .filter((b, i, arr) => (b.tickers || []).includes(tk) && arr.findIndex((x) => x.bill_id === b.bill_id) === i);
-  const news = (D.news || []).filter((n) => n.symbol === tk);
+  const news = newsForTicker(tk);
 
   // ---- holistic summary: lead with what THIS company's news is actually about ----
   const bits = [];
@@ -519,7 +546,7 @@ function stockDetail(tk) {
       <div class="chip-row">${bills.map((b) => `<span class="bill-chip" data-bill="${esc(b.bill_id)}">${esc(b.bill_id)}</span>`).join("")}</div>` : ""}
 
     ${news.length ? `<div class="section-title">Recent News (${news.length})</div>
-      <div class="feed">${news.slice(0, 6).map((a) => { const [s, cls] = newsSentiment(a); return `<div class="feed-item" style="background:transparent;"><div class="feed-body"><div class="feed-title">${newsHeadline(a)}</div><div class="feed-sum">${esc(a.summary)}</div><div class="feed-meta"><span class="chip">${esc(a.sector || "Markets")}</span><span class="pill ${cls}">${s}</span>${credBadge(a)}${sourceLink(a.url, a.source)}${readMore(a)}</div></div></div>`; }).join("")}</div>` : ""}
+      <div class="feed">${news.slice(0, 6).map((a) => { const [s, cls] = newsSentiment(a); return `<div class="feed-item" style="background:transparent;"><div class="feed-body"><div class="feed-title">${newsHeadline(a)}</div><div class="feed-sum">${esc(tidySummary(a.summary))}</div><div class="feed-meta"><span class="chip">${esc(a.sector || "Markets")}</span><span class="pill ${cls}">${s}</span>${credBadge(a)}${sourceLink(a.url, a.source)}${readMore(a)}</div></div></div>`; }).join("")}</div>` : ""}
 
     <div class="sample-note">Sources: SEC EDGAR (financials), USASpending (contracts), public trade disclosures, congress.gov. ${(IWCOS[tk]) ? '<span class="bill-link" data-iwco="' + esc(tk) + '" style="cursor:pointer;">Open in InfluenceWeb &rsaquo;</span>' : ""}</div>`);
 }
@@ -853,7 +880,7 @@ function sectorNewsModal(sec) {
         <div class="feed-icon">${esc(a.symbol || "•")}</div>
         <div class="feed-body">
           <div class="feed-title">${newsHeadline(a)}</div>
-          <div class="feed-sum">${esc(a.summary)}</div>
+          <div class="feed-sum">${esc(tidySummary(a.summary))}</div>
           <div class="feed-meta"><span class="chip">${esc(a.symbol || "")}</span><span class="pill ${cls}">${s}</span>${credBadge(a)}${sourceLink(a.url, a.source)}${readMore(a)}</div>
         </div></div>`; }).join("")}
     </div>`);
@@ -898,7 +925,7 @@ function renderNews() {
               <div class="feed-icon">${esc(a.symbol || "•")}</div>
               <div class="feed-body">
                 <div class="feed-title">${newsHeadline(a)}</div>
-                <div class="feed-sum">${esc(a.summary)}</div>
+                <div class="feed-sum">${esc(tidySummary(a.summary))}</div>
                 <div class="feed-meta"><span class="chip">${esc(a.sector || "Markets")}</span><span class="pill ${cls}">${s}</span>${credBadge(a)}${sourceLink(a.url, a.source)}${readMore(a)}</div>
               </div>
             </div>`;
