@@ -71,6 +71,22 @@ const STATES = (window.STATES_DATA || {}).byState || {};
 /* state legislatures (LegiScan bills/votes/legislators + Open States photos) */
 const LEGIS = (window.LEGISCAN_DATA || {}).byState || {};
 const OSTATES = (window.OPENSTATES_DATA || {}).byState || {};
+/* Chef GPT news intelligence (in-app plain-English summaries by ticker + sector) */
+const NEWS_INTEL = window.NEWS_INTEL || { bySector: {}, byTicker: {} };
+const NI_SECTOR_ALIAS = { Technology: "Information Technology", Healthcare: "Health Care", "Financial Services": "Financials", Telecommunications: "Communication Services" };
+function tfNewsSummary(kind, key) {
+  if (kind === "ticker") {
+    const v = (NEWS_INTEL.byTicker || {})[key]; if (!v) return "";
+    return `<div class="tf-summary"><div class="tf-summary-h"><span class="tf-summary-badge">ThinkFree Summary</span></div>
+      <div class="tf-summary-body">${esc(v.summary)}</div>${v.what_it_means ? `<div class="tf-summary-why"><b>What it means for you:</b> ${esc(v.what_it_means)}</div>` : ""}
+      <div class="tf-summary-foot">Plain-English summary from our economic model + technical analysis, written by Chef GPT. Not financial advice.</div></div>`;
+  }
+  const sec = (NEWS_INTEL.bySector || {})[key] || (NEWS_INTEL.bySector || {})[NI_SECTOR_ALIAS[key] || key];
+  if (!sec) return "";
+  return `<div class="tf-summary"><div class="tf-summary-h"><span class="tf-summary-badge">ThinkFree Summary</span><span class="faint">${esc(key)}</span></div>
+    <div class="tf-summary-body">${esc(sec.summary)}</div>
+    <div class="tf-summary-foot">Plain-English summary from our economic model + technical analysis, written by Chef GPT. Not financial advice.</div></div>`;
+}
 const STATE_ABBR = { Alabama:"AL",Alaska:"AK",Arizona:"AZ",Arkansas:"AR",California:"CA",Colorado:"CO",Connecticut:"CT",Delaware:"DE",Florida:"FL",Georgia:"GA",Hawaii:"HI",Idaho:"ID",Illinois:"IL",Indiana:"IN",Iowa:"IA",Kansas:"KS",Kentucky:"KY",Louisiana:"LA",Maine:"ME",Maryland:"MD",Massachusetts:"MA",Michigan:"MI",Minnesota:"MN",Mississippi:"MS",Missouri:"MO",Montana:"MT",Nebraska:"NE",Nevada:"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND",Ohio:"OH",Oklahoma:"OK",Oregon:"OR",Pennsylvania:"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD",Tennessee:"TN",Texas:"TX",Utah:"UT",Vermont:"VT",Virginia:"VA",Washington:"WA","West Virginia":"WV",Wisconsin:"WI",Wyoming:"WY","District of Columbia":"DC" };
 const money0 = (n) => n == null ? "n/a" : "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
 
@@ -398,6 +414,10 @@ function sourceLink(url, source) {
   const name = source && source !== "Unknown" ? source : sourceName(url);
   return `<a class="source-link" href="${esc(url || "#")}" target="_blank" rel="noopener" title="Open original source">Source: ${esc(name)} &#8599;</a>`;
 }
+// headline stays in-app (no link-out) — the reader gets the full picture from
+// the in-app ThinkFree Summary, not by leaving for the source article.
+function newsHeadline(a) { return esc(a.headline); }
+function readMore() { return ""; }
 // credibility badge (color-coded by tier)
 function credBadge(n) {
   if (!n || n.credibility == null) return "";
@@ -464,6 +484,8 @@ function stockDetail(tk) {
       ${px.price ? `<div style="text-align:right;"><div style="font-size:22px;font-weight:800;">$${esc(px.price)}</div><div class="pill ${chgCls}">${px.change_pct > 0 ? "+" : ""}${esc(px.change_pct)}%</div></div>` : ""}
     </div>
 
+    ${tfNewsSummary("ticker", tk)}
+
     <div class="section-title">Holistic Summary</div>
     <div class="summary-box">${esc(summary)}</div>
 
@@ -497,7 +519,7 @@ function stockDetail(tk) {
       <div class="chip-row">${bills.map((b) => `<span class="bill-chip" data-bill="${esc(b.bill_id)}">${esc(b.bill_id)}</span>`).join("")}</div>` : ""}
 
     ${news.length ? `<div class="section-title">Recent News (${news.length})</div>
-      <div class="feed">${news.slice(0, 6).map((a) => { const [s, cls] = newsSentiment(a); return `<div class="feed-item" style="background:transparent;"><div class="feed-body"><div class="feed-title">${esc(a.headline)}</div><div class="feed-sum">${esc(a.summary)}</div><div class="feed-meta"><span class="chip">${esc(a.sector || "Markets")}</span><span class="pill ${cls}">${s}</span>${credBadge(a)}${sourceLink(a.url, a.source)}</div></div></div>`; }).join("")}</div>` : ""}
+      <div class="feed">${news.slice(0, 6).map((a) => { const [s, cls] = newsSentiment(a); return `<div class="feed-item" style="background:transparent;"><div class="feed-body"><div class="feed-title">${newsHeadline(a)}</div><div class="feed-sum">${esc(a.summary)}</div><div class="feed-meta"><span class="chip">${esc(a.sector || "Markets")}</span><span class="pill ${cls}">${s}</span>${credBadge(a)}${sourceLink(a.url, a.source)}${readMore(a)}</div></div></div>`; }).join("")}</div>` : ""}
 
     <div class="sample-note">Sources: SEC EDGAR (financials), USASpending (contracts), public trade disclosures, congress.gov. ${(IWCOS[tk]) ? '<span class="bill-link" data-iwco="' + esc(tk) + '" style="cursor:pointer;">Open in InfluenceWeb &rsaquo;</span>' : ""}</div>`);
 }
@@ -825,13 +847,14 @@ function sectorNewsModal(sec) {
   const items = (D.news || []).filter((n) => (n.sector || "Markets") === sec);
   openModal(`
     <div class="iw-eyebrow">Sector</div><h3 style="margin:2px 0 12px;">${esc(sec)}: ${items.length} Stories</h3>
+    ${tfNewsSummary("sector", sec)}
     <div class="feed">
       ${items.map((a) => { const [s, cls] = newsSentiment(a); return `<div class="feed-item iw-clickable" data-stock="${esc(a.symbol || "")}">
         <div class="feed-icon">${esc(a.symbol || "•")}</div>
         <div class="feed-body">
-          <div class="feed-title">${esc(a.headline)}</div>
+          <div class="feed-title">${newsHeadline(a)}</div>
           <div class="feed-sum">${esc(a.summary)}</div>
-          <div class="feed-meta"><span class="chip">${esc(a.symbol || "")}</span><span class="pill ${cls}">${s}</span>${credBadge(a)}${sourceLink(a.url, a.source)}</div>
+          <div class="feed-meta"><span class="chip">${esc(a.symbol || "")}</span><span class="pill ${cls}">${s}</span>${credBadge(a)}${sourceLink(a.url, a.source)}${readMore(a)}</div>
         </div></div>`; }).join("")}
     </div>`);
 }
@@ -874,9 +897,9 @@ function renderNews() {
             return `<div class="feed-item iw-clickable" data-stock="${esc(a.symbol || "")}">
               <div class="feed-icon">${esc(a.symbol || "•")}</div>
               <div class="feed-body">
-                <div class="feed-title">${esc(a.headline)}</div>
+                <div class="feed-title">${newsHeadline(a)}</div>
                 <div class="feed-sum">${esc(a.summary)}</div>
-                <div class="feed-meta"><span class="chip">${esc(a.sector || "Markets")}</span><span class="pill ${cls}">${s}</span>${credBadge(a)}${sourceLink(a.url, a.source)}</div>
+                <div class="feed-meta"><span class="chip">${esc(a.sector || "Markets")}</span><span class="pill ${cls}">${s}</span>${credBadge(a)}${sourceLink(a.url, a.source)}${readMore(a)}</div>
               </div>
             </div>`;
           }).join("")}
