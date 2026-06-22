@@ -1,12 +1,20 @@
-/* ============================================================
-   ThinkFree Finance - Front-End App (router + renderers)
-   Reads window.TF_DATA (built by webapp/build_data.py)
-   ============================================================ */
+// app.js
+//
+// What it does:
+//   The main front-end controller. Reads the pre-loaded window.*_DATA globals
+//   (built by webapp/build_data.py) and renders every page of the app, plus the
+//   search box, modal dialogs, the ticker, and client-side routing.
+//
+// How it fits:
+//   Loaded with <script defer> after the data files and scores.js. Scoring math
+//   lives in scores.js (window.TFScores); this file only reads data and builds
+//   the HTML for each view. The auth gate (auth.js) calls window.TF.init() once
+//   the user is logged in.
 "use strict";
 
 const D = window.TF_DATA || {};
 
-/* ---------- tiny helpers ---------- */
+// Tiny DOM and formatting helpers used throughout this file.
 const $ = (sel, root = document) => root.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const initials = (name) => String(name || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
@@ -68,9 +76,31 @@ const C = { green: "#00C46A", red: "#EF4444", blue: "#38BDF8", amber: "#F59E0B",
 
 /* state economics (Constituent Accountability layer) */
 const STATES = (window.STATES_DATA || {}).byState || {};
-/* state legislatures (LegiScan bills/votes/legislators + Open States photos) */
-const LEGIS = (window.LEGISCAN_DATA || {}).byState || {};
-const OSTATES = (window.OPENSTATES_DATA || {}).byState || {};
+/* state legislatures: lazy-loaded on first State Legislature view (keeps 4.5MB off initial page load) */
+let LEGIS = (window.LEGISCAN_DATA || {}).byState || {};
+let OSTATES = (window.OPENSTATES_DATA || {}).byState || {};
+let _stateDataLoading = false;
+function ensureStateData(cb) {
+  if (window.LEGISCAN_DATA) { LEGIS = window.LEGISCAN_DATA.byState || {}; OSTATES = (window.OPENSTATES_DATA || {}).byState || {}; return cb && cb(); }
+  if (_stateDataLoading) return;
+  _stateDataLoading = true;
+  const apply = () => { LEGIS = (window.LEGISCAN_DATA || {}).byState || {}; OSTATES = (window.OPENSTATES_DATA || {}).byState || {}; cb && cb(); };
+  // Server mode: the legiscan/openstates data files are 404-blocked, so fetch the
+  // lazy bundle from /api/data/state (gated, authenticated) and set the globals.
+  if (window.TFBoot && window.TFBoot.mode === "server") {
+    window.TFBoot.api("/api/data/state").then((res) => {
+      if (res.ok && res.data) Object.assign(window, res.data);
+      apply();
+    }).catch(apply);
+    return;
+  }
+  // Static mode: inject the two data scripts (4.5MB) on first State view.
+  let left = 2;
+  const done = () => { if (--left === 0) apply(); };
+  ["js/legiscan_data.js", "js/openstates_data.js"].forEach((src) => {
+    const s = document.createElement("script"); s.src = src; s.onload = done; s.onerror = done; document.body.appendChild(s);
+  });
+}
 /* Chef GPT news intelligence (in-app plain-English summaries by ticker + sector) */
 const NEWS_INTEL = window.NEWS_INTEL || { bySector: {}, byTicker: {} };
 const NI_SECTOR_ALIAS = { Technology: "Information Technology", Healthcare: "Health Care", "Financial Services": "Financials", Telecommunications: "Communication Services" };
@@ -173,7 +203,7 @@ function fecBlock(name) {
 const polLink = (name) => `<span class="pol-link" data-pol="${esc(name)}">${esc(name)}</span>`;
 const polByName = (name) => (D.politicians || []).find((p) => p.name === name);
 
-/* ---------- MODAL ---------- */
+// Modal dialog: open and close the shared overlay used for profiles, trades, and detail views.
 function openModal(html) {
   document.getElementById("modalContent").innerHTML = html;
   const overlay = document.getElementById("modal");
@@ -188,7 +218,7 @@ function closeModal() {
   document.getElementById("modal").classList.remove("open");
 }
 
-/* ---------- POLITICIAN PROFILE ---------- */
+// Politician profile: the full detail view (funding, trades, scores) shown in the modal.
 function politicianProfile(name) {
   const p = polByName(name);
   if (!p) return;
@@ -288,7 +318,7 @@ function politicianProfile(name) {
   openModal(html);
 }
 
-/* ---------- FULL TRADES VIEW ---------- */
+// Full trades view: the complete disclosed-trades table for one politician.
 function allTradesView() {
   const rows = (D.recent_trades || []).map((t) => `
     <tr>
@@ -325,7 +355,7 @@ function billById(id) {
   return _billMap[id];
 }
 
-/* ---------- STOCK DETAIL (holistic summary + individual data) ---------- */
+// Stock detail: a holistic per-company summary (price, scores, news, connections).
 const SECBULK = (window.SECBULK_DATA || {}).byTicker || {};
 const USASTOCK = (window.USA_DATA || {}).byTicker || {};
 const IWCOS = (window.IW_DATA || { companies: {} }).companies || {};
@@ -346,6 +376,24 @@ function newsRelevant(a, tk) {
   return false;
 }
 function newsForTicker(tk) { return (D.news || []).filter((n) => n.symbol === tk && newsRelevant(n, tk)); }
+
+/* tailor news ordering to the user's behavioral profile (from the signup quiz) */
+function preferredSectors() {
+  const p = (window.Auth && window.Auth.profile && window.Auth.profile()) || null;
+  if (!p) return [];
+  if (p.goal === "growth" || p.risk_tolerance === "high") return ["technology", "information technology", "communication services", "consumer discretionary"];
+  if (p.goal === "income" || p.risk_tolerance === "low") return ["utilities", "consumer staples", "real estate", "financials", "health care"];
+  return ["financials", "health care", "industrials", "technology"];
+}
+function tailorNews(list) {
+  const pref = new Set(preferredSectors());
+  if (!pref.size) return list;
+  return list.map((n, i) => [n, i]).sort((a, b) => {
+    const ap = pref.has(String(a[0].sector || "").toLowerCase()) ? 0 : 1;
+    const bp = pref.has(String(b[0].sector || "").toLowerCase()) ? 0 : 1;
+    return ap - bp || a[1] - b[1];   // preferred sectors first, otherwise keep original order
+  }).map((x) => x[0]);
+}
 
 /* trim a source-truncated preview so it ends on a complete sentence, never an abrupt "..." */
 function tidySummary(s) {
@@ -380,7 +428,7 @@ function joinList(arr) {
   return arr.slice(0, -1).join(", ") + " and " + arr[arr.length - 1];
 }
 
-/* ---- Generation Impact (shared) tied to sectors, used on stocks/bills ---- */
+// Generation Impact (shared): the sector-tied ripple view, reused on stock and bill pages.
 const GEN_LIST = ["Gen Z", "Millennials", "Gen X", "Baby Boomers", "Retirees"];
 const GEN_SECTOR_W = {
   "Real Estate": { "Gen Z": -0.7, "Millennials": -0.9, "Gen X": -0.4, "Baby Boomers": 0.3, "Retirees": 0.4 },
@@ -551,7 +599,7 @@ function stockDetail(tk) {
     <div class="sample-note">Sources: SEC EDGAR (financials), USASpending (contracts), public trade disclosures, congress.gov. ${(IWCOS[tk]) ? '<span class="bill-link" data-iwco="' + esc(tk) + '" style="cursor:pointer;">Open in InfluenceWeb &rsaquo;</span>' : ""}</div>`);
 }
 
-/* ---------- BILL DETAIL ---------- */
+// Bill detail: summary, affected tickers, and Generation Impact for one bill.
 function billDetail(id) {
   const b = billById(id);
   if (!b) return;
@@ -604,9 +652,7 @@ function billDetail(id) {
     </div>`);
 }
 
-/* ============================================================
-   PAGE: DASHBOARD
-   ============================================================ */
+// PAGE: Dashboard - the landing view: greeting, key signals, and quick links into each section.
 function renderDashboard() {
   const rec = D.recession || {};
   const recPctVal = Math.round(((rec.score || 0) / (rec.max || 10)) * 100);
@@ -775,9 +821,7 @@ function renderDashboard() {
   return kpis + politicalBlock + insightRow + bottomRow;
 }
 
-/* ============================================================
-   PAGE: NEWS
-   ============================================================ */
+// PAGE: News - the impact-sorted news feed, tailored to the user's investor profile.
 // Plain-English roll-up of all the news, written for someone with no finance background.
 function marketSummary() {
   const news = D.news || [];
@@ -917,9 +961,9 @@ function renderNews() {
     </div>
     <div class="grid cols-2" style="grid-template-columns:1.5fr 1fr;">
       <div class="card pad-lg">
-        <div class="card-head"><div class="card-title"><span class="dot"></span>Top News &amp; Developments</div><div class="card-action faint">${(D.news || []).length} stories · ranked by source credibility</div></div>
+        <div class="card-head"><div class="card-title"><span class="dot"></span>Top News &amp; Developments</div><div class="card-action faint">${(D.news || []).length} stories${preferredSectors().length ? " · tailored to your profile" : " · ranked by source credibility"}</div></div>
         <div class="feed feed-scroll">
-          ${(D.news || []).map((a) => {
+          ${tailorNews(D.news || []).map((a) => {
             const [s, cls] = newsSentiment(a);
             return `<div class="feed-item iw-clickable" data-stock="${esc(a.symbol || "")}">
               <div class="feed-icon">${esc(a.symbol || "•")}</div>
@@ -952,9 +996,7 @@ function renderNews() {
     </div>`;
 }
 
-/* ============================================================
-   PAGE: POLITICAL WATCH
-   ============================================================ */
+// PAGE: Political Watch - congressional trading and funding-influence overview.
 function renderPolitical() {
   const top = (D.politicians || [])[0] || {};
   const corr = D.correlation || {};
@@ -1062,9 +1104,7 @@ function renderPolitical() {
     </div>`;
 }
 
-/* ============================================================
-   PAGE: PORTFOLIO
-   ============================================================ */
+// PAGE: Portfolio - the user's tracked positions (mock portfolio).
 function renderPortfolio() {
   const p = D.portfolio || {};
   return `
@@ -1095,9 +1135,7 @@ function renderPortfolio() {
     </div>`;
 }
 
-/* ============================================================
-   PAGE: MARKETS / REASONING / HISTORY  (data-backed)
-   ============================================================ */
+// PAGE: Markets / Reasoning / History - data-backed sector, economic-reasoning, and historical views.
 function renderMarkets() {
   return `
     <div class="page-head"><h2>Markets</h2><p>Sector opportunity scores and signals</p></div>
@@ -1176,7 +1214,7 @@ function renderHistory() {
     ${events}`;
 }
 
-/* ---------- HISTORICAL EVENT DETAIL (modal) ---------- */
+// Historical event detail: the modal shown when a historical parallel is opened.
 function eventDetail(id) {
   const e = (D.events || []).find((x) => x.id === id);
   if (!e) return;
@@ -1209,17 +1247,41 @@ function renderSettings() {
           <div class="pf-stat"><div class="l">Data Generated</div><div class="v" style="font-size:13px;">${esc((D.generated_at || "").slice(0, 10))}</div></div>
         </div>
       </div>
+      ${(() => {
+        const p = (window.Auth && window.Auth.profile && window.Auth.profile()) || null;
+        const opt = (v, list, cur) => list.map((o) => `<option value="${o[0]}"${cur === o[0] ? " selected" : ""}>${o[1]}</option>`).join("");
+        const risk = p ? p.risk_tolerance : null;
+        const rc = risk === "high" ? "down" : risk === "low" ? "up" : "warn";
+        return `<div class="card pad-lg span-2">
+          <div class="card-head"><div class="card-title">Your Investor Profile</div>${p ? `<span class="pill ${rc}">${esc(risk)} risk</span>` : ""}</div>
+          <p class="faint fs-sm" style="margin:-4px 0 12px;">From your sign-up quiz. Used to tailor your news feed. Update anytime.</p>
+          <div class="grid cols-3" style="gap:12px;">
+            <div><div class="l faint fs-sm">Age</div><input class="set-in" id="p-age" type="number" min="13" max="100" value="${p ? p.age : ""}"></div>
+            <div><div class="l faint fs-sm">Experience</div><select class="set-in" id="p-exp">${opt("", [["beginner", "Beginner"], ["intermediate", "Intermediate"], ["advanced", "Advanced"]], p && p.experience)}</select></div>
+            <div><div class="l faint fs-sm">Goal</div><select class="set-in" id="p-goal">${opt("", [["growth", "Growth"], ["income", "Income"], ["stability", "Stability"]], p && p.goal)}</select></div>
+            <div><div class="l faint fs-sm">Time horizon</div><select class="set-in" id="p-time">${opt("", [["short-term", "Short-term"], ["mid-term", "Mid-term"], ["long-term", "Long-term"]], p && p.timeline)}</select></div>
+            <div><div class="l faint fs-sm">When markets drop</div><select class="set-in" id="p-emo">${opt("", [["sell", "Sell"], ["hold", "Hold"], ["buy more", "Buy more"]], p && p.emotional)}</select></div>
+            <div style="display:flex;align-items:flex-end;"><button class="auth-btn" id="saveProfileBtn" style="margin:0;">Save profile</button></div>
+          </div>
+        </div>`;
+      })()}
+      <div class="card pad-lg">
+        <div class="card-head"><div class="card-title">Accessibility</div></div>
+        <div class="toggle-row" style="margin-top:4px;">
+          <div><div style="font-weight:600;">Accessibility mode</div><div class="faint fs-sm">Larger text, higher contrast, stronger focus, reduced motion.</div></div>
+          <div class="switch ${(window.Auth && window.Auth.a11y && window.Auth.a11y()) ? "" : "off"}" id="a11yToggle" role="switch" tabindex="0" aria-label="Toggle accessibility mode" aria-checked="${window.Auth && window.Auth.a11y && window.Auth.a11y() ? "true" : "false"}"></div>
+        </div>
+      </div>
       <div class="card pad-lg">
         <div class="card-head"><div class="card-title">About ThinkFree</div></div>
         <p class="muted fs-sm">ThinkFree is an AI-powered research analyst and economic translator, not a trading bot, brokerage, or robo-advisor. The final output is an intelligence report, in plain English.</p>
+        <p class="faint fs-sm" style="margin-top:8px;"><a href="#" id="a11yStatementLink" style="color:var(--info);">Accessibility statement</a>: we follow WCAG 2.1 AA practices (keyboard navigation, labels, contrast, focus). Report issues to support.</p>
       </div>
     </div>`;
 }
 
-/* ============================================================
-   PAGE: INTELLIGENCE (scores, PAC/lobbying tracker, industry dashboards)
-   Computed from real data via window.TFScores.
-   ============================================================ */
+// PAGE: Intelligence - accountability scores, the PAC/lobbying tracker, and per-industry dashboards.
+//   Computed from real data via window.TFScores.
 const SECTOR_TICKERS = {
   "Defense": ["LMT","RTX","NOC","BA","GD","LHX","HII","BWXT","LDOS","TXT","HWM"],
   "Technology": ["AAPL","MSFT","NVDA","GOOGL","AMZN","META","AMD","ADBE","CRM","ORCL","CSCO","ADI","INTC","QCOM","TXN","IBM","PLTR"],
@@ -1318,10 +1380,9 @@ function renderIntelligence() {
     </div>`;
 }
 
-/* ============================================================
-   PAGE: STATES (Constituent Accountability rankings)
-   ============================================================ */
-/* ---- State Legislature Watch (LegiScan + Open States) ---- */
+// PAGE: States - Constituent Accountability rankings by state.
+
+// State Legislature Watch: bills and members from LegiScan + Open States (lazy-loaded on first view).
 const _osIndex = {};
 function osPhotoIndex(ab) {
   if (_osIndex[ab]) return _osIndex[ab];
@@ -1422,7 +1483,7 @@ function renderStates() {
       </tbody></table>
       <div class="sample-note">Real income = median household income adjusted by BEA Regional Price Parity. A high nominal income in an expensive state buys less.</div>
     </div>
-    ${renderLegWatch()}`;
+    <div id="leg-watch-mount">${window.LEGISCAN_DATA ? renderLegWatch() : '<div class="card pad-lg"><div class="card-title">State Legislature Watch</div><div class="faint" style="margin-top:6px;">Loading state legislative data…</div></div>'}</div>`;
 }
 
 function renderLegWatch() {
@@ -1446,9 +1507,7 @@ function renderLegWatch() {
     </div>`;
 }
 
-/* ============================================================
-   PAGE: INFLUENCEWEB (graph engine lives in influenceweb.js)
-   ============================================================ */
+// PAGE: InfluenceWeb - host page for the graph engine (the graph itself lives in influenceweb.js).
 function renderInfluence() {
   return `
     ${window.Predictions ? window.Predictions.render() : ""}
@@ -1496,9 +1555,7 @@ function renderInfluence() {
     </div>`;
 }
 
-/* ============================================================
-   SEARCH
-   ============================================================ */
+// SEARCH - builds a lazy search index over politicians, bills, tickers, and events.
 let _searchIndex = null;
 function searchIndex() {
   if (_searchIndex) return _searchIndex;
@@ -1577,9 +1634,7 @@ function searchDispatch(type, key) {
   else if (type === "page") go(key);
 }
 
-/* ============================================================
-   ROUTER
-   ============================================================ */
+// ROUTER - maps page names to render functions and handles navigation between views.
 const PAGES = {
   dashboard: renderDashboard,
   influence: renderInfluence,
@@ -1609,6 +1664,14 @@ function go(page) {
   document.querySelector(".viewport").scrollTop = 0;
   location.hash = page;
 
+  // State Legislature data is lazy-loaded on first visit, then mounted into the page
+  if (page === "states") {
+    ensureStateData(() => {
+      const mount = document.getElementById("leg-watch-mount");
+      if (mount) mount.innerHTML = renderLegWatch();
+    });
+  }
+
   // InfluenceWeb graph engine: activate when shown, pause otherwise.
   // Re-entering the page resets to the default graph (closes any open drill,
   // clears zoom) so you never return to where you left off mid-drill.
@@ -1624,13 +1687,22 @@ function initTicker() {
     <span class="tick"><span class="t-label">${esc(m.label)}</span><span class="t-val">${esc(m.value)}</span><span class="t-chg ${m.dir}">${esc(m.change)}</span></span>`).join("");
 }
 
-function init() {
-  // user chip / greeting
+let _inited = false;
+// user chip + time-based greeting; re-run on every (re)login so a different account updates
+function setGreeting() {
   const u = D.user || {};
-  $("#userName").textContent = u.name || "Allan";
+  const authUser = (window.Auth && window.Auth.user && window.Auth.user()) || null;
+  const name = (authUser && authUser.name) || u.name || "Allan";
+  const hr = new Date().getHours();
+  const part = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
+  $("#userName").textContent = name;
   $("#userPlan").textContent = u.plan || "Free Plan";
-  $("#userAvatar").textContent = initials(u.name || "Allan");
-  $("#greet").textContent = `Good evening, ${u.name || "Allan"}`;
+  $("#userAvatar").textContent = initials(name);
+  $("#greet").textContent = `${part}, ${name}`;
+}
+function init() {
+  if (_inited) return; _inited = true;   // auth gate calls this once, after unlock
+  setGreeting();
 
   initTicker();
 
@@ -1638,6 +1710,12 @@ function init() {
   document.getElementById("nav").addEventListener("click", (e) => {
     const item = e.target.closest(".nav-item");
     if (item) go(item.dataset.page);
+  });
+  // keyboard: Enter/Space activate a focused nav item (WCAG 2.1.1)
+  document.getElementById("nav").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const item = e.target.closest(".nav-item");
+    if (item) { e.preventDefault(); go(item.dataset.page); }
   });
   // global click delegation: nav goto, politician profile, full trades, event detail
   document.body.addEventListener("click", (e) => {
@@ -1696,17 +1774,74 @@ function init() {
   const applyTheme = (light) => {
     document.body.classList.toggle("light", light);
     tog.classList.toggle("off", light);
+    tog.setAttribute("aria-checked", light ? "false" : "true");   // switch is "on" = dark
   };
   let lightMode = false;
   try { lightMode = localStorage.getItem("tf-theme") === "light"; } catch (e) {}
   applyTheme(lightMode);
-  tog.addEventListener("click", () => {
+  const toggleTheme = () => {
     lightMode = !lightMode;
     applyTheme(lightMode);
     try { localStorage.setItem("tf-theme", lightMode ? "light" : "dark"); } catch (e) {}
+  };
+  tog.addEventListener("click", toggleTheme);
+  tog.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTheme(); } });
+
+  // accessibility-mode toggle (lives in Settings, rendered dynamically -> delegate)
+  const toggleA11y = (t) => {
+    const turningOn = t.classList.contains("off");
+    t.classList.toggle("off", !turningOn);
+    t.setAttribute("aria-checked", turningOn ? "true" : "false");
+    if (window.Auth && window.Auth.setA11y) window.Auth.setA11y(turningOn);
+  };
+  document.addEventListener("click", (e) => { const t = e.target.closest("#a11yToggle"); if (t) toggleA11y(t); });
+  document.addEventListener("keydown", (e) => { if (e.key !== "Enter" && e.key !== " ") return; const t = e.target.closest("#a11yToggle"); if (t) { e.preventDefault(); toggleA11y(t); } });
+
+  // save the investor-profile edits from Settings -> updates news tailoring
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#saveProfileBtn") || !window.Auth || !window.Auth.setProfile) return;
+    window.Auth.setProfile({ age: $("#p-age").value, experience: $("#p-exp").value, goal: $("#p-goal").value, timeline: $("#p-time").value, emotional: $("#p-emo").value });
+    rendered.settings = false; rendered.news = false; go("settings");   // re-render with new risk + tailoring
+  });
+
+  // accessibility statement (opens the full statement in the modal)
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#a11yStatementLink")) return;
+    e.preventDefault();
+    openModal(`<div class="modal-head"><h2>Accessibility statement</h2></div>
+      <div class="modal-body" style="line-height:1.6;">
+        <p>ThinkFree Finance is committed to making our platform usable by everyone, including people who rely on assistive technology. We aim to conform to the <b>Web Content Accessibility Guidelines (WCAG) 2.1, Level AA</b>.</p>
+        <h3 style="margin:16px 0 6px;">What we do</h3>
+        <ul style="margin:0 0 8px 18px;">
+          <li>Full keyboard navigation for menus, toggles, search, and dialogs (no mouse required).</li>
+          <li>ARIA labels and roles on interactive controls so screen readers announce them correctly.</li>
+          <li>Visible focus outlines on every focusable element.</li>
+          <li>Color choices checked for sufficient contrast, with a higher-contrast option.</li>
+          <li>Support for the operating system's "reduce motion" setting.</li>
+        </ul>
+        <h3 style="margin:16px 0 6px;">Accessibility mode</h3>
+        <p>Turning on <b>Accessibility mode</b> (in Settings, or during sign-up) increases text size, raises contrast, strengthens focus outlines, and reduces animation. It is optional and off by default.</p>
+        <h3 style="margin:16px 0 6px;">Known limitations</h3>
+        <p>The interactive InfluenceWeb graph is primarily visual; the same information is available in the Intelligence, Political Watch, and company detail views in text form.</p>
+        <h3 style="margin:16px 0 6px;">Feedback</h3>
+        <p>If you encounter an accessibility barrier, email <a href="mailto:support@thinkfree.finance" style="color:var(--info);">support@thinkfree.finance</a> and we will work to address it. This is a closed beta and we welcome reports.</p>
+        <p class="faint fs-sm" style="margin-top:12px;">This statement reflects our current practices and is updated as the platform evolves.</p>
+      </div>`);
   });
 
   go(location.hash.replace("#", "") || "dashboard");
 }
 
-document.addEventListener("DOMContentLoaded", init);
+// re-render the current page with freshly-pulled data (called by the tier refresh timer)
+window.TF = window.TF || {};
+window.TF.init = init;   // the auth gate calls this after a successful unlock
+window.TF.onRefresh = function () {
+  setGreeting();   // keep name/greeting in sync after a re-login
+  const p = (location.hash || "#dashboard").slice(1);
+  if (rendered[p]) { rendered[p] = false; go(p); }
+  if (typeof initTicker === "function") initTicker();
+};
+
+// The app only renders once authenticated (auth.js drives init). If the auth
+// gate is absent for any reason, fall back to initializing normally.
+document.addEventListener("DOMContentLoaded", function () { if (!window.Auth) init(); });

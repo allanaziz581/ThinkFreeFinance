@@ -53,14 +53,42 @@ def fmt(n):
 
 
 def company_names():
-    """ticker -> recipient name (use LittleSis legal name, fall back to ticker)."""
-    s = open(ROOT / "webapp" / "js" / "influence_data.js", encoding="utf-8").read()
-    d = json.loads(s[s.index("{"): s.rindex("}") + 1])
+    """ticker -> recipient name, across EVERY company dataset (full S&P 500),
+    not just the LittleSis set, so every company gets real contract data."""
+    js = ROOT / "webapp" / "js"
     out = {}
-    for tk, c in (d.get("companies") or {}).items():
-        nm = (c.get("name") or tk).replace(", Inc.", "").replace(" Inc.", "").replace(",", "")
-        out[tk] = nm
-    return out
+
+    def add(tk, nm):
+        if tk and nm:
+            out[tk] = nm
+
+    # full S&P 500
+    try:
+        s = open(js / "sp500_data.js", encoding="utf-8").read()
+        d = json.loads(s.split("window.SP500 = ", 1)[1].rstrip().rstrip(";\n"))
+        for tk, c in d.get("byTicker", {}).items():
+            add(tk, c.get("name"))
+    except Exception:
+        pass
+    # Finnhub names
+    try:
+        s = open(js / "prices_data.js", encoding="utf-8").read()
+        d = json.loads(s.split("= ", 1)[1].rstrip().rstrip(";\n"))
+        for tk, c in d.get("byTicker", {}).items():
+            if c.get("name"):
+                add(tk, c["name"])
+    except Exception:
+        pass
+    # LittleSis legal names (preferred where present)
+    try:
+        s = open(js / "influence_data.js", encoding="utf-8").read()
+        d = json.loads(s[s.index("{"): s.rindex("}") + 1])
+        for tk, c in (d.get("companies") or {}).items():
+            if c.get("name"):
+                add(tk, c["name"])
+    except Exception:
+        pass
+    return {tk: (nm or tk).replace(", Inc.", "").replace(" Inc.", "").replace(",", "").strip() for tk, nm in out.items()}
 
 
 def fetch(name):

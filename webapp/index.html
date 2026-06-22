@@ -6,7 +6,12 @@
   <title>ThinkFree Finance</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
-<body>
+<body class="tf-locked">
+  <div id="tf-splash">
+    <div class="tf-splash-logo">TF</div>
+    <div class="tf-splash-name">Think<span>Free</span></div>
+    <div class="tf-splash-bar"><i></i></div>
+  </div>
   <div class="app">
     <!-- ============ SIDEBAR ============ -->
     <aside class="sidebar">
@@ -20,43 +25,47 @@
 
       <nav class="nav" id="nav">
         <div class="nav-label">Main</div>
-        <div class="nav-item active" data-page="dashboard">
+        <div class="nav-item active" data-page="dashboard" role="button" tabindex="0">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><span>Dashboard</span></div>
-        <div class="nav-item" data-page="news">
+        <div class="nav-item" data-page="news" role="button" tabindex="0">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="13" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg></span><span>News</span></div>
-        <div class="nav-item" data-page="influence">
+        <div class="nav-item" data-page="influence" role="button" tabindex="0">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.4"/><circle cx="5" cy="6" r="1.8"/><circle cx="19" cy="6" r="1.8"/><circle cx="5" cy="18" r="1.8"/><circle cx="19" cy="18" r="1.8"/><path d="M10.2 10.6 6.4 7.2M13.8 10.6l3.8-3.4M10.2 13.4 6.4 16.8M13.8 13.4l3.8 3.4"/></svg></span><span>InfluenceWeb</span></div>
-        <div class="nav-item" data-page="intelligence">
+        <div class="nav-item" data-page="intelligence" role="button" tabindex="0">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3M20 16V6"/></svg></span><span>Intelligence</span></div>
-        <div class="nav-item" data-page="states">
+        <div class="nav-item" data-page="states" role="button" tabindex="0">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z"/><path d="M9 3v15M15 6v15"/></svg></span><span>State Rankings</span></div>
-        <div class="nav-item" data-page="political">
+        <div class="nav-item" data-page="political" role="button" tabindex="0">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18"/><path d="M4 10h16"/><path d="M5 10v8M19 10v8M9 10v8M15 10v8"/><path d="M12 3 4 7h16Z"/></svg></span><span>Political Watch</span></div>
-        <div class="nav-item" data-page="portfolio">
+        <div class="nav-item" data-page="portfolio" role="button" tabindex="0">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span><span>My Portfolio</span></div>
         <div class="nav-label">Intelligence</div>
-        <div class="nav-item" data-page="markets">
+        <div class="nav-item" data-page="markets" role="button" tabindex="0">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="4" y1="20" x2="4" y2="12"/><line x1="10" y1="20" x2="10" y2="6"/><line x1="16" y1="20" x2="16" y2="9"/><line x1="20" y1="20" x2="20" y2="4"/></svg></span><span>Markets</span></div>
-        <div class="nav-item" data-page="reasoning">
+        <div class="nav-item" data-page="reasoning" role="button" tabindex="0">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="9" r="6"/><path d="M9 21h6M10 18h4"/><path d="M12 3v6M9 6h6"/></svg></span><span>Reasoning</span></div>
-        <div class="nav-item" data-page="history">
+        <div class="nav-item" data-page="history" role="button" tabindex="0">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span>History</span></div>
-        <div class="nav-item" data-page="settings">
+        <div class="nav-item" data-page="settings" role="button" tabindex="0">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6a7 7 0 0 0 .1-1Z"/></svg></span><span>Settings</span></div>
       </nav>
 
       <div class="sidebar-foot">
         <div class="toggle-row">
           <span>Dark Mode</span>
-          <div class="switch" id="darkToggle"></div>
+          <div class="switch" id="darkToggle" role="switch" tabindex="0" aria-label="Toggle dark mode" aria-checked="true"></div>
         </div>
         <div class="user-chip">
           <div class="user-avatar" id="userAvatar">A</div>
-          <div>
+          <div style="flex:1;min-width:0;">
             <div class="user-name" id="userName">Allan</div>
             <div class="user-plan" id="userPlan">Free Plan</div>
           </div>
+          <button class="logout-btn" id="logoutBtn" title="Log out" aria-label="Log out">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+          </button>
         </div>
+        <div id="tf-updated-slot"></div>
       </div>
     </aside>
 
@@ -77,7 +86,7 @@
         <div class="search-wrap">
           <label class="search">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
-            <input type="text" id="searchInput" placeholder="Search politicians, bills, tickers, events…" autocomplete="off" />
+            <input type="text" id="searchInput" aria-label="Search politicians, bills, tickers, and events" placeholder="Search politicians, bills, tickers, events…" autocomplete="off" />
           </label>
           <div class="search-results" id="searchResults"></div>
         </div>
@@ -107,29 +116,16 @@
     </div>
   </div>
 
-  <script src="js/data.js"></script>
-  <script src="js/influence_data.js"></script>
-  <script src="js/nonprofit_data.js"></script>
-  <script src="js/fec_data.js"></script>
-  <script src="js/sec_data.js"></script>
-  <script src="js/secbulk_data.js"></script>
-  <script src="js/usaspending_data.js"></script>
-  <script src="js/states_data.js"></script>
-  <script src="js/legiscan_data.js"></script>
-  <script src="js/openstates_data.js"></script>
-  <script src="js/prices_data.js"></script>
-  <script src="js/sp500_data.js"></script>
-  <script src="js/quant_data.js"></script>
-  <script src="js/news_intel.js"></script>
-  <script src="js/scores.js"></script>
-  <script src="js/genimpact.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/influenceweb.js"></script>
-  <script src="js/usmap_paths.js"></script>
-  <script src="js/member_bills.js"></script>
-  <script src="js/congress.js"></script>
-  <script src="js/glossary.js"></script>
-  <script src="js/scoreinfo.js"></script>
-  <script src="js/predictions.js"></script>
+  <!-- Boot sequence. boot.js (loaded first) detects whether we are served by the
+       FastAPI backend (real auth + gated /api/data) or as a plain static file
+       (localStorage gate + js/*_data.js tags), then loads the data globals and
+       logic scripts in the right order once the user is authenticated. The big
+       list of data/logic <script> tags used to live here; boot.js now injects
+       them so data can be fetched after login. See webapp/js/boot.js. -->
+  <script src="js/boot.js" defer></script>
+  <!-- auth_seed.js is local-only / gitignored: seeds a dev admin account into
+       localStorage for static mode. Absent (and 404, harmlessly) on the server. -->
+  <script src="js/auth_seed.js" defer></script>
+  <script src="js/auth.js" defer></script>
 </body>
 </html>

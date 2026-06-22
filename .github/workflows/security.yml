@@ -1,0 +1,37 @@
+# ThinkFree Finance - automated security gate.
+#
+# Makes the security tooling ACTUALLY run (not just exist): on every push and PR
+# it scans for committed secrets, dependency CVEs, dangerous code patterns, and
+# runs the project's own SecurityAuditAgent. detect-secrets and the audit agent
+# are blocking; bandit/safety start advisory (|| true) so first-run noise does
+# not block you - tighten them by removing "|| true" once the baseline is clean.
+name: security
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install security tools
+        run: pip install bandit safety detect-secrets
+
+      - name: detect-secrets (block on committed secrets)
+        run: detect-secrets scan --all-files --exclude-files 'webapp/js/.*_data\.js$'
+
+      - name: Bandit static analysis (advisory)
+        run: bandit -r server agents --skip B101 || true
+
+      - name: Dependency CVE scan (advisory)
+        run: safety check -r server/requirements.txt || true
+
+      - name: ThinkFree SecurityAuditAgent (block on critical/high)
+        run: python agents/security_audit.py

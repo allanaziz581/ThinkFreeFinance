@@ -1,11 +1,15 @@
-/* ============================================================
-   ThinkFree - Plain-English Glossary (window.Glossary)
-   Hover (or tap) any flagged finance term to see a one-line, jargon-free
-   explanation. Used to demystify QuantLib / technical-analysis language like
-   "death cross", "RSI", "VaR" so the average person is never confused.
-   ============================================================ */
+// glossary.js
+// What it does: Powers jargon-glossary tooltips throughout the ThinkFree Finance UI.
+//   It detects known finance terms (golden cross, death cross, RSI, etc.) inside
+//   rendered HTML strings, wraps the first occurrence of each term in a <span>,
+//   and shows a plain-English explanation in a floating tooltip on hover or tap.
+// How it fits: Loaded with <script defer>. Exposes window.Glossary = { annotate, TERMS }
+//   so any other module can pre-process a text string before injecting it into the DOM.
+
 "use strict";
 (function () {
+  // Plain-English definitions for every term we want to flag.
+  // Keys are lowercase; matching is case-insensitive at annotation time.
   const TERMS = {
     "golden cross": "A sign the stock's price trend has recently turned upward and is gaining strength. Often seen as a good sign.",
     "death cross": "A sign the stock's price trend has recently turned downward and is losing strength. Often seen as a warning sign.",
@@ -25,10 +29,15 @@
     "beta": "How much a stock usually moves compared with the overall market.",
   };
 
+  // HTML-escape a value so it is safe to embed in an attribute or text node.
   const E = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  // Escape special regex metacharacters in a term string before building a RegExp.
   const escRe = (s) => s.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
 
   // wrap known terms (first occurrence each) in already-HTML-escaped text
+  // Longer terms are matched first to avoid partial matches (e.g. "moving average"
+  // before "average"). The `used` map ensures only the first occurrence is wrapped.
   function annotate(s) {
     if (!s) return s;
     const keys = Object.keys(TERMS).sort((a, b) => b.length - a.length);
@@ -41,8 +50,14 @@
     return out;
   }
 
+  // Singleton tooltip <div> created lazily on first use.
   let tip;
+
+  // Create the tooltip element and attach it to <body> if it does not yet exist.
   function ensure() { if (tip) return; tip = document.createElement("div"); tip.className = "term-tip"; document.body.appendChild(tip); }
+
+  // Position and display the tooltip near the cursor, nudging it back on-screen
+  // if it would overflow the viewport edges.
   function show(key, x, y) {
     ensure(); const def = TERMS[(key || "").toLowerCase()]; if (!def) return;
     tip.textContent = def; tip.classList.add("open");
@@ -52,17 +67,29 @@
     if (ly + h > vh - 8) ly = vh - h - 8;
     tip.style.left = Math.max(8, lx) + "px"; tip.style.top = Math.max(8, ly) + "px";
   }
+
+  // Hide the tooltip by removing the "open" class.
   function hide() { if (tip) tip.classList.remove("open"); }
 
+  // Attach delegated event listeners to document once.
+  // A guard flag on document prevents double-binding if the script is evaluated twice.
   function bind() {
     if (document._termBound) return; document._termBound = true;
+
+    // Show tooltip when the cursor enters a .term span.
     document.addEventListener("mouseover", (e) => { const el = e.target.closest(".term"); if (el) show(el.dataset.term, e.clientX, e.clientY); });
+
+    // Track cursor movement so the tooltip follows the mouse; hide when leaving the span.
     document.addEventListener("mousemove", (e) => { if (tip && tip.classList.contains("open")) { const el = e.target.closest(".term"); if (el) show(el.dataset.term, e.clientX, e.clientY); else hide(); } });
+
+    // Hide when the cursor fully leaves a .term span (ignore moves to a child element).
     document.addEventListener("mouseout", (e) => { const el = e.target.closest(".term"); if (el && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(".term"))) hide(); });
+
     // tap (mobile): show briefly
     document.addEventListener("click", (e) => { const el = e.target.closest(".term"); if (el) { show(el.dataset.term, e.clientX || 60, e.clientY || 60); setTimeout(hide, 3800); } });
   }
   bind();
 
+  // Expose annotate() and the TERMS dictionary for use by other modules.
   window.Glossary = { annotate, TERMS };
 })();

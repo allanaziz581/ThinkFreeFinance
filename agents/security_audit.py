@@ -50,13 +50,23 @@ DANGEROUS_PATTERNS = [
     (re.compile(r'os\.system\s*\('), "os.system() — prefer subprocess"),
 ]
 
-KNOWN_BAD_STRINGS = [
-    "sk-proj-NhjkeUOId",  # The previously exposed key prefix
-    "6k7dxShReNZzrs",     # Quandl key fragment
-    "1f6a622cccbe00f",    # QuiverQuant key fragment
-    "43a5c9df765a01",     # SEC key fragment
-    "d174f81r01qkv5",     # Finnhub key fragment
-]
+def _secret_fragments():
+    """Fragments of the project's real keys to scan for, read from .env at
+    runtime so this committed file never contains real-key material itself."""
+    frags = ["sk-proj-", "sk-ant-", "ghp_", "github_pat_"]   # generic provider prefixes
+    try:
+        from pathlib import Path
+        for line in (Path(__file__).resolve().parent.parent / ".env").read_text(encoding="utf-8").splitlines():
+            if "=" in line and not line.strip().startswith("#"):
+                v = line.split("=", 1)[1].strip()
+                if len(v) >= 16:
+                    frags.append(v[:14])
+    except Exception:
+        pass
+    return frags
+
+
+KNOWN_BAD_STRINGS = _secret_fragments()
 
 # ---------------------------------------------------------------------------
 # Checks
@@ -388,4 +398,6 @@ def run_security_audit(verbose: bool = True) -> dict:
 
 
 if __name__ == "__main__":
-    run_security_audit(verbose=True)
+    _result = run_security_audit(verbose=True)
+    # Exit non-zero on FAIL so CI / pre-commit hooks can block on it.
+    sys.exit(0 if _result.get("passed") else 1)

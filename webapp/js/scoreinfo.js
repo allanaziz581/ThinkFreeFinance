@@ -1,31 +1,43 @@
-/* ============================================================
-   ThinkFree - Progressive Score Explanation (window.ScoreInfo)
-   Tier 1 (desktop): hover a score -> compact "Why this score?" tooltip.
-   Tier 1 (mobile):  tap a score / info dot -> lightweight bottom sheet.
-   Tier 2:           "View Full Breakdown" -> modal with Why / Contributors /
-                     Calculation (collapsed) / Sources (collapsed).
-   Nothing is permanently displayed; formulas live only inside the modal.
-   Robinhood / Apple Stocks feel: see score -> understand why -> dig if curious.
-   ============================================================ */
+// scoreinfo.js
+// What it does: implements the progressive score-explanation system -- a hover
+//   tooltip on desktop, a bottom sheet on mobile, and a full breakdown modal
+//   ("Why this score?") -- so users can understand any accountability score
+//   without permanent on-screen formulas.
+// How it fits: loaded as a <script defer> in index.html; exposes window.ScoreInfo
+//   for congress.js and any other module that renders score badges.
+
 "use strict";
 (function () {
+  // Pull shared data bundles created by earlier modules.
   const D = window.TF_DATA || {};
   const FEC = (window.FEC_DATA || {}).byName || {};
   const MB = (window.MEMBER_BILLS || {}).byBioguide || {};
+
+  // HTML-escape helper: used before injecting any dynamic string into innerHTML.
   const E = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  // Detect touch-primary devices so we show a bottom sheet instead of a tooltip.
   const isTouch = !!(window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches);
 
-  // ---------- explainer registry ----------
+  // Explainer registry: maps a kind string to a function that returns an
+  // explanation object for that kind of score.
   const REG = {};
   function register(kind, fn) { REG[kind] = fn; }
 
+  // Resolve an explanation object from a .si element.
+  // Prefers an inline JSON payload (data-si-payload), then falls back to a
+  // registered builder function keyed by data-si-kind.
   function explainEl(el) {
     if (el.dataset.siPayload) { try { return JSON.parse(el.dataset.siPayload); } catch (e) { return null; } }
     const fn = REG[el.dataset.siKind];
     return fn ? fn(el.dataset.siKey, el.dataset.siVal) : null;
   }
 
-  // ---------- shared score math (mirrors congress.js / scores.js) ----------
+  // Shared score math used by the political explainer builders below.
+  // These mirror the same formulas in congress.js / scores.js so the
+  // tooltip numbers are always consistent with the displayed scores.
+
+  // Return the funding breakdown for a politician by name from FEC_DATA.
   function polFunding(name) {
     const f = FEC[name]; if (!f || !f.receipts) return null;
     const total = f.receipts || 1;
@@ -33,15 +45,19 @@
     const pac = Math.round((f.from_pacs || 0) / total * 100);
     return { individual: ind, pac, other: Math.max(0, 100 - ind - pac), total_fmt: f.receipts_fmt };
   }
+
+  // Find a politician record in TF_DATA by exact name.
   function pol(name) { return (D.politicians || []).find((x) => x.name === name); }
 
+  // Extract commonly needed fields from a politician record in one call.
   function polCommon(p) {
     const f = polFunding(p.name); const pacShare = f ? f.pac : 0;
     const mb = MB[p.bioguide] || {};
     return { f, pacShare, mb, trades: p.trades || 0, ret: p.ret || 0 };
   }
 
-  // Political Influence
+  // Political Influence explainer: weighted combination of legislative activity,
+  // disclosed trades, PAC funding share, and estimated trading return.
   register("pol-influence", (name) => {
     const p = pol(name); if (!p) return null;
     const { f, pacShare, mb, trades, ret } = polCommon(p);
@@ -79,7 +95,8 @@
     };
   });
 
-  // Public Impact
+  // Public Impact explainer: rises when a member relies more on individual
+  // donors and less on PAC money -- a proxy for constituent accountability.
   register("pol-public", (name) => {
     const p = pol(name); if (!p) return null;
     const { f, pacShare } = polCommon(p); const indShare = f ? f.individual : 0;
@@ -102,7 +119,8 @@
     };
   });
 
-  // Transparency
+  // Transparency explainer: measures exposure rather than intent -- heavy PAC
+  // reliance and frequent trading in legislated markets lower the score.
   register("pol-transparency", (name) => {
     const p = pol(name); if (!p) return null;
     const { pacShare, trades } = polCommon(p);
@@ -124,17 +142,22 @@
     };
   });
 
-  // Company scores (use TFScores)
+  // Company score builder: delegates to window.TFScores for the raw numbers,
+  // then wraps them in the standard explanation shape. The "which" parameter
+  // selects between the "influence" and "dependency" score views.
   function companyExp(tk, which) {
     const S = window.TFScores; if (!S) return null;
     const ex = S.politicalExposure(tk);
     const name = (window.PRICES_DATA && window.PRICES_DATA.byTicker[tk] && window.PRICES_DATA.byTicker[tk].name) || tk;
     const bullets = [];
     if (ex.contracts_raw) bullets.push(`${ex.contracts} in federal contracts`);
+    if (ex.lobby_spend) bullets.push(`${ex.lobby_spend} on federal lobbying`);
+    if (ex.lobby_firms) bullets.push(`Hires ${ex.lobby_firms} lobbying firm${ex.lobby_firms > 1 ? "s" : ""}`);
+    if (ex.lobby_bills) bullets.push(`Lobbies on ${ex.lobby_bills} bills`);
     if (ex.bills) bullets.push(`Named in ${ex.bills} tracked bills`);
     if (ex.congressional_traders) bullets.push(`${ex.congressional_traders} members of Congress traded it`);
-    if (ex.trades) bullets.push(`${ex.trades} congressional trades`);
-    if (ex.lobbying) bullets.push("Registered federal lobbying");
+
+    // Government Dependency view: focuses on contract revenue vs. total revenue.
     if (which === "dependency") {
       return {
         title: "Government Dependency Score", value: `${ex.dependency}/100`,
@@ -145,27 +168,32 @@
         sources: [{ label: "USASpending.gov - federal contracts" }, { label: "SEC EDGAR - revenue" }],
       };
     }
+
+    // Company Influence view: aggregates all government-entanglement signals.
     return {
       title: "Company Influence Score", value: `${ex.influence}/100`,
       bullets: bullets.slice(0, 4).length ? bullets.slice(0, 4) : ["Limited public-entanglement signals"],
-      why: `${name}'s influence score reflects its entanglement with government: federal contracts, mentions in legislation, congressional trading of its stock, and registered lobbying.`,
+      why: `${name}'s influence score reflects its entanglement with government across every dataset we track: federal contract money, federal lobbying money and footprint, mentions in legislation, congressional trading of its stock, and governance.`,
       contributors: [
         { label: "Federal contracts", detail: ex.contracts },
+        { label: "Federal lobbying", detail: ex.lobby_spend ? `${ex.lobby_spend} via ${ex.lobby_firms} firm(s), ${ex.lobby_bills} bills` : ex.lobbying },
         { label: "Legislation", detail: `${ex.bills} tracked bills` },
         { label: "Congressional trading", detail: `${ex.trades} trades by ${ex.congressional_traders} members` },
-        { label: "Lobbying", detail: ex.lobbying ? "Registered" : "None on record" },
       ],
-      calc: { formula: "Influence = 12 base + contracts(log, <=40) + bills x3(<=18) + trades x0.4(<=18) + members x1.4(<=12) + lobbying x7 + board x0.4(<=5)", rows: [{ factor: "Contracts", value: ex.contracts }, { factor: "Bills", value: ex.bills }, { factor: "Trades", value: ex.trades }, { factor: "Members trading", value: ex.congressional_traders }], total: `${ex.influence}/100` },
-      sources: [{ label: "USASpending.gov" }, { label: "Congress.gov" }, { label: "SEC EDGAR" }, { label: "STOCK Act disclosures" }],
+      calc: { formula: "Influence = contracts(log $, <=38) + lobbying spend(log $, <=16) + lobbying footprint(firms+bills, <=16) + registered(4) + bills(<=12) + trades+members(<=14) + board(<=4)", rows: [{ factor: "Federal contracts", value: ex.contracts }, { factor: "Lobbying spend", value: ex.lobby_spend || "n/a" }, { factor: "Lobbying firms / bills", value: `${ex.lobby_firms} / ${ex.lobby_bills}` }, { factor: "Legislation", value: ex.bills }, { factor: "Congressional trades", value: ex.trades }], total: `${ex.influence}/100` },
+      sources: [{ label: "USASpending.gov - federal contracts" }, { label: "Senate LDA - lobbying" }, { label: "Congress.gov - legislation" }, { label: "SEC EDGAR" }, { label: "STOCK Act disclosures" }],
     };
   }
+
+  // Register the two company score kinds using the shared builder above.
   register("company-influence", (tk) => companyExp(tk, "influence"));
   register("company-dependency", (tk) => companyExp(tk, "dependency"));
 
-  // ============================================================
-  // DOM (singletons)
-  // ============================================================
+  // DOM singletons: the tooltip, bottom sheet, and modal are each created once
+  // on first use and reused for every subsequent interaction.
   let tipEl, sheetEl, modalEl, built = false;
+
+  // Lazily build all three overlay elements and attach their close handlers.
   function build() {
     if (built) return; built = true;
     tipEl = document.createElement("div"); tipEl.className = "si-tip"; document.body.appendChild(tipEl);
@@ -176,8 +204,11 @@
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeSheet(); closeModal(); } });
   }
 
+  // Render an array of bullet strings as a <ul> for use inside tooltips/sheets.
   function bullets(b) { return `<ul class="si-bullets">${(b || []).map((x) => `<li>${E(x)}</li>`).join("")}</ul>`; }
 
+  // Position and show the desktop hover tooltip near the cursor, flipping sides
+  // if the default position would overflow the viewport.
   function showTip(exp, x, y) {
     build();
     tipEl.innerHTML = `<div class="si-tip-h">Why this score?</div>${bullets(exp.bullets)}<div class="si-tip-cta">Click for full breakdown &rarr;</div>`;
@@ -190,6 +221,8 @@
   }
   function hideTip() { if (tipEl) tipEl.classList.remove("open"); }
 
+  // Show the mobile bottom sheet with a short summary and a "View Full
+  // Breakdown" button that promotes to the modal.
   function openSheet(exp) {
     build(); hideTip();
     sheetEl.querySelector(".si-sheet").innerHTML =
@@ -203,6 +236,9 @@
   }
   function closeSheet() { if (sheetEl) sheetEl.classList.remove("open"); }
 
+  // Render the full breakdown modal: score, plain-English "why", optional
+  // upside/downside lists, contributor table, collapsible calculation, and
+  // collapsible sources. Glossary.annotate() adds hover definitions if loaded.
   function openModal(exp) {
     build(); hideTip(); closeSheet();
     const contrib = (exp.contributors || []).filter((c) => c && c.detail);
@@ -230,14 +266,19 @@
   }
   function closeModal() { if (modalEl) modalEl.classList.remove("open"); }
 
-  // ---------- delegated events ----------
+  // Delegated event listeners: a single set of listeners on document handles
+  // all .si elements, present and future, without per-element binding.
   function bindOnce() {
     if (document._siBound) return; document._siBound = true;
+
+    // Desktop-only: show tooltip on mouseover and track cursor position.
     if (!isTouch) {
       document.addEventListener("mouseover", (e) => { const el = e.target.closest(".si"); if (el) { const exp = explainEl(el); if (exp) showTip(exp, e.clientX, e.clientY); } });
       document.addEventListener("mousemove", (e) => { if (tipEl && tipEl.classList.contains("open")) { const el = e.target.closest(".si"); if (el) showTip(explainEl(el), e.clientX, e.clientY); else hideTip(); } });
       document.addEventListener("mouseout", (e) => { const el = e.target.closest(".si"); if (el && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(".si"))) hideTip(); });
     }
+
+    // Click on any .si element: open bottom sheet on touch, full modal on desktop.
     document.addEventListener("click", (e) => {
       const el = e.target.closest(".si"); if (!el) return;
       e.stopPropagation();
@@ -247,13 +288,15 @@
   }
   bindOnce();
 
-  // ---------- public markup helper ----------
-  // wrap a score number so it gets the hover/tap treatment.
+  // Public markup helper: wrap a score value in a .si span so it automatically
+  // gets hover/tap treatment. Callers pass a kind+key to use a registered
+  // builder, or supply a payload object for inline explanation data.
   function badge(kind, key, value, opts) {
     opts = opts || {};
     const payload = opts.payload ? ` data-si-payload="${E(JSON.stringify(opts.payload))}"` : "";
     return `<span class="si"${kind ? ` data-si-kind="${E(kind)}"` : ""}${key != null ? ` data-si-key="${E(key)}"` : ""} data-si-val="${E(value)}" tabindex="0"${payload}>${E(value)}<i class="si-i" aria-hidden="true">&#9432;</i></span>`;
   }
 
+  // Expose the public API on window.ScoreInfo for use by congress.js and others.
   window.ScoreInfo = { register, badge, openModal, openSheet, explainEl };
 })();

@@ -1,25 +1,33 @@
-/* ============================================================
-   ThinkFree InfluenceWeb - Congress drill-down
-   Click U.S. Congress -> 3 modules (House, Senate, Governors).
-   House/Senate: party-colored constellation of politician dots with
-   funding pie hover cards. Governors: US tile map with Census stats.
-   Generation Impact overlay tied to legislation.
-   Reads window.TF_DATA + window.FEC_DATA + window.STATES_DATA.
-   ============================================================ */
+// congress.js
+// What it does: Renders the U.S. Congress drill-down panel inside the InfluenceWeb overlay.
+//   Provides three sub-views -- House constellation, Senate constellation, and Governors tile/SVG map --
+//   plus a Generation Impact overlay that scores how a bill's sectors land on each age cohort.
+//   Per-member "funding influence" hover cards surface FEC receipt breakdowns (individual vs. PAC vs. other).
+// How it fits: Mounted by CongressDrill.open() (called from influenceweb.js when the user clicks the
+//   Congress node). Reads window.TF_DATA, window.FEC_DATA, window.STATES_DATA, and window.MEMBER_BILLS.
+//   Delegates to window.GenImpact (generation-impact module) and window.ScoreInfo (badge renderer) when
+//   those modules are present. Framing is transparency, not accusation.
 "use strict";
 
 (function () {
+  // Pull shared data bundles off the global window namespace.
+  // All are optional; missing data degrades gracefully to empty arrays / fallback text.
   const D = window.TF_DATA || {};
   const FEC = (window.FEC_DATA || {}).byName || {};
   const STATES = (window.STATES_DATA || {}).byState || {};
   const MB = (window.MEMBER_BILLS || {}).byBioguide || {};   // real Congress.gov sponsored/cosponsored counts
+
+  // Escape a value for safe HTML insertion.
   const E = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  // Render a score value, optionally wrapped in a ScoreInfo badge with hover/tap explanation.
   const SB = (k, key, v) => window.ScoreInfo ? window.ScoreInfo.badge(k, key, v) : String(v);   // score w/ hover/tap explainer
 
+  // Map party abbreviation to a CSS color used throughout all views.
   const PARTY_COLOR = (ab) => ab === "R" ? "#EF4444" : ab === "D" ? "#38BDF8" : ab === "L" ? "#22C55E" : "#94A3B8";
+  // Map party abbreviation to its full display name.
   const PARTY_NAME = (ab) => ab === "R" ? "Republican" : ab === "D" ? "Democrat" : ab === "L" ? "Libertarian" : "Independent";
 
-  // ---- current U.S. governors (reference data, 2025) name + party ----
+  // Current U.S. governors (reference data, 2025): state abbreviation -> [name, party abbreviation].
   const GOVERNORS = {
     AL: ["Kay Ivey", "R"], AK: ["Mike Dunleavy", "R"], AZ: ["Katie Hobbs", "D"], AR: ["Sarah Huckabee Sanders", "R"],
     CA: ["Gavin Newsom", "D"], CO: ["Jared Polis", "D"], CT: ["Ned Lamont", "D"], DE: ["Matt Meyer", "D"],
@@ -36,7 +44,8 @@
     WI: ["Tony Evers", "D"], WY: ["Mark Gordon", "R"],
   };
 
-  // tile cartogram positions [row, col] for a clean map-like grid
+  // Tile cartogram positions [row, col] for a clean map-like grid.
+  // Used as a fallback when window.US_MAP_PATHS is not available.
   const TILE = {
     AK: [0, 0], ME: [0, 11], WI: [1, 6], VT: [1, 10], NH: [1, 11],
     WA: [2, 1], ID: [2, 2], MT: [2, 3], ND: [2, 4], MN: [2, 5], IL: [2, 6], MI: [2, 7], NY: [2, 9], MA: [2, 10], RI: [2, 11],
@@ -47,7 +56,8 @@
     HI: [7, 1], TX: [7, 4], FL: [7, 9],
   };
 
-  // ---- funding breakdown from FEC (real where available) ----
+  // Compute funding breakdown percentages from FEC receipts for a given politician name.
+  // Returns null when no FEC record exists so callers can show a "no data" notice.
   function funding(name) {
     const f = FEC[name];
     if (!f || !f.receipts) return null;
@@ -58,7 +68,8 @@
     return { individual: ind, pac, other, total_fmt: f.receipts_fmt, raised: f.receipts };
   }
 
-  // simple per-politician scores derived from real signals
+  // Derive simple 0-100 scores from real signals (trades, PAC share, return).
+  // These drive the Influence / Transparency / Public Impact badges in hover cards.
   function scores(p) {
     const f = funding(p.name);
     const pacShare = f ? f.pac : 0;
@@ -68,9 +79,12 @@
     return { influence, transparency, publicImpact, exposure: pacShare };
   }
 
-  // ---- generation impact tied to a bill's sectors (plain English) ----
+  // Generation cohorts used throughout the generation-impact overlay.
   const GENS = ["Gen Z", "Millennials", "Gen X", "Baby Boomers", "Retirees"];
-  // base sensitivity of each generation to a policy area (-1..1 weight on harm)
+
+  // Per-sector sensitivity weights for each generation.
+  // Positive values indicate a policy area tends to benefit that cohort;
+  // negative values indicate likely harm. Scale is roughly -1..+1.
   const SECTOR_GEN = {
     "Real Estate": { "Gen Z": -0.7, "Millennials": -0.9, "Gen X": -0.4, "Baby Boomers": 0.3, "Retirees": 0.4 },
     "Financials": { "Gen Z": -0.4, "Millennials": -0.6, "Gen X": -0.3, "Baby Boomers": 0.1, "Retirees": -0.2 },
@@ -81,6 +95,8 @@
     "Technology": { "Gen Z": 0.3, "Millennials": 0.2, "Gen X": 0.0, "Baby Boomers": -0.1, "Retirees": -0.2 },
     "default": { "Gen Z": -0.2, "Millennials": -0.3, "Gen X": -0.2, "Baby Boomers": -0.2, "Retirees": -0.2 },
   };
+
+  // Plain-English reason strings displayed alongside each generation's impact score.
   const GEN_REASON = {
     "Millennials": "more likely to be first-time homebuyers and exposed to high mortgage rates",
     "Gen Z": "early in their careers, renting, and most sensitive to job-market and cost-of-living shifts",
@@ -88,6 +104,10 @@
     "Baby Boomers": "nearing or in retirement and more reliant on healthcare and fixed income",
     "Retirees": "on fixed incomes and most exposed to healthcare and drug-pricing changes",
   };
+
+  // Compute a per-generation impact score (-70..+70) for a given bill by averaging
+  // the sector weights that apply to it. Falls back to the "default" sector row when
+  // the bill has no recognised sectors.
   function billGenerationImpact(bill) {
     const secs = (bill && bill.sectors) || [];
     const w = {};
@@ -103,9 +123,8 @@
     });
   }
 
-  // ============================================================
-  // OVERLAY UI
-  // ============================================================
+  // Overlay host element management.
+  // `host` is the #iw-drill panel; all views are rendered into it via show().
   let host;
   function ensureHost() {
     host = document.getElementById("iw-drill");
@@ -115,7 +134,7 @@
   function show(html) { ensureHost(); host.innerHTML = html; host.classList.add("open"); host.scrollTop = 0; }
   function close() { if (host) host.classList.remove("open"); if (window.IW && window.IW.resetView) window.IW.resetView(); }
 
-  // ---- level 1: three modules ----
+  // Level 1: three-module selector (House / Senate / Governors / Generation Impact).
   function modulesView() {
     const house = (D.politicians || []).filter((p) => (p.chamber || "").toLowerCase().startsWith("h"));
     const senate = (D.politicians || []).filter((p) => (p.chamber || "").toLowerCase().startsWith("s"));
@@ -152,7 +171,9 @@
       <div class="cd-foot">${E(D.disclaimer || "Describes timing and funding relationships from public data. Does not imply wrongdoing.")}</div>`);
   }
 
-  // ---- level 2: House / Senate constellation ----
+  // Level 2: House or Senate member constellation.
+  // Dots are scatter-plotted using a golden-angle spiral so members distribute evenly
+  // without overlapping. Party color encodes affiliation at a glance.
   function constellation(kind) {
     const isHouse = kind === "house";
     let people = (D.politicians || []).filter((p) => {
@@ -160,7 +181,7 @@
       return isHouse ? c.startsWith("h") : c.startsWith("s");
     });
     if (!people.length) people = (D.politicians || []); // fallback: show all tracked
-    // scatter dots organically inside a circle
+    // Scatter dots organically inside a circle using the golden-angle spiral.
     const dots = people.map((p, i) => {
       const ang = (i * 137.5) * Math.PI / 180;          // golden-angle scatter
       const r = 6 + 40 * Math.sqrt(i / people.length);  // 6%..46% radius
@@ -185,7 +206,9 @@
       <div class="cd-hovercard" id="cd-hover"></div>`);
   }
 
-  // pie chart SVG for funding breakdown (size in px)
+  // Build an SVG pie chart representing the three funding categories.
+  // When only one non-zero segment exists, renders a plain filled circle to avoid
+  // degenerate arc math. `size` defaults to 40px.
   function fundingPie(f, size) {
     if (!f) return "";
     size = size || 40; const c = size / 2, rad = size / 2 - 2;
@@ -205,8 +228,11 @@
     return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="cd-pie">${paths}</svg>`;
   }
 
-  // pinned, interactive politician card. `big` toggles the expanded breakdown.
+  // Track the currently pinned hover card so expand/collapse can refresh it in place.
   let curPolName = null, curDotEl = null;
+
+  // Render the politician hover card anchored near dotEl.
+  // `big` switches between a compact summary (false) and the full funding breakdown (true).
   function hoverCard(name, dotEl, big) {
     const p = (D.politicians || []).find((x) => x.name === name);
     if (!p) return;
@@ -217,12 +243,14 @@
     const legTotal = leg.total != null ? leg.total : (p.related_bills || []).length;
     const supporters = (p.supporters || []).slice(0, 6);
     const donors = (p.donors || []).slice(0, 6);
+    // Derive a plain-English funding note based on the PAC share threshold.
     const fundNote = !f ? "No FEC funding data on record."
       : f.pac >= 40 ? "Potential influence concentration: high outside-funding exposure."
       : f.pac >= 20 ? "Moderate industry-linked support." : "Largely individually funded.";
     const card = document.getElementById("cd-hover");
     if (!card) return;
 
+    // Compact view: small pie, activity summary, top tickers.
     const collapsed = `
       ${f ? `<div class="cd-hc-fund">
         <div class="cd-hc-fund-label">Funding Influence Breakdown</div>
@@ -239,6 +267,7 @@
       </div>
       ${tickers.length ? `<div class="cd-hc-tickers">${tickers.map((t) => `<span class="cd-hc-tk">${E(t.ticker)}</span>`).join("")}</div>` : ""}`;
 
+    // Expanded view: large pie, itemised supporters, top donors, disclaimer footer.
     const expanded = `
       ${f ? `<div class="cd-hc-fund">
         <div class="cd-hc-fund-label">Funding Influence Breakdown</div>
@@ -280,6 +309,8 @@
     placeCard(dotEl || curDotEl);
   }
 
+  // Position the hover card so it stays inside the drill panel.
+  // Flips to the left of the dot when the right side would overflow.
   function placeCard(dotEl) {
     const host = document.getElementById("iw-drill"), card = document.getElementById("cd-hover");
     if (!host || !card) return;
@@ -295,15 +326,25 @@
     y = Math.max(8, Math.min(y, hr.height - ch - 8));
     card.style.left = x + "px"; card.style.top = y + "px";
   }
+
+  // Hide the hover card and clear the pinned politician reference.
   function hideHover() { const c = document.getElementById("cd-hover"); if (c) { c.classList.remove("open", "big"); } curPolName = null; }
 
-  // ---- level 2: Governors real US map (SVG) with pan/zoom ----
+  // Level 2: Governors view with an SVG choropleth map (or tile cartogram fallback).
+  // Pan and zoom state is stored in mapTf; mapMoved prevents click from firing after drag.
   let mapTf = { x: 0, y: 0, s: 1 }, mapMoved = false;
+
+  // Apply the current pan/zoom transform to the SVG group element.
   function applyMapTf() {
     const g = document.getElementById("cd-map-g");
     if (g) g.setAttribute("transform", `translate(${mapTf.x} ${mapTf.y}) scale(${mapTf.s})`);
   }
+
+  // Count governors of a given party abbreviation for the legend.
   function partyCount(ab) { return Object.values(GOVERNORS).filter((g) => g[1] === ab).length; }
+
+  // Render the Governors panel. Prefers SVG paths from window.US_MAP_PATHS;
+  // falls back to a CSS grid tile cartogram when path data is absent.
   function governorsView() {
     mapTf = { x: 0, y: 0, s: 1 };
     const PATHS = window.US_MAP_PATHS || {};
@@ -333,6 +374,8 @@
       <div class="cd-hovercard" id="cd-hover"></div>`);
   }
 
+  // Show a transient tooltip card with Census economics for the hovered state.
+  // Positioned relative to the mouse cursor, clamped inside the drill panel.
   function stateHover(st, ev) {
     const g = GOVERNORS[st] || ["Unknown", "I"];
     const s = STATES[st] || {};
@@ -359,7 +402,9 @@
     card.style.left = x + "px"; card.style.top = y + "px"; card.classList.add("open");
   }
 
-  // ---- generation impact overlay (tied to a bill: status, people, companies, sectors) ----
+  // Generation impact overlay tied to a specific bill.
+  // Delegates to window.GenImpact when available; falls back to the local
+  // billGenerationImpact() calculation otherwise.
   function generationView(billId) {
     const bills = [...(D.bills || []), ...(((D.correlation || {}).top_bills) || [])];
     const bill = bills.find((b) => b.bill_id === billId) || bills[0];
@@ -370,6 +415,7 @@
       status = res.status || "Proposed"; pols = res.politicians || []; cos = res.companies || []; secs = res.sectors || [];
       impactHtml = `<div style="max-width:680px;margin:0 auto;">${GI.panel(res, { reasons: true, dims: true })}</div>`;
     } else {
+      // Fallback: compute and render generation bars locally.
       const impacts = billGenerationImpact(bill);
       impactHtml = `<div class="cd-gens">${impacts.map((g) => { const neg = g.score < 0, c = neg ? "#EF4444" : "#22C55E", w = Math.min(100, Math.abs(g.score) * 1.3); return `<div class="cd-gen-row"><div class="cd-gen-head"><b>${E(g.gen)}</b><span style="color:${c}">${g.score > 0 ? "+" : ""}${g.score}</span></div><div class="cd-gen-track"><div class="cd-gen-fill" style="width:${w}%;background:${c};${neg ? "" : "margin-left:auto"}"></div></div><div class="cd-gen-note">This ${neg ? "may hurt" : "may help"} ${E(g.gen)} because they are ${E(g.reason)}.</div></div>`; }).join("")}</div>`;
     }
@@ -391,14 +437,18 @@
       <div class="cd-foot">Estimates of likely exposure by generation, based on the bill's sectors. Plain-English, non-partisan; does not imply wrongdoing.</div>`);
   }
 
-  // ---- state detail panel (governor + economy + generation impact) ----
+  // Derive generational impact from state-level economic indicators
+  // (cost pressure, affordability index, inflation rate) rather than bill sectors.
+  // Younger cohorts are weighted more heavily because they have less financial cushion.
   function genImpactFromState(s) {
-    // derive generational impact from cost pressure + affordability + inflation
     const pressure = s.pressure_score || 0, afford = s.affordability || 50, infl = s.inflation || 2.5;
     const base = -(pressure - 40) * 0.6 - (60 - afford) * 0.3 - (infl - 2) * 4;
     const tilt = { "Gen Z": 1.2, "Millennials": 1.4, "Gen X": 0.9, "Baby Boomers": 0.5, "Retirees": 0.6 };
     return GENS.map((g) => ({ gen: g, score: Math.round(Math.max(-90, Math.min(40, base * tilt[g]))) }));
   }
+
+  // Render compact horizontal bar rows for each generation's impact score.
+  // Used in the state detail panel when window.GenImpact is unavailable.
   function genBars(impacts) {
     return impacts.map((g) => {
       const neg = g.score < 0, c = neg ? "#EF4444" : "#22C55E", w = Math.min(100, Math.abs(g.score) * 1.3);
@@ -407,6 +457,9 @@
         <b style="color:${c}">${g.score > 0 ? "+" : ""}${g.score}</b></div>`;
     }).join("");
   }
+
+  // Full state detail panel: governor info, Census economics, generation impact,
+  // and a chip list of federal bills in play for the user to drill into.
   function stateDetail(st) {
     const g = GOVERNORS[st] || ["Unknown", "I"];
     const s = STATES[st] || {};
@@ -448,6 +501,7 @@
       </div>`);
   }
 
+  // Inline SVG icon set for the four module cards on the Congress landing view.
   const ICON = {
     house: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21h18M4 10h16M5 10V8l7-4 7 4v2M7 10v8m4-8v8m6-8v8"/></svg>',
     senate: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21h18M5 21V11m14 10V11M4 11l8-6 8 6M9 21v-6h6v6"/></svg>',
@@ -455,30 +509,34 @@
     gen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="8" r="2.5"/><circle cx="16" cy="7" r="2"/><circle cx="17" cy="15" r="2.5"/><path d="M3 20c0-2.5 1.8-4.5 4-4.5M12 20c0-2 1.5-3.7 3.3-4M13 9c1-.6 2-.7 3 0"/></svg>',
   };
 
-  // ============================================================
-  // EVENTS
-  // ============================================================
+  // Event binding: wired once to the drill host element via a sentinel flag (_bound).
+  // A single delegated listener on the host handles all click and mousemove routing.
+  // Separate window-level listeners manage the map drag gesture.
   function bind() {
     const h = ensureHost(); if (!h || h._bound) return; h._bound = true;
     h.addEventListener("click", (e) => {
       const t = e.target.closest("[data-dc]"); if (!t) return;
       const a = t.dataset.dc;
+      // Map zoom/pan buttons.
       if (a === "zin") { mapTf.s = Math.min(6, mapTf.s * 1.25); return applyMapTf(); }
       if (a === "zout") { mapTf.s = Math.max(0.6, mapTf.s * 0.8); return applyMapTf(); }
       if (a === "zfit") { mapTf = { x: 0, y: 0, s: 1 }; return applyMapTf(); }
+      // Navigation and view switches.
       if (a === "x") return close();
       if (a === "modules") return modulesView();
       if (a === "house") return constellation("house");
       if (a === "senate") return constellation("senate");
       if (a === "gov") return governorsView();
       if (a === "gen") return generationView(t.dataset.bill);
+      // Politician dot and hover card controls.
       if (a === "poldot") { const dot = t.closest(".cd-dot") || t; return hoverCard(t.dataset.name, dot, false); }
       if (a === "hexpand") return hoverCard(t.dataset.name || curPolName, curDotEl, true);
       if (a === "hcollapse") return hoverCard(curPolName, curDotEl, false);
       if (a === "hclose") return hideHover();
-      // open profile / company OVER the drill (modal z-index 100 > drill 20) so closing returns here
+      // Open profile / company OVER the drill (modal z-index 100 > drill 20) so closing returns here.
       if (a === "pol") { if (window.politicianProfile) window.politicianProfile(t.dataset.name); return; }
       if (a === "stock") { if (window.stockDetail) window.stockDetail(t.dataset.tk); return; }
+      // State click: skip if the user just finished dragging the map.
       if (a === "state") { if (mapMoved) { mapMoved = false; return; } return stateDetail(t.dataset.st); }
     });
     h.addEventListener("mousemove", (e) => {
@@ -491,7 +549,7 @@
       hideHover();                                            // only the ephemeral state card hides
     });
 
-    // ---- governors map pan + wheel zoom ----
+    // Governors map: mouse drag for panning the SVG.
     let drag = null;
     h.addEventListener("mousedown", (e) => {
       const w = e.target.closest("#cd-map-wrap");
@@ -506,6 +564,7 @@
       applyMapTf();
     });
     window.addEventListener("mouseup", () => { if (drag) { drag = null; const w = document.getElementById("cd-map-wrap"); if (w) w.style.cursor = "grab"; } });
+    // Wheel zoom on the map wrapper only; preventDefault stops page scroll.
     h.addEventListener("wheel", (e) => {
       if (!e.target.closest("#cd-map-wrap")) return;
       e.preventDefault();
@@ -514,6 +573,8 @@
     }, { passive: false });
   }
 
+  // Public API: CongressDrill.open() launches the module selector.
+  // CongressDrill.generation(billId) jumps directly to the generation-impact overlay.
   window.CongressDrill = {
     open() { bind(); modulesView(); },
     generation(billId) { bind(); generationView(billId); },

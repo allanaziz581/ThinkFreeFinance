@@ -1,32 +1,41 @@
-/* ============================================================
-   ThinkFree - Predictive Market Signals (window.Predictions)
-   A market-intelligence / forecasting layer (NOT a trading bot).
-   Blends real signals already in the app -- news sentiment, congressional
-   buy/sell flow, government contracts, sector peer moves, VIX, macro indices,
-   policy/legislation exposure -- into a weighted probability + plain-English
-   reasoning. Progressive disclosure runs through window.ScoreInfo.
-
-   Language is probabilistic by design: bias / probability / forecast, never
-   "guaranteed", "will", "buy", or "sell".
-   ============================================================ */
+// predictions.js
+// What it does: Renders the "Predictive Market Signals" section. Reads precomputed
+//   technical-analysis signals (RSI, MACD, moving-average crossovers, QuantLib
+//   Black-Scholes metrics, VIX, macro indices, congressional flow, policy exposure)
+//   and presents each ticker with a directional label, bullish-probability score,
+//   forecast cone SVG, confidence rating, and a time horizon.
+// How it fits: Loaded via <script defer>. Exposes window.Predictions = { compute,
+//   explain, render }. Registers a ScoreInfo explainer so the progressive-disclosure
+//   tooltip system can surface per-ticker detail on demand.
 "use strict";
 (function () {
+  // Pull all pre-loaded data bundles from the global namespace.
   const D = window.TF_DATA || {};
   const PX = (window.PRICES_DATA || {}).byTicker || {};
   const USA = (window.USA_DATA || {}).byTicker || {};
   const SP = (window.SP500 || {}).byTicker || {};
   const Q = (window.QUANT_DATA || {}).byTicker || {};   // real QuantLib + TA metrics (the quant core)
+
+  // Minimal HTML escaper -- used anywhere user-facing strings enter innerHTML.
   const E = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  // Clamp a value to [lo, hi].
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
+  // Index the market-ticker strip by label so VIX/S&P/NASDAQ/10Y Yield are O(1) lookups.
   const MT = {}; (D.market_ticker || []).forEach((m) => (MT[m.label] = m));
+
+  // Strip non-numeric characters and parse to float; returns 0 on failure.
   const num = (s) => parseFloat(String(s == null ? "" : s).replace(/[^0-9.\-]/g, "")) || 0;
+
+  // Market-wide macro inputs used by several factor functions below.
   const VIX = num((MT["VIX"] || {}).value) || 18;
   const SPCHG = num((MT["S&P 500"] || {}).change);
   const NDCHG = num((MT["NASDAQ"] || {}).change);
   const YLDCHG = num((MT["10Y Yield"] || {}).change);
 
   // ---- per-ticker raw signals ----
+  // Build lookup maps so factor functions avoid repeated linear searches.
   const newsByTk = {}, tradeByTk = {};
   (D.news || []).forEach((n) => { if (n.symbol) (newsByTk[n.symbol] = newsByTk[n.symbol] || []).push(n); });
   (D.recent_trades || []).forEach((t) => { if (t.ticker) (tradeByTk[t.ticker] = tradeByTk[t.ticker] || []).push(t); });
@@ -42,16 +51,18 @@
     Object.keys(acc).forEach((s) => { sectorChg[s] = acc[s].reduce((a, b) => a + b, 0) / acc[s].length; });
   })();
 
+  // Resolve a human-readable company name from the available data bundles.
   function name(tk) { return (PX[tk] && PX[tk].name) || (SP[tk] && SP[tk].name) || tk; }
 
   // each factor returns a 0-100 score (50 = neutral) + a short note
+  // Eight independent factors are weighted and summed to produce the final score.
   function factors(tk) {
     const news = newsByTk[tk] || [], trades = tradeByTk[tk] || [];
     const chg = (PX[tk] && PX[tk].change_pct) || 0;
     const sec = SP[tk] && SP[tk].sector;
     const q = Q[tk];   // QuantLib + TA metrics for this ticker (if computed)
 
-    // News sentiment
+    // News sentiment: ratio of positive to negative headlines, scaled to [5, 95].
     let pos = 0, neg = 0;
     news.forEach((n) => { if (n.sentiment === "positive") pos++; else if (n.sentiment === "negative") neg++; });
     const newsScore = clamp(50 + (news.length ? (pos - neg) / news.length * 45 : 0), 5, 95);
@@ -89,6 +100,7 @@
     if (ex.bills) policy += Math.min(10, ex.bills);
     const policyScore = clamp(policy, 15, 90);
 
+    // Return all eight factors with their weights for the weighted-sum in compute().
     return [
       { key: "news", label: "News Sentiment", w: 0.20, v: newsScore, vol: news.length, ex },
       { key: "social", label: "Social Sentiment", w: 0.15, v: socialScore, buys, sells },
@@ -101,16 +113,23 @@
     ];
   }
 
+  // Map a composite score to a human-readable direction label and CSS modifier class.
   const DIR = (s) => s >= 75 ? ["Bullish", "bull"] : s >= 56 ? ["Moderately Bullish", "modbull"]
     : s >= 45 ? ["Neutral", "neutral"] : s >= 35 ? ["Moderately Bearish", "modbear"] : ["Bearish", "bear"];
+
+  // Prose word for a single-factor score used in the ScoreInfo explainer inputs table.
   const wordFor = (v) => v >= 66 ? "Positive" : v >= 56 ? "Mildly positive" : v > 44 ? "Neutral" : v > 34 ? "Mildly negative" : "Negative";
+
+  // Intensity word used for the sector-strength row in the explainer.
   const strongWord = (v) => v >= 66 ? "Strong" : v >= 54 ? "Moderate" : v > 44 ? "Neutral" : "Weak";
 
+  // Aggregate all eight factors into a single prediction object for one ticker.
   function compute(tk) {
     const fs = factors(tk);
     const score = Math.round(fs.reduce((a, f) => a + f.v * f.w, 0));
     const [dirLabel, dirClass] = DIR(score);
     const bull = score >= 50;
+
     // confidence (separate from probability): real-data depth + factor agreement
     const news = newsByTk[tk] || [], trades = tradeByTk[tk] || [];
     const ex = window.TFScores ? window.TFScores.politicalExposure(tk) : {};
@@ -118,15 +137,19 @@
     if (news.length >= 3) depth++; if (trades.length >= 2) depth++; if (PX[tk]) depth++;
     if (ex.contracts_raw) depth++; if (ex.bills) depth++;
     if (Q[tk]) depth += 2;   // real QuantLib + TA backing weighs heavily on confidence
+
+    // Agreement = how many factors agree with the overall bull/bear direction.
     const agree = fs.filter((f) => (f.v >= 50) === bull).length;
     const confScore = Math.min(depth, 7) / 7 * 50 + agree / fs.length * 50;
     const confidence = confScore >= 66 ? "High" : confScore >= 45 ? "Medium" : "Low";
+
     // horizon derived from live volatility (VIX): calmer market = longer reliable window
     const horizon = VIX >= 25 ? "1-7 Days" : VIX >= 16 ? "7 Days" : "30 Days";
     return { ticker: tk, name: name(tk), score, dirLabel, dirClass, confidence, confScore, horizon, factors: fs, bull };
   }
 
-  // plain-English drivers
+  // Build plain-English driver lists: what is pushing the score up vs. down.
+  // Used both in the card "Why?" tooltip and in the full ScoreInfo modal.
   function drivers(p) {
     const up = [], down = [];
     p.factors.forEach((f) => {
@@ -142,6 +165,8 @@
       }[f.key];
       if (f.v >= 56) up.push(phr[0]); else if (f.v <= 44) down.push(phr[1]);
     });
+
+    // Supplement with specific QuantLib signal names when available.
     const q = Q[p.ticker];
     if (q) {
       if (q.exp_return_1mo > 0.3) up.push("QuantLib model projects positive 1-month drift");
@@ -158,15 +183,22 @@
   }
 
   // ScoreInfo explainer payload (tooltip bullets + full breakdown modal)
+  // Returns the structured object that ScoreInfo renders in its detail panel.
   function explain(tk) {
     const p = compute(tk);
     const { up, down } = drivers(p);
+
+    // Build a keyed map of factors for individual lookups below.
     const f = {}; p.factors.forEach((x) => (f[x.key] = x));
+
+    // Show the 4 most relevant bullets for the dominant direction.
     const bullets = (p.bull ? up : down.length ? down : up).slice(0, 4);
     const why = `The model leans ${p.dirLabel.toLowerCase()} for ${p.name}. ` + (
       p.bull
         ? `Recent signals such as ${up.slice(0, 3).join(", ").toLowerCase() || "mixed inputs"} outweigh the risks, though confidence is ${p.confidence.toLowerCase()}.`
         : `Risks such as ${down.slice(0, 3).join(", ").toLowerCase() || "mixed inputs"} currently outweigh the positives, though confidence is ${p.confidence.toLowerCase()}.`);
+
+    // QuantLib-derived rows appear first in the inputs table when available.
     const q = Q[tk];
     const quantInputs = q ? [
       { label: "QuantLib Volatility", value: q.volatility + "%/yr" },
@@ -178,6 +210,8 @@
       { label: "MACD", value: q.macd_cross || "n/a" },
       { label: "Trend (SMA 50/200)", value: q.trend === "golden" ? "Golden cross" : q.trend === "death" ? "Death cross" : "n/a" },
     ] : [];
+
+    // Append sentiment/macro/policy rows after the quant section.
     const inputs = quantInputs.concat([
       { label: "News Sentiment", value: wordFor(f.news.v) },
       { label: "Social Sentiment", value: f.social.buys + f.social.sells ? wordFor(f.social.v) : "Limited data" },
@@ -185,6 +219,8 @@
       { label: "Macro Environment", value: wordFor(f.macro.v) },
       { label: "Policy Impact", value: wordFor(f.policy.v) },
     ]);
+
+    // Factor-by-factor weighted-score rows for the calculation breakdown table.
     const rows = p.factors.map((x) => ({ factor: x.label, value: `${Math.round(x.v)} x ${x.w.toFixed(2)} = ${(x.v * x.w).toFixed(1)}` }));
     return {
       title: `${p.ticker} - ${p.name}`,
@@ -212,11 +248,15 @@
   }
 
   // ---- forecast cone (uncertainty visual; never a guaranteed line) ----
+  // Draws an SVG triangle whose spread encodes uncertainty: QuantLib annualized
+  // volatility when available, inverse-confidence otherwise. The midline angle
+  // encodes directional bias (score above/below 50).
   function cone(p) {
     const W = 230, H = 64, x0 = 10, y0 = H / 2;
     const slope = (p.score - 50) / 50;                 // -1..1 directional bias
     const conf = clamp(p.confScore / 100, 0.3, 0.9);
     const endY = y0 - slope * (H * 0.30);              // bias the midline up/down
+
     // band half-width = real uncertainty: QuantLib annualized volatility when we
     // have it, otherwise inverse-confidence. Higher vol = wider forecast cone.
     const q = Q[p.ticker];
@@ -231,6 +271,9 @@
     </svg>`;
   }
 
+  // Build the HTML for a single ticker prediction card.
+  // ScoreInfo anchors (si spans / pm-why button) carry data attributes that the
+  // progressive-disclosure system uses to open the detail panel.
   function card(p) {
     const si = (cls, inner) => `<span class="si ${cls}" data-si-kind="prediction" data-si-key="${E(p.ticker)}" data-si-val="${p.score}" tabindex="0">${inner}</span>`;
     return `<div class="pm-card">
@@ -248,6 +291,8 @@
     </div>`;
   }
 
+  // Select up to 8 tickers that have the most signal coverage (news + trades +
+  // government-contract presence), filtered to valid uppercase ticker symbols.
   function candidates() {
     const set = new Set([...Object.keys(newsByTk), ...Object.keys(tradeByTk)]);
     const list = [...set].filter((tk) => PX[tk] && /^[A-Z]{1,5}$/.test(tk));
@@ -255,6 +300,8 @@
     return list.sort((a, b) => act(b) - act(a)).slice(0, 8);
   }
 
+  // Produce the full section HTML. Returns an empty string if no candidates exist
+  // (avoids rendering an empty section heading in the page).
   function render() {
     const cs = candidates();
     if (!cs.length) return "";

@@ -46,6 +46,10 @@ def _load_window(fname, var):
 
 def ticker_universe():
     tk = set()
+    try:   # full S&P 500 so every company gets a real valuation
+        tk |= set(_load_window("sp500_data.js", "window.SP500 =").get("byTicker", {}))
+    except Exception:
+        pass
     secb = _load_window("secbulk_data.js", "window.SECBULK_DATA =").get("byTicker", {})
     tk |= set(secb)
     iw = _load_window("influence_data.js", "window.IW_DATA =")

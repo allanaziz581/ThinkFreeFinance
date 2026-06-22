@@ -1,16 +1,33 @@
-/* ============================================================
-   ThinkFree - Generation Impact engine (window.GenImpact)
-   Reusable, heuristic translation layer: how a bill, company,
-   sector, or state's economic activity may land on each generation.
-   Outputs per-generation scores across 6 life dimensions plus an
-   overall score, a confidence %, and a plain-English reason.
+// genimpact.js
+// What it does: Builds "Generation Impact" scores that quantify how a bill,
+//   company, sector, or state's economic activity lands on each of the five
+//   U.S. generational cohorts across six life dimensions (cost of living,
+//   housing, income, healthcare, jobs, retirement). Produces a signed score
+//   (-100..+100), a confidence %, and a plain-English reason for each cohort.
+// How it fits: Loaded as a deferred <script> in index.html; exposes
+//   window.GenImpact for use by app.js and influenceweb.js when rendering
+//   bill cards, politician drawers, company panels, and state views.
 
-   Framing rule (non-negotiable): describes likely exposure in plain
-   English. Estimates only. Never alleges intent or wrongdoing.
-   ============================================================ */
+// genimpact.js
+//
+// What it does:
+//   The Generation Impact engine (window.GenImpact). A reusable, heuristic
+//   translation layer that estimates how a bill, company, sector, or state's
+//   economic activity may land on each generation. It outputs per-generation
+//   scores across 6 life dimensions plus an overall score, a confidence %, and
+//   a plain-English reason.
+//
+// How it fits:
+//   Used by app.js on the stock and bill pages to render the shared "Generation
+//   Impact" view. Framing rule (non-negotiable): it describes likely exposure in
+//   plain English, as estimates only, and never alleges intent or wrongdoing.
 "use strict";
 (function () {
+  // The five generational cohorts ThinkFree tracks.
   const GENS = ["Gen Z", "Millennials", "Gen X", "Baby Boomers", "Retirees"];
+
+  // Pairs of [dimensionKey, displayLabel] iterated in a stable order throughout
+  // the module so every loop touches the same six dimensions consistently.
   const DIMS = [
     ["costOfLiving", "Cost of Living"],
     ["housing", "Housing"],
@@ -62,6 +79,8 @@
     "default":       { costOfLiving: -0.2, income: -0.1, housing: -0.1 },
   };
 
+  // Plain-English reason templates keyed by dimension and direction.
+  // Sentence fragments appended after the generation name (e.g. "Gen Z <harm>").
   const REASON_DIM = {
     housing: { harm: "are more likely to rent or be first-time buyers exposed to housing and mortgage costs",
                help: "could see some relief on housing and mortgage costs" },
@@ -77,11 +96,13 @@
                   help: "could see retirement savings or fixed income hold up better" },
   };
 
+  // Utility: clamp v to [lo, hi].
   function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
   // map a free-form sector/industry/topic string to an AREA key
   function matchArea(s) {
     if (!s) return null;
+    // Exact match first -- avoids substring collisions.
     if (AREA[s]) return s;
     const t = String(s).toLowerCase();
     const hit = (kw) => t.indexOf(kw) >= 0;
@@ -108,10 +129,13 @@
   }
 
   // Core: given a list of area strings, compute the full generation matrix.
+  // Each matched area contributes its signed dimension vector; effects are
+  // averaged so adding more areas does not artificially amplify the result.
   function fromAreas(areas, opts) {
     opts = opts || {};
     const keys = (areas || []).map(matchArea).filter(Boolean);
     const used = keys.length ? keys : ["default"];
+
     // aggregate signed effect per dimension
     const eff = {}; DIMS.forEach(([d]) => (eff[d] = 0));
     used.forEach((k) => {
@@ -128,12 +152,15 @@
       const dims = {};
       let wsum = 0, acc = 0;
       DIMS.forEach(([d]) => {
+        // Scale by 110 so a full-magnitude effect saturates near 100 after
+        // the generational weight is applied; clamp to [-100, 100].
         const score = clamp(Math.round(eff[d] * w[d] * 110 * orient), -100, 100);
         dims[d] = score;
         acc += score * w[d];
         wsum += w[d];
       });
       const overall = clamp(Math.round(acc / (wsum || 1)), -100, 100);
+
       // strongest-magnitude dimension drives the plain-English reason
       let topDim = "costOfLiving", topMag = -1;
       DIMS.forEach(([d]) => { if (Math.abs(dims[d]) > topMag) { topMag = Math.abs(dims[d]); topDim = d; } });
@@ -142,14 +169,19 @@
       return { gen: g, overall, dims, reason };
     });
 
+    // Confidence rises with each area successfully mapped; capped at 95.
     const matched = keys.length;
     const confidence = clamp(50 + matched * 12 + (opts.confidenceBoost || 0), 35, 95);
     return { gens, confidence, areas: used, matched };
   }
 
   // ---- public builders for each entity type ----
+
+  // Thin wrapper: compute impact directly from an array of sector strings.
   function forSectors(sectors, opts) { return fromAreas(sectors, opts); }
 
+  // Build impact for a legislative bill object, then attach bill metadata so
+  // callers can render status badges, linked politicians, and tickers.
   function forBill(bill, opts) {
     if (!bill) return fromAreas([], opts);
     const areas = [].concat(bill.sectors || [], bill.topics || []);
@@ -163,6 +195,8 @@
     return res;
   }
 
+  // Build impact for a single company identified by ticker and industry.
+  // Falls back to "default" area when no usable sector/industry is provided.
   function forCompany(ticker, industry, sectors, opts) {
     const areas = [].concat(sectors || [], industry ? [industry] : []);
     const res = fromAreas(areas.length ? areas : ["default"], opts);
@@ -171,10 +205,13 @@
   }
 
   // state cost conditions -> generational pressure (uses ThinkFree state scores)
+  // Translates raw state economic statistics into the same signed dimension
+  // vector format used by fromAreas, then runs the generation weighting pass.
   function forState(s, opts) {
     if (!s) return fromAreas([], opts);
     const pressure = s.pressure_score || 0, afford = s.affordability != null ? s.affordability : 50;
     const infl = s.inflation != null ? s.inflation : 2.5, unemp = s.unemployment != null ? s.unemployment : 4;
+
     // synthesize a signed dimension vector directly from real state stats
     const eff = {
       costOfLiving: clamp(-((pressure - 40) / 60), -1, 0.4),
@@ -196,6 +233,8 @@
     return { gens, confidence: 70, areas: ["state-conditions"], matched: 1, state: s.name };
   }
 
+  // Derive a canonical bill status string from whatever text the data source
+  // provides (status field or action_text). Returns "Passed", "Failed", or "Proposed".
   function billStatus(bill) {
     const s = (bill.status || bill.action_text || "").toString().toLowerCase();
     if (s.indexOf("became") >= 0 || s.indexOf("enacted") >= 0 || s.indexOf("passed") >= 0 || s.indexOf("signed") >= 0) return "Passed";
@@ -203,11 +242,15 @@
     return "Proposed";
   }
 
-  // ============================================================
-  // RENDER HELPERS (return HTML strings; styled by .gi-* CSS)
-  // ============================================================
+  // Render helpers: each returns an HTML string, styled by the .gi-* CSS rules.
+
+  // HTML-escape helper used before inserting any dynamic value into markup.
   const E = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  // Score-to-color mapping: red for harm, green for benefit, gray for neutral.
   const col = (v) => v < -8 ? "#EF4444" : v > 8 ? "#22C55E" : "#94A3B8";
+
+  // Prepend "+" for positive values so the sign is always explicit in the UI.
   const sign = (v) => (v > 0 ? "+" : "") + v;
 
   // build the ScoreInfo explainer payload for one generation's impact score
@@ -226,6 +269,9 @@
       sources: [{ label: "Policy areas analyzed: " + (res.areas || []).join(", ") }],
     };
   }
+
+  // Render a horizontal bar chart (one row per generation) as an HTML string.
+  // When window.ScoreInfo is available, scores become clickable info chips.
   function bars(res, opts) {
     opts = opts || {};
     const rows = res.gens.map((g) => {
@@ -241,6 +287,9 @@
     }).join("");
     return `<div class="gimp-bars">${rows}</div>`;
   }
+
+  // Render a confidence badge. Uses ScoreInfo chip when available so users can
+  // read an explanation of how the confidence figure was calculated.
   function confBadge(res) {
     if (!window.ScoreInfo) return `${res.confidence}% confidence`;
     const payload = {
@@ -253,6 +302,7 @@
     return `<span class="si" data-si-payload="${E(JSON.stringify(payload))}" tabindex="0">${res.confidence}% confidence<i class="si-i">&#9432;</i></span>`;
   }
 
+  // detailed per-dimension grid for the strongest-affected generation
   function dimGrid(res) {
     // detailed per-dimension grid for the strongest-affected generation
     const lead = res.gens.slice().sort((a, b) => Math.abs(b.overall) - Math.abs(a.overall))[0];
@@ -264,6 +314,8 @@
     return `<div class="gimp-dim-head">Most affected: <b>${E(lead.gen)}</b> · detail</div><div class="gimp-dim-grid">${cells}</div>`;
   }
 
+  // Assemble a full Generation Impact panel: header, bar chart, optional
+  // dimension grid, confidence line, and the non-partisan disclaimer footer.
   function panel(res, opts) {
     opts = opts || {};
     const status = res.status ? `<span class="gimp-status gimp-${res.status.toLowerCase()}">${E(res.status)}</span>` : "";
@@ -275,6 +327,8 @@
       <div class="gimp-foot">Estimate of likely exposure by generation. Plain-English, non-partisan; does not imply wrongdoing.</div></div>`;
   }
 
+  // Publish the public API on window so any module can call GenImpact.forBill(),
+  // GenImpact.panel(), etc. without importing a module system.
   window.GenImpact = {
     GENS, DIMS,
     forSectors, forBill, forCompany, forState, billStatus,

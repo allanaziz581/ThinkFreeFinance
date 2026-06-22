@@ -1083,3 +1083,111 @@ table.tf td.num, table.tf th.num { text-align: right; font-variant-numeric: tabu
   padding-top: 9px; border-top: 1px solid var(--border-subtle); }
 .tf-summary-why b { color: var(--text-primary); }
 .tf-summary-foot { font-size: 10.5px; color: var(--text-tertiary); margin-top: 9px; line-height: 1.4; }
+
+/* ===== Beta gate / auth (window.Auth) ===== */
+.auth-gate { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(56,189,248,0.10), transparent 60%), var(--bg-primary); }
+.auth-card { width: 100%; max-width: 380px; background: var(--bg-card); border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl); padding: 30px 28px; box-shadow: var(--shadow-lg); }
+.auth-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.auth-logo { width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, var(--info), #6366f1);
+  color: #04101f; font-weight: 900; display: grid; place-items: center; font-size: 16px; }
+.auth-name { font-size: 19px; font-weight: 800; } .auth-name span { color: var(--info); }
+.auth-sub { font-size: 11px; color: var(--text-tertiary); letter-spacing: .18em; text-transform: uppercase; }
+.auth-h { font-size: 21px; font-weight: 800; letter-spacing: -0.02em; }
+.auth-p { font-size: 13px; color: var(--text-secondary); margin: 4px 0 16px; }
+.auth-in { width: 100%; box-sizing: border-box; margin-bottom: 11px; padding: 12px 14px; border-radius: 11px;
+  background: var(--bg-inner); border: 1px solid var(--border-soft); color: var(--text-primary); font-size: 14px; }
+.auth-in:focus { outline: none; border-color: var(--info); }
+.auth-btn { width: 100%; padding: 13px; border: none; border-radius: 11px; cursor: pointer; margin-top: 4px;
+  background: var(--info); color: #04101f; font-size: 14.5px; font-weight: 800; }
+.auth-btn:hover { filter: brightness(1.05); }
+.auth-alt { font-size: 13px; color: var(--text-secondary); margin-top: 16px; text-align: center; }
+.auth-alt a, .auth-note b { color: var(--info); cursor: pointer; font-weight: 700; }
+.auth-alt a:hover { text-decoration: underline; }
+.auth-note { font-size: 12px; color: var(--text-tertiary); margin-top: 14px; line-height: 1.5; }
+/* Age-requirement consent on the signup form: checkbox beside its label text. */
+.auth-consent { display: flex; align-items: flex-start; gap: 9px; margin: 2px 0 13px;
+  font-size: 12px; color: var(--text-secondary); line-height: 1.45; cursor: pointer; }
+.auth-consent input { flex: 0 0 auto; margin-top: 1px; width: 15px; height: 15px; accent-color: var(--info); cursor: pointer; }
+.auth-err { display: none; background: var(--danger-dim); color: var(--danger); font-size: 12.5px; font-weight: 600;
+  border-radius: 9px; padding: 9px 12px; margin-bottom: 12px; }
+.auth-foot { font-size: 10.5px; color: var(--text-tertiary); margin-top: 18px; line-height: 1.4; text-align: center; }
+/* live-refresh status badge in the topbar */
+.tf-updated { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-tertiary); margin-top: 5px; }
+.tf-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); animation: tfpulse 2s infinite; }
+.tf-dot.closed { background: var(--text-faint, #8a8f98); box-shadow: none; animation: none; }
+@keyframes tfpulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+/* ===== locked state + unlock animation ===== */
+.tf-locked .app { display: none !important; }   /* nothing renders behind the gate */
+.auth-gate.unlocking { animation: authUnlock .72s cubic-bezier(.65,0,.35,1) forwards; }
+@keyframes authUnlock { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-105%); opacity: 0; } }
+.auth-unlocked { display: flex; flex-direction: column; align-items: center; gap: 13px; animation: authPop .4s ease both; }
+.auth-check { width: 86px; height: 86px; border-radius: 50%; background: var(--success-dim); color: var(--success);
+  display: grid; place-items: center; font-size: 44px; font-weight: 900; box-shadow: 0 0 44px -6px var(--success);
+  animation: authCheck .5s cubic-bezier(.34,1.56,.64,1) both; }
+.auth-welcome { font-size: 23px; font-weight: 800; letter-spacing: -0.02em; }
+.auth-welcome-sub { font-size: 13px; color: var(--text-secondary); }
+@keyframes authCheck { 0% { transform: scale(0) rotate(-25deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+@keyframes authPop { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+
+/* ===== instant loading splash (paints before any JS runs) ===== */
+#tf-splash { position: fixed; inset: 0; z-index: 1900; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+  background: radial-gradient(ellipse 80% 60% at 50% 35%, rgba(56,189,248,0.10), transparent 60%), #050816; }
+.tf-splash-logo { width: 56px; height: 56px; border-radius: 15px; background: linear-gradient(135deg, #38BDF8, #6366f1); color: #04101f;
+  font-weight: 900; font-size: 21px; display: grid; place-items: center; animation: tfBreathe 1.8s ease-in-out infinite; }
+.tf-splash-name { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: #E5E9F0; }
+.tf-splash-name span { color: #38BDF8; }
+.tf-splash-bar { width: 160px; height: 4px; border-radius: 3px; background: rgba(148,163,184,0.18); overflow: hidden; }
+.tf-splash-bar i { display: block; width: 40%; height: 100%; border-radius: 3px; background: #38BDF8; animation: tfSlide 1.1s ease-in-out infinite; }
+@keyframes tfSlide { 0% { transform: translateX(-110%); } 100% { transform: translateX(310%); } }
+@keyframes tfBreathe { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: .85; } }
+
+/* ===== logout button + Good Night + sidebar live badge ===== */
+.logout-btn { flex: 0 0 auto; width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--border-subtle);
+  background: var(--bg-card-2); color: var(--text-tertiary); cursor: pointer; display: grid; place-items: center; }
+.logout-btn:hover { color: var(--danger); border-color: rgba(239,68,68,0.4); background: var(--danger-dim); }
+#tf-updated-slot .tf-updated { margin-top: 10px; justify-content: flex-start; font-size: 10.5px; }
+.auth-gate.goodnight { background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(99,102,241,0.14), transparent 60%), #04060f; }
+.gn-moon { width: 84px; height: 84px; border-radius: 50%; background: rgba(99,102,241,0.14); color: #c7d2fe;
+  display: grid; place-items: center; box-shadow: 0 0 44px -8px #6366f1; animation: authCheck .6s cubic-bezier(.34,1.56,.64,1) both; }
+/* goodbye mark: custom neon line-art (no emoji). A hollow smiley that gently
+   bobs, with a hollow hand that waves. Both are stroke-only SVGs with a glow. */
+.gn-emoji { position: relative; display: grid; place-items: center; animation: authPop .5s cubic-bezier(.34,1.56,.64,1) both; }
+.gn-ic { color: #7dd3fc; filter: drop-shadow(0 0 5px currentColor) drop-shadow(0 0 12px currentColor); }
+.gn-face { width: 96px; height: 96px; animation: gnBob 1.6s ease-in-out infinite; }
+.gn-wave { position: absolute; right: -14px; bottom: -8px; width: 46px; height: auto; color: #fcd34d; transform-origin: 70% 80%;
+  animation: gnWave 1s ease-in-out infinite; }
+@keyframes gnBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes gnWave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(20deg); } 50% { transform: rotate(-12deg); } 75% { transform: rotate(20deg); } }
+@media (prefers-reduced-motion: reduce) { .gn-face, .gn-wave { animation: none; } }
+
+/* ===== accessibility: visible keyboard focus (WCAG 2.4.7) ===== */
+a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible,
+.nav-item:focus-visible, .switch:focus-visible, .si:focus-visible, .cd-dot:focus-visible {
+  outline: 2px solid var(--info); outline-offset: 2px; border-radius: 6px;
+}
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+/* ===== opt-in Accessibility mode (set at signup / Settings) ===== */
+body.a11y-mode { font-size: 106.5%; }                 /* larger base text */
+body.a11y-mode {                                      /* higher-contrast text tokens */
+  --text-secondary: #C7D2E0; --text-tertiary: #A3B0C2;
+}
+body.a11y-mode .faint, body.a11y-mode .muted { color: #A3B0C2; }
+body.a11y-mode * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+body.a11y-mode a:focus-visible, body.a11y-mode button:focus-visible, body.a11y-mode [tabindex]:focus-visible { outline-width: 3px; outline-offset: 3px; }
+/* secondary gate button */
+.auth-btn-ghost { background: var(--bg-card-2); color: var(--text-secondary); border: 1px solid var(--border-soft); margin-top: 9px; }
+.auth-btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+/* respect OS-level reduced-motion for everyone (baseline, always on) */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
+
+/* ===== quiz / profile inputs ===== */
+.auth-qlabel { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin: 10px 0 4px; }
+.set-in { width: 100%; box-sizing: border-box; padding: 9px 11px; border-radius: 9px; background: var(--bg-inner);
+  border: 1px solid var(--border-soft); color: var(--text-primary); font-size: 13px; }
+.set-in:focus { outline: none; border-color: var(--info); }

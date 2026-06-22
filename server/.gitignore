@@ -1,0 +1,6 @@
+# Server secrets and local artifacts. None of this may be committed.
+.env
+.venv/
+__pycache__/
+*.pyc
+users.db
