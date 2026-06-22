@@ -43,7 +43,13 @@ Economic_Books/
 *.zip
 
 # ── Local Claude config (may contain keys in allowlist) ──
-.claude/
+# Ignore everything under .claude EXCEPT the shareable security sub-agent + its
+# knowledge base. settings.json / settings.local.json stay ignored.
+.claude/*
+!.claude/agents/
+
+# Generated documentation intermediate (the PDF in docs/ is committed instead)
+docs_build/*.html
 
 # Local-only beta admin seed (contains a password hash) - never commit
 webapp/js/auth_seed.js

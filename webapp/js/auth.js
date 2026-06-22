@@ -24,7 +24,8 @@
  */
 "use strict";
 (function () {
-  // Hash of the beta invite key (plaintext kept out of source). Default key: THINKFREE-BETA-2026
+  // Hash of the beta invite key. The plaintext key is configured by the operator
+  // via TF_BETA_KEY (server) and is intentionally not stored in source.
   const BETA_HASH = "5sw0ilypx6";
 
   // cyrb53 -- fast non-cryptographic hash used to verify the beta key and
