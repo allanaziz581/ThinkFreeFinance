@@ -514,7 +514,7 @@
       const dots = orbitDots(n);
       // Company nodes: show Clearbit logo if a domain is known; otherwise SVG icon.
       const center = (n.type === "company" && IWD[n.ticker] && IWD[n.ticker].domain)
-        ? `<img class="iw-logo" src="https://logo.clearbit.com/${E(IWD[n.ticker].domain)}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'iw-ini',textContent:'${E(n.ticker)}'}))"/>`
+        ? `<img class="iw-logo" alt="${E(n.ticker)} logo" src="https://logo.clearbit.com/${E(IWD[n.ticker].domain)}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'iw-ini',textContent:'${E(n.ticker)}'}))"/>`
         : `<span class="iw-ico" style="color:${col}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${I[n.icon] || I.subsidiaries}</svg></span>`;
       const name = n.type === "congress" ? "U.S. CONGRESS" : (n.type === "company" ? n.ticker : n.label);
       const sub = n.type === "sector" ? `${sectorCompanies(n.sec).length} companies`
@@ -967,7 +967,7 @@
   // Render a small company logo or 3-letter initials fallback for panel chip lists.
   function logo(tk) {
     const d = IWD[tk] && IWD[tk].domain;
-    return d ? `<img class="iw-cc-logo" src="https://logo.clearbit.com/${E(d)}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'iw-av sm',textContent:'${E(tk).slice(0,3)}'}))"/>` : `<span class="iw-av sm">${E(tk).slice(0, 3)}</span>`;
+    return d ? `<img class="iw-cc-logo" alt="${E(tk)} logo" src="https://logo.clearbit.com/${E(d)}" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'iw-av sm',textContent:'${E(tk).slice(0,3)}'}))"/>` : `<span class="iw-av sm">${E(tk).slice(0, 3)}</span>`;
   }
 
   // Hide the side panel.

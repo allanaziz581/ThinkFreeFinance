@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body class="tf-locked">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
   <div id="tf-splash">
     <div class="tf-splash-logo">TF</div>
     <div class="tf-splash-name">Think<span>Free</span></div>
@@ -23,7 +24,7 @@
         </div>
       </div>
 
-      <nav class="nav" id="nav">
+      <nav class="nav" id="nav" aria-label="Primary navigation">
         <div class="nav-label">Main</div>
         <div class="nav-item active" data-page="dashboard" role="button" tabindex="0">
           <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><span>Dashboard</span></div>
@@ -92,7 +93,7 @@
         </div>
       </div>
 
-      <div class="viewport">
+      <div class="viewport" id="main-content" role="main" aria-label="Main content" tabindex="-1">
         <section class="page active" id="page-dashboard"></section>
         <section class="page" id="page-influence"></section>
         <section class="page" id="page-intelligence"></section>
@@ -127,5 +128,7 @@
        localStorage for static mode. Absent (and 404, harmlessly) on the server. -->
   <script src="js/auth_seed.js" defer></script>
   <script src="js/auth.js" defer></script>
+  <!-- Display customization (themes + light/dark). Not gated; applies on the lock screen too. -->
+  <script src="js/theme.js" defer></script>
 </body>
 </html>

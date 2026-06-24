@@ -203,8 +203,20 @@ function fecBlock(name) {
 const polLink = (name) => `<span class="pol-link" data-pol="${esc(name)}">${esc(name)}</span>`;
 const polByName = (name) => (D.politicians || []).find((p) => p.name === name);
 
+// Reusable legal disclaimer shown on the homepage hero and on every
+// political-intelligence surface (profiles, trades, contracts). The framing rule
+// is transparency, not accusation: we describe public information, never intent.
+function tfDisclaimer(variant) {
+  const v = variant || "hero";
+  const ico = `<svg class="tf-dc-ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>`;
+  const body = "ThinkFree Finance does not accuse any politician, company, executive, government official, or organization of wrongdoing. We present publicly available information — market data, legislative activity, congressional trades, government contracts, and financial events — alongside analytical correlations. Correlation does not imply causation. Everything here is for educational, informational, and research purposes. Please verify independently and think critically.";
+  return `<div class="tf-disclaimer ${esc(v)}" role="note" aria-label="Legal disclaimer"><span aria-hidden="true">${ico}</span><div><span class="tf-dc-title">How to read ThinkFree</span>${esc(body)}</div></div>`;
+}
+
 // Modal dialog: open and close the shared overlay used for profiles, trades, and detail views.
+let _modalLastFocus = null;
 function openModal(html) {
+  _modalLastFocus = document.activeElement;   // restore focus here on close (WCAG 2.4.3)
   document.getElementById("modalContent").innerHTML = html;
   const overlay = document.getElementById("modal");
   overlay.classList.add("open");
@@ -212,10 +224,26 @@ function openModal(html) {
   overlay.scrollTop = 0;
   const box = document.getElementById("modalBox");
   if (box) box.scrollTop = 0;
-  requestAnimationFrame(() => { overlay.scrollTop = 0; if (box) box.scrollTop = 0; });
+  requestAnimationFrame(() => {
+    overlay.scrollTop = 0; if (box) box.scrollTop = 0;
+    const cb = document.getElementById("modalClose");   // move focus into the dialog
+    if (cb) cb.focus();
+  });
 }
 function closeModal() {
   document.getElementById("modal").classList.remove("open");
+  if (_modalLastFocus && _modalLastFocus.focus) { try { _modalLastFocus.focus(); } catch (e) {} }
+}
+// Keep keyboard focus inside the open modal (WCAG 2.1.2 / 2.4.3).
+function trapModal(e) {
+  if (e.key !== "Tab") return;
+  const box = document.getElementById("modalBox");
+  if (!box) return;
+  const f = box.querySelectorAll('a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"])');
+  if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
 }
 
 // Politician profile: the full detail view (funding, trades, scores) shown in the modal.
@@ -548,7 +576,7 @@ function stockDetail(tk) {
 
   const coName = px.name || stockName(tk);
   const industry = fin.sic || px.industry || "Public Company";
-  const logo = px.logo ? `<img src="${esc(px.logo)}" alt="" style="width:54px;height:54px;border-radius:12px;object-fit:contain;background:#fff;padding:4px;" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'iw-av',style:'width:54px;height:54px;font-size:17px;background:var(--info-dim);color:var(--info);',textContent:'${esc(tk)}'}))">`
+  const logo = px.logo ? `<img src="${esc(px.logo)}" alt="${esc(tk)} company logo" style="width:54px;height:54px;border-radius:12px;object-fit:contain;background:#fff;padding:4px;" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'iw-av',style:'width:54px;height:54px;font-size:17px;background:var(--info-dim);color:var(--info);',textContent:'${esc(tk)}'}))">`
     : `<span class="iw-av" style="width:54px;height:54px;font-size:17px;background:var(--info-dim);color:var(--info);">${esc(tk)}</span>`;
   const chgCls = px.change_pct > 0 ? "up" : px.change_pct < 0 ? "down" : "info";
 
@@ -1429,7 +1457,7 @@ function renderLegDetail(ab) {
   };
   const rosterChip = (p) => {
     const ph = photos[osKey(p.name)];
-    const av = ph && ph.image ? `<img src="${esc(ph.image)}" alt="" loading="lazy" onerror="this.style.display='none'">` : `<span class="leg-ini" style="background:${partyColor(p.party)}">${esc(initials(p.name))}</span>`;
+    const av = ph && ph.image ? `<img src="${esc(ph.image)}" alt="Photo of ${esc(p.name)}" loading="lazy" onerror="this.style.display='none'">` : `<span class="leg-ini" style="background:${partyColor(p.party)}">${esc(initials(p.name))}</span>`;
     const nm = ph && ph.url ? `<a href="${esc(ph.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name);
     return `<div class="leg-chip"><div class="leg-av">${av}</div><div class="leg-chip-main"><div class="leg-chip-name">${nm}</div><div class="faint">${esc(p.party)} · ${esc(p.chamber)} ${esc(p.district || "")}</div></div></div>`;
   };
@@ -1664,6 +1692,11 @@ function go(page) {
   document.querySelector(".viewport").scrollTop = 0;
   location.hash = page;
 
+  // Prominent legal disclaimer on the homepage hero and Political Watch (not a footer).
+  if ((page === "dashboard" || page === "political") && host && !host.querySelector(".tf-disclaimer")) {
+    host.insertAdjacentHTML("afterbegin", tfDisclaimer(page === "dashboard" ? "hero" : "compact"));
+  }
+
   // State Legislature data is lazy-loaded on first visit, then mounted into the page
   if (page === "states") {
     ensureStateData(() => {
@@ -1755,6 +1788,7 @@ function init() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { closeModal(); document.getElementById("searchResults").classList.remove("open"); }
   });
+  document.getElementById("modal").addEventListener("keydown", trapModal);
 
   // search
   const searchInput = document.getElementById("searchInput");
@@ -1777,9 +1811,12 @@ function init() {
     tog.setAttribute("aria-checked", light ? "false" : "true");   // switch is "on" = dark
   };
   let lightMode = false;
-  try { lightMode = localStorage.getItem("tf-theme") === "light"; } catch (e) {}
+  try { lightMode = (window.TFTheme ? window.TFTheme.isLight() : localStorage.getItem("tf-theme") === "light"); } catch (e) {}
   applyTheme(lightMode);
   const toggleTheme = () => {
+    // Delegate to the theme engine so the accent palette is recomputed for the
+    // new mode (it also persists and syncs this switch). Fall back if absent.
+    if (window.TFTheme) { window.TFTheme.toggleMode(); lightMode = window.TFTheme.isLight(); return; }
     lightMode = !lightMode;
     applyTheme(lightMode);
     try { localStorage.setItem("tf-theme", lightMode ? "light" : "dark"); } catch (e) {}
