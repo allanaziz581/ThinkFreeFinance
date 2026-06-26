@@ -144,10 +144,14 @@ JOBS = [
         "enabled": True,
     },
     {
-        "name": "trades_pnl",
-        "scripts": ["politician_performance.py", "webapp/build_data.py"],
+        # Live congressional trades from QuiverQuant -> P&L -> aggregate -> export.
+        # Hourly: QuiverQuant's /live feed only updates as new STOCK Act disclosures
+        # are filed (a few times a day at most), and trades already carry a 2-45 day
+        # statutory disclosure lag, so hourly captures every new filing with margin.
+        "name": "trades",
+        "scripts": ["webapp/build_trades.py", "politician_performance.py", "webapp/build_data.py"],
         "export": True,
-        "interval": DAY,                      # P&L recompute on price history
+        "interval": HOUR,
         "stagger": 300,
         "enabled": True,
     },

@@ -13,7 +13,7 @@ runs the aggregate + export step so fresh data reaches the gated
 | `state_legislation` | `build_legiscan.py`, `build_openstates.py` | daily | LegiScan/OpenStates ~daily |
 | `campaign_finance` | `build_fec.py`, `build_usaspending.py` | daily | FEC ~daily; USASpending weeks-lagged |
 | `macro` | `build_states.py`, `recession_signals.py` | daily | FRED weekly/monthly |
-| `trades_pnl` | `politician_performance.py`, `build_data.py` | daily | P&L recompute |
+| `trades` | `build_trades.py`, `politician_performance.py`, `build_data.py` | **hourly** | QuiverQuant /live updates ~daily; trades carry a 2-45 day STOCK Act disclosure lag |
 | `news_intel` | `build_news_intel.py` | **OFF by default** (6 h) | OpenAI-metered; opt-in |
 
 After every job the export step (`scripts/extract_data_to_json.py`) regenerates
