@@ -23,9 +23,24 @@ from functools import lru_cache
 from fastapi import APIRouter, Depends, HTTPException, Response
 
 import config
+import db
 from auth import current_user
 
 router = APIRouter(prefix="/api/data", tags=["data"])
+
+
+def _effective_tier(user: dict) -> dict:
+    """Resolve the user's tier from the DATABASE, not the signed token.
+
+    The token carries the tier the user had at login; reading the live DB row
+    here means an upgrade takes effect immediately and, more importantly, a
+    downgrade (or a billing lapse) cannot be retained by replaying an older
+    token that still says a higher tier. Falls back to the token's tier, then
+    the default tier, if the row is somehow unavailable.
+    """
+    fresh = db.get_user(user["email"]) or {}
+    key = fresh.get("tier") or user.get("tier") or config.DEFAULT_TIER
+    return config.tier_for(key)
 
 
 def _manifest() -> dict:
@@ -87,10 +102,21 @@ def state(user: dict = Depends(current_user)):
     return Response(content=_bundle_json(m["lazy"]), media_type="application/json")
 
 
+@router.get("/tiers")
+def tiers():
+    """Public pricing catalogue for the upgrade UI.
+
+    Unauthenticated on purpose: this is marketing/pricing metadata (names,
+    cadence, prices), nothing account-specific or secret. It is the single
+    source of truth the front-end renders, so client and server never drift.
+    """
+    return {"tiers": config.public_tiers(), "default": config.DEFAULT_TIER}
+
+
 @router.get("/live")
 def live(user: dict = Depends(current_user)):
     """Fresh prices + news, gated by the user's tier cadence and market hours."""
-    tier = config.TIERS.get(user["tier"], config.TIERS[config.DEFAULT_TIER])
+    tier = _effective_tier(user)   # authoritative tier from the DB, not the token
     refresh_min = tier["refresh_min"]
 
     # Lower tiers (slower than 30 min) make no fresh pull while the market is

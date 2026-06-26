@@ -40,15 +40,38 @@
   }
 
   // Tier definitions. refreshMin controls how often the live-data interval fires.
-  // Price scales with refresh frequency: faster cadence = more API calls = higher
-  // monthly cost. Prices are PLACEHOLDERS -- set real numbers before launch.
+  // The SERVER is the single source of truth (config.TIERS); these values mirror
+  // it for static/offline mode and are overwritten at boot by GET /api/data/tiers
+  // (see loadTierCatalog) so client and server can never drift. The server also
+  // ENFORCES the cadence on /api/data/live, so this client copy is convenience
+  // only — it cannot be edited to refresh faster than the tier allows.
   const TIERS = {
-    free:   { id: "free",   name: "Free",         refreshMin: 1440, price: "$0",     blurb: "Daily news briefing" },
-    hourly: { id: "hourly", name: "Pro · Hourly", refreshMin: 60,   price: "$9/mo",  blurb: "Refreshes every hour" },
-    half:   { id: "half",   name: "Pro · 30-min", refreshMin: 30,   price: "$19/mo", blurb: "Refreshes every 30 minutes" },
-    live:   { id: "live",   name: "Pro · 15-min", refreshMin: 15,   price: "$39/mo", blurb: "Refreshes every 15 minutes - fastest feed" },
-    beta:   { id: "beta",   name: "Beta Access",  refreshMin: 15,   price: "Free (beta)", blurb: "Full 15-minute access during beta" },
+    free:   { id: "free",   name: "Free",         refreshMin: 1440, price: "$0",     blurb: "Daily market briefing" },
+    hourly: { id: "hourly", name: "Pro · Hourly", refreshMin: 60,   price: "$9/mo",  blurb: "Fresh prices every hour" },
+    half:   { id: "half",   name: "Pro · 30-min", refreshMin: 30,   price: "$19/mo", blurb: "Refreshes every 30 minutes, including after hours" },
+    live:   { id: "live",   name: "Pro · 5-min",  refreshMin: 5,    price: "$39/mo", blurb: "Fastest feed — every 5 minutes, including after hours" },
+    beta:   { id: "beta",   name: "Beta Access",  refreshMin: 5,    price: "Free (beta)", blurb: "Full 5-minute access during the closed beta" },
   };
+
+  // Ordered list of purchasable tiers for the upgrade UI (excludes internal/beta).
+  // Replaced by the server catalogue when available.
+  let TIER_CATALOG = ["free", "hourly", "half", "live"].map((k) => TIERS[k]);
+
+  // Pull the canonical catalogue from the server so prices/cadence stay in sync
+  // with config.TIERS. Best-effort: on failure we keep the mirror above.
+  async function loadTierCatalog() {
+    if (!SERVER()) return;
+    try {
+      const res = await window.TFBoot.api("/api/data/tiers");
+      if (res && res.ok && res.data && Array.isArray(res.data.tiers)) {
+        TIER_CATALOG = res.data.tiers.map((t) => ({
+          id: t.id, name: t.name, refreshMin: t.refresh_min,
+          price: t.price_display, blurb: t.blurb,
+        }));
+        TIER_CATALOG.forEach((t) => { TIERS[t.id] = Object.assign(TIERS[t.id] || {}, t); });
+      }
+    } catch (e) { /* keep the built-in mirror */ }
+  }
 
   // LS wraps localStorage so the rest of the module never touches it directly.
   // The accounts object is keyed by email; each value holds name, hashed pass,
@@ -387,7 +410,7 @@
   // into the sidebar chrome elements (if they exist in the DOM).
   function applyUser() {
     const u = currentUser; if (!u) return;
-    const tier = TIERS[u.tier] || TIERS.beta;
+    const tier = TIERS[u.tier] || TIERS.free;
     const nameEl = document.getElementById("userName"); if (nameEl) nameEl.textContent = u.name || u.email;
     const planEl = document.getElementById("userPlan"); if (planEl) planEl.textContent = tier.name;
     const av = document.getElementById("userAvatar"); if (av) av.textContent = (u.name || u.email).slice(0, 1).toUpperCase();
@@ -398,7 +421,7 @@
   // take effect immediately without doubling up.
   function startRefresh() {
     if (refreshTimer) clearInterval(refreshTimer);
-    const tier = TIERS[(currentUser && currentUser.tier) || "beta"] || TIERS.beta;
+    const tier = TIERS[(currentUser && currentUser.tier) || "free"] || TIERS.free;
     const ms = tier.refreshMin * 60 * 1000;
     refreshTimer = setInterval(() => refreshLiveData(tier), ms);
     stamp(tier);
@@ -514,6 +537,7 @@
     document.body.classList.add("tf-locked");
     const mode = window.TFBoot ? await window.TFBoot.ready : "static";
     if (mode === "server") {
+      loadTierCatalog();   // sync the pricing catalogue from config.TIERS (best-effort)
       let res = null;
       try { res = await window.TFBoot.api("/api/auth/me"); } catch (e) { /* offline */ }
       if (res && res.ok && res.data && res.data.user) { currentUser = adoptServerUser(res.data.user); unlock(false); }
@@ -564,6 +588,18 @@
     TIERS,
     user: () => currentUser,
     tier: () => (currentUser && TIERS[currentUser.tier]) || TIERS.free,
+    tiers: () => TIER_CATALOG.slice(),   // ordered, purchasable tiers for the upgrade UI
+    // Begin an upgrade. The server is authoritative: this asks the billing seam
+    // to start checkout; it can NEVER change the tier client-side. Returns a
+    // human-readable status (the seam is stubbed until Stripe is wired up).
+    async startCheckout(tierId) {
+      if (!SERVER()) return { ok: false, message: "Upgrades require the hosted version." };
+      try {
+        const res = await window.TFBoot.api("/api/billing/checkout", { method: "POST", body: { tier: tierId } });
+        if (res && res.ok && res.data && res.data.checkout_url) { location.href = res.data.checkout_url; return { ok: true }; }
+        return { ok: false, message: (res && res.data && res.data.detail) || "Billing isn’t available yet — coming soon." };
+      } catch (e) { return { ok: false, message: "Billing isn’t available yet — coming soon." }; }
+    },
     a11y: () => !!(currentUser && currentUser.a11y),
     profile: () => (currentUser && currentUser.profile) || null,
     computeProfile,

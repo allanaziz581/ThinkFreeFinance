@@ -53,3 +53,7 @@ docs_build/*.html
 
 # Local-only beta admin seed (contains a password hash) - never commit
 webapp/js/auth_seed.js
+
+# Scheduler runtime artifacts (logs + pid)
+scheduler/logs/
+scheduler/scheduler.pid

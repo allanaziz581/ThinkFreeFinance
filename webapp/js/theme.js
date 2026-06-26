@@ -75,6 +75,7 @@
     "--accent", "--accent-strong", "--accent-soft",
     "--info", "--info-dim",
     "--bg-primary", "--bg-secondary", "--bg-card", "--bg-inner", "--bg-hover",
+    "--border-subtle", "--border-soft",
   ];
 
   // ---- State -------------------------------------------------------------
@@ -120,31 +121,40 @@
     if (theme.neutral) { clearAccent(); return; }
     const shade = (theme.shades && theme.shades[st.shade]) || theme.shades[0];
     const light = st.mode === "light";
-    const h = shade.h, s = shade.s;
-    // Keep accents readable: on a light base, cap accent lightness for contrast.
+    const h = shade.h;
+    const s = shade.s;
+    // Cap accent lightness on a light base so accent-colored text stays readable.
     const accentL = light ? Math.min(shade.l, 50) : shade.l;
     const set = (k, v) => document.body.style.setProperty(k, v);
 
-    const accent = `hsl(${h} ${s}% ${accentL}%)`;
+    // The accent is where ALL the vibrancy lives. It is aliased onto --info, which
+    // every existing component uses for buttons, links, nav, chips, meters, and
+    // highlights, so the chosen color pops everywhere. Surfaces stay near-neutral
+    // (below) so text never sits on a clashing colored background.
+    const accent = `hsl(${h} ${Math.min(s + 6, 100)}% ${accentL}%)`;
     set("--accent", accent);
-    set("--accent-strong", `hsl(${h} ${Math.min(s + 6, 100)}% ${Math.max(accentL - 9, 18)}%)`);
-    set("--accent-soft", `hsla(${h}, ${s}%, ${accentL}%, 0.16)`);
-    // Alias the existing primary accent so all current components recolor live.
+    set("--accent-strong", `hsl(${h} ${Math.min(s + 10, 100)}% ${Math.max(accentL - 10, 22)}%)`);
+    set("--accent-soft", `hsla(${h}, ${s}%, ${accentL}%, 0.18)`);
     set("--info", accent);
-    set("--info-dim", `hsla(${h}, ${s}%, ${accentL}%, 0.16)`);
+    set("--info-dim", `hsla(${h}, ${s}%, ${accentL}%, 0.18)`);
+    // Just a hint of the hue on borders so the theme reads without clashing.
+    set("--border-subtle", `hsla(${h}, 30%, 55%, 0.16)`);
+    set("--border-soft", `hsla(${h}, 35%, 58%, 0.26)`);
 
     if (light) {
-      set("--bg-primary",   `hsl(${h} 44% 96%)`);
+      // Clean light surfaces with only a whisper of the hue (white cards, dark text).
+      set("--bg-primary",   `hsl(${h} 28% 95%)`);
       set("--bg-secondary", "#ffffff");
       set("--bg-card",      "#ffffff");
-      set("--bg-inner",     `hsla(${h}, 30%, 30%, 0.05)`);
-      set("--bg-hover",     `hsla(${h}, 40%, 40%, 0.07)`);
+      set("--bg-inner",     `hsl(${h} 22% 94%)`);
+      set("--bg-hover",     `hsla(${h}, 40%, 45%, 0.07)`);
     } else {
-      set("--bg-primary",   `hsl(${h} 32% 5%)`);
-      set("--bg-secondary", `hsl(${h} 30% 7%)`);
-      set("--bg-card",      `hsl(${h} 26% 9%)`);
-      set("--bg-inner",     `hsla(${h}, 30%, 4%, 0.85)`);
-      set("--bg-hover",     `hsla(${h}, 60%, 70%, 0.07)`);
+      // Clean near-black surfaces with only a whisper of the hue (light text stays crisp).
+      set("--bg-primary",   `hsl(${h} 16% 6%)`);
+      set("--bg-secondary", `hsl(${h} 15% 8%)`);
+      set("--bg-card",      `hsl(${h} 14% 10%)`);
+      set("--bg-inner",     `hsl(${h} 15% 7%)`);
+      set("--bg-hover",     `hsla(${h}, 70%, 65%, 0.10)`);
     }
   }
 

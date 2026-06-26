@@ -203,14 +203,56 @@ function fecBlock(name) {
 const polLink = (name) => `<span class="pol-link" data-pol="${esc(name)}">${esc(name)}</span>`;
 const polByName = (name) => (D.politicians || []).find((p) => p.name === name);
 
-// Reusable legal disclaimer shown on the homepage hero and on every
-// political-intelligence surface (profiles, trades, contracts). The framing rule
-// is transparency, not accusation: we describe public information, never intent.
-function tfDisclaimer(variant) {
-  const v = variant || "hero";
-  const ico = `<svg class="tf-dc-ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>`;
-  const body = "ThinkFree Finance does not accuse any politician, company, executive, government official, or organization of wrongdoing. We present publicly available information — market data, legislative activity, congressional trades, government contracts, and financial events — alongside analytical correlations. Correlation does not imply causation. Everything here is for educational, informational, and research purposes. Please verify independently and think critically.";
-  return `<div class="tf-disclaimer ${esc(v)}" role="note" aria-label="Legal disclaimer"><span aria-hidden="true">${ico}</span><div><span class="tf-dc-title">How to read ThinkFree</span>${esc(body)}</div></div>`;
+// Legal disclaimer text (transparency, not accusation: public information, never
+// intent). Shown once as a consent pop-up the user acknowledges and can dismiss.
+const TF_DISCLAIMER_BODY = "ThinkFree Finance does not accuse any politician, company, executive, government official, or organization of wrongdoing. We present publicly available information such as market data, legislative activity, congressional trades, government contracts, and financial events, alongside analytical correlations. Correlation does not imply causation. Everything here is for educational, informational, and research purposes. Please verify independently and think critically.";
+
+// Consent pop-up: shown on entry and MANDATORY. It cannot be dismissed without
+// acknowledging: there is no X, Escape and backdrop clicks do nothing, and focus
+// is trapped inside. The acknowledgement is a liability waiver; "Don't show this
+// again" persists it permanently so it does not reappear next session.
+function showDisclaimerConsent() {
+  try { if (localStorage.getItem("tf-disclaimer-ack") === "1") return; } catch (e) {}
+  try { if (sessionStorage.getItem("tf-disclaimer-seen") === "1") return; } catch (e) {}
+  if (document.querySelector(".tf-consent-overlay")) return;
+  const o = document.createElement("div");
+  o.className = "tf-consent-overlay";
+  o.setAttribute("role", "alertdialog");
+  o.setAttribute("aria-modal", "true");
+  o.setAttribute("aria-labelledby", "tf-consent-title");
+  o.innerHTML = `
+    <div class="tf-consent">
+      <div class="tf-consent-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg></div>
+      <h2 id="tf-consent-title">How to read ThinkFree</h2>
+      <p class="tf-consent-body">${esc(TF_DISCLAIMER_BODY)}</p>
+      <label class="tf-consent-check"><input type="checkbox" id="tfc-ack"><span>I acknowledge this and agree not to hold ThinkFree Finance liable for any mistakes on the website.</span></label>
+      <label class="tf-consent-check"><input type="checkbox" id="tfc-never"><span>Don't show this again</span></label>
+      <button class="tf-consent-btn" type="button" id="tfc-accept" disabled>I Agree and Continue</button>
+    </div>`;
+  document.body.appendChild(o);
+  const ack = o.querySelector("#tfc-ack");
+  const never = o.querySelector("#tfc-never");
+  const accept = o.querySelector("#tfc-accept");
+  const accAndClose = () => {
+    if (!ack.checked) return;                 // acknowledgement is required
+    try { sessionStorage.setItem("tf-disclaimer-seen", "1"); } catch (e) {}
+    if (never.checked) { try { localStorage.setItem("tf-disclaimer-ack", "1"); } catch (e) {} }
+    o.remove();
+  };
+  ack.addEventListener("change", () => { accept.disabled = !ack.checked; });
+  accept.addEventListener("click", accAndClose);
+  // Mandatory gate: swallow Escape, ignore backdrop clicks, trap focus inside.
+  o.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); return; }
+    if (e.key === "Tab") {   // keep focus inside the dialog (WCAG 2.1.2)
+      const f = o.querySelectorAll('button,input,[tabindex]:not([tabindex="-1"])');
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+  requestAnimationFrame(() => { ack.focus(); });
 }
 
 // Modal dialog: open and close the shared overlay used for profiles, trades, and detail views.
@@ -517,7 +559,7 @@ function sourceLink(url, source) {
   const name = source && source !== "Unknown" ? source : sourceName(url);
   return `<a class="source-link" href="${esc(url || "#")}" target="_blank" rel="noopener" title="Open original source">Source: ${esc(name)} &#8599;</a>`;
 }
-// headline stays in-app (no link-out) — the reader gets the full picture from
+// headline stays in-app (no link-out): the reader gets the full picture from
 // the in-app ThinkFree Summary, not by leaving for the source article.
 function newsHeadline(a) { return esc(a.headline); }
 function readMore() { return ""; }
@@ -1276,6 +1318,29 @@ function renderSettings() {
         </div>
       </div>
       ${(() => {
+        const cur = (window.Auth && window.Auth.tier && window.Auth.tier()) || { id: "free", name: "Free", refreshMin: 1440 };
+        const catalog = (window.Auth && window.Auth.tiers && window.Auth.tiers()) || [];
+        const cadence = (m) => m >= 1440 ? "Daily" : m >= 60 ? `Every ${m / 60} hour${m === 60 ? "" : "s"}` : `Every ${m} min`;
+        const cards = catalog.map((t) => {
+          const isCur = t.id === cur.id;
+          return `<div class="card" style="padding:14px;border:1px solid ${isCur ? "var(--brand)" : "var(--border-soft)"};">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+              <div style="font-weight:700;">${esc(t.name)}</div><div style="font-weight:700;color:var(--brand);">${esc(t.price)}</div>
+            </div>
+            <div class="faint fs-sm" style="margin:4px 0 10px;">${esc(cadence(t.refreshMin))} · ${esc(t.blurb || "")}</div>
+            ${isCur
+              ? `<button class="auth-btn" style="margin:0;opacity:.6;cursor:default;" disabled>Current plan</button>`
+              : `<button class="auth-btn" style="margin:0;" data-upgrade="${esc(t.id)}">Choose ${esc(t.name)}</button>`}
+          </div>`;
+        }).join("");
+        return `<div class="card pad-lg span-2">
+          <div class="card-head"><div class="card-title">Plan &amp; Billing</div><span class="pill info">${esc(cur.name)} · ${esc(cadence(cur.refreshMin))}</span></div>
+          <p class="faint fs-sm" style="margin:-4px 0 12px;">Your data refresh rate is set by your plan and enforced on our servers. Upgrade for a faster live feed.</p>
+          <div class="grid cols-3" style="gap:12px;">${cards}</div>
+          <div id="planNote" class="faint fs-sm" style="margin-top:10px;" aria-live="polite"></div>
+        </div>`;
+      })()}
+      ${(() => {
         const p = (window.Auth && window.Auth.profile && window.Auth.profile()) || null;
         const opt = (v, list, cur) => list.map((o) => `<option value="${o[0]}"${cur === o[0] ? " selected" : ""}>${o[1]}</option>`).join("");
         const risk = p ? p.risk_tolerance : null;
@@ -1692,11 +1757,6 @@ function go(page) {
   document.querySelector(".viewport").scrollTop = 0;
   location.hash = page;
 
-  // Prominent legal disclaimer on the homepage hero and Political Watch (not a footer).
-  if ((page === "dashboard" || page === "political") && host && !host.querySelector(".tf-disclaimer")) {
-    host.insertAdjacentHTML("afterbegin", tfDisclaimer(page === "dashboard" ? "hero" : "compact"));
-  }
-
   // State Legislature data is lazy-loaded on first visit, then mounted into the page
   if (page === "states") {
     ensureStateData(() => {
@@ -1778,6 +1838,16 @@ function init() {
 
     const g = e.target.closest("[data-goto]");
     if (g) { go(g.dataset.goto); return; }
+
+    const up = e.target.closest("[data-upgrade]");
+    if (up && window.Auth && window.Auth.startCheckout) {
+      const note = document.getElementById("planNote");
+      if (note) note.textContent = "Starting checkout…";
+      window.Auth.startCheckout(up.dataset.upgrade).then((r) => {
+        if (note) note.textContent = (r && r.message) || (r && r.ok ? "" : "Billing isn’t available yet — coming soon.");
+      });
+      return;
+    }
   });
 
   // modal close (button, overlay click, Esc)
@@ -1867,6 +1937,9 @@ function init() {
   });
 
   go(location.hash.replace("#", "") || "dashboard");
+
+  // Legal-acknowledgement pop-up, shown once until acknowledged.
+  showDisclaimerConsent();
 }
 
 // re-render the current page with freshly-pulled data (called by the tier refresh timer)

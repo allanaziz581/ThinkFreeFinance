@@ -16,21 +16,24 @@ from __future__ import annotations
 
 import datetime as dt
 import hmac
+import json
 import re
 import time
 from collections import deque
 
 import bcrypt
 import jwt
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
 import config
 import db
+import security
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 COOKIE_NAME = "tf_session"
+CSRF_COOKIE = "tf_csrf"
 # Require a real-looking TLD (2+ letters) so "a@b" / "a@b.1" are rejected. This
 # mirrors the browser-side check; both enforce format, not deliverability.
 _EMAIL_RE = re.compile(r"^[^@\s]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$", re.I)
@@ -112,7 +115,7 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 # ----- session tokens (JWT) -----
 
-def _make_token(email: str, tier: str) -> str:
+def _make_token(email: str, tier: str, sid: str | None = None) -> str:
     now = dt.datetime.now(dt.timezone.utc)
     payload = {
         "sub": email,
@@ -120,6 +123,8 @@ def _make_token(email: str, tier: str) -> str:
         "iat": now,
         "exp": now + dt.timedelta(seconds=config.SESSION_TTL_SECONDS),
     }
+    if sid:
+        payload["sid"] = sid   # ties the token to a row in the session registry
     return jwt.encode(payload, config.SECRET_KEY, algorithm="HS256")
 
 
@@ -135,6 +140,42 @@ def _set_session_cookie(response: Response, token: str) -> None:
         samesite="lax",
         path="/",
     )
+
+
+def _set_csrf_cookie(response: Response) -> str:
+    """Issue a fresh CSRF token in a NON-httpOnly cookie so the page JS can read
+    it and echo it back in the X-CSRF-Token header (double-submit). Returns the
+    token for convenience. SameSite=lax + this header together defend mutations."""
+    token = security.gen_csrf_token()
+    response.set_cookie(
+        key=CSRF_COOKIE,
+        value=token,
+        max_age=config.SESSION_TTL_SECONDS,
+        httponly=False,
+        secure=config.PRODUCTION,
+        samesite="lax",
+        path="/",
+    )
+    return token
+
+
+def require_csrf(x_csrf_token: str | None = Header(default=None),
+                 tf_csrf: str | None = Cookie(default=None)) -> None:
+    """Dependency for state-changing endpoints: the X-CSRF-Token header must match
+    the tf_csrf cookie. A cross-site attacker can forge a request but cannot read
+    the cookie to set the matching header."""
+    if not security.csrf_ok(tf_csrf, x_csrf_token):
+        raise HTTPException(status_code=403, detail="CSRF token missing or invalid")
+
+
+def _audit(request: Request, email: str | None, action: str, detail: str = "") -> None:
+    """Append a tamper-evident audit entry. Best-effort: never breaks a request."""
+    try:
+        db.audit_append(int(time.time()), email, action,
+                        security.sanitize_text(detail, 500), _client_ip(request),
+                        security.audit_hash)
+    except Exception:
+        pass
 
 
 def current_user(tf_session: str | None = Cookie(default=None)) -> dict:
@@ -156,6 +197,17 @@ def current_user(tf_session: str | None = Cookie(default=None)) -> dict:
     # so a logged-out or stolen-then-revoked cookie stops working immediately.
     if int(payload.get("iat", 0)) < int(user.get("token_valid_after", 0)):
         raise HTTPException(status_code=401, detail="Session revoked")
+    # Per-device revocation: if the token carries a session id, that session must
+    # still be active (lets a user log out one device without ending all of them).
+    sid = payload.get("sid")
+    if sid:
+        if not db.session_active(sid):
+            raise HTTPException(status_code=401, detail="Session revoked")
+        try:
+            db.touch_session(sid, int(time.time()))
+        except Exception:
+            pass
+        user["sid"] = sid
     return user
 
 
@@ -174,6 +226,8 @@ class SignupBody(BaseModel):
 class LoginBody(BaseModel):
     email: str
     password: str
+    otp: str | None = None          # 6-digit TOTP code, if MFA is enabled
+    recovery: str | None = None     # a one-time recovery code, as a fallback
 
 
 class ProfileBody(BaseModel):
@@ -185,15 +239,34 @@ class ProfileBody(BaseModel):
 
 
 def _public_user(user: dict) -> dict:
-    """Strip the password hash before sending an account back to the browser."""
+    """Strip secrets (password hash, MFA secret, recovery codes) before sending an
+    account back to the browser."""
+    _tier = config.tier_for(user["tier"])
     return {
         "email": user["email"],
         "name": user["name"],
         "tier": user["tier"],
-        "tier_name": config.TIERS.get(user["tier"], {}).get("name", user["tier"]),
+        "tier_name": _tier["name"],
+        "refresh_min": _tier["refresh_min"],
+        "price_display": _tier.get("price_display", ""),
         "a11y": user["a11y"],
         "profile": user["profile"],
+        "role": user.get("role", "user"),
+        "mfa_enabled": bool(user.get("mfa_enabled", 0)),
     }
+
+
+def require_role(required: str):
+    """Build a dependency that enforces a minimum RBAC role (least privilege)."""
+    def _dep(user: dict = Depends(current_user)) -> dict:
+        if not security.role_at_least(user.get("role", "user"), required):
+            raise HTTPException(status_code=403, detail="Insufficient privileges")
+        return user
+    return _dep
+
+
+def _device_of(request: Request) -> str:
+    return security.sanitize_text(request.headers.get("user-agent", "Unknown device"), 180)
 
 
 # ----- endpoints -----
@@ -216,8 +289,11 @@ def signup(body: SignupBody, request: Request, response: Response):
         raise HTTPException(status_code=409, detail="An account with that email already exists")
     created = dt.date.today().isoformat()
     db.create_user(email, body.name.strip(), hash_password(body.password), config.DEFAULT_TIER, created)
-    token = _make_token(email, config.DEFAULT_TIER)
-    _set_session_cookie(response, token)
+    sid = security.new_session_id()
+    db.create_session(sid, email, _device_of(request), _client_ip(request), int(time.time()))
+    _set_session_cookie(response, _make_token(email, config.DEFAULT_TIER, sid))
+    _set_csrf_cookie(response)
+    _audit(request, email, "signup", "account created")
     return {"user": _public_user(db.get_user(email))}
 
 
@@ -236,11 +312,44 @@ def login(body: LoginBody, request: Request, response: Response):
     if not user or not verify_password(body.password, user["pass_hash"]):
         _record_fail(k_user)
         _record_fail(k_ip)
+        _audit(request, email, "login_fail", "bad password")
         raise HTTPException(status_code=401, detail="Incorrect email or password")
+
+    # Second factor, when the account has MFA enabled.
+    if user.get("mfa_enabled"):
+        if not body.otp and not body.recovery:
+            # Password was correct but a code is needed: tell the client to prompt.
+            return {"mfa_required": True}
+        ok = bool(body.otp) and security.verify_totp(user.get("mfa_secret") or "", body.otp)
+        if not ok and body.recovery:
+            ok = _consume_recovery(email, user, body.recovery)
+        if not ok:
+            _record_fail(k_user)
+            _record_fail(k_ip)
+            _audit(request, email, "mfa_fail", "bad code")
+            raise HTTPException(status_code=401, detail="Invalid authentication code")
+
     _clear_fails(k_user, k_ip)   # a real login wipes the failure counters
-    token = _make_token(email, user["tier"])
-    _set_session_cookie(response, token)
+    sid = security.new_session_id()
+    db.create_session(sid, email, _device_of(request), _client_ip(request), int(time.time()))
+    _set_session_cookie(response, _make_token(email, user["tier"], sid))
+    _set_csrf_cookie(response)
+    _audit(request, email, "login", "ok")
     return {"user": _public_user(user)}
+
+
+def _consume_recovery(email: str, user: dict, code: str) -> bool:
+    """Check and burn a one-time recovery code (stored only as sha256 hashes)."""
+    try:
+        codes = json.loads(user.get("recovery_codes") or "[]")
+    except Exception:
+        codes = []
+    h = security.hash_code(code)
+    if h in codes:
+        codes.remove(h)
+        db.set_recovery_codes(email, json.dumps(codes))
+        return True
+    return False
 
 
 @router.post("/logout")
@@ -252,11 +361,17 @@ def logout(response: Response, tf_session: str | None = Cookie(default=None)):
         try:
             payload = jwt.decode(tf_session, config.SECRET_KEY, algorithms=["HS256"])
             email = payload.get("sub", "")
-            if email and db.get_user(email):
+            sid = payload.get("sid")
+            # Revoke just this device's session if we can; otherwise fall back to
+            # the account-wide epoch bump (also revokes any token without a sid).
+            if sid:
+                db.revoke_session(email, sid)
+            elif email and db.get_user(email):
                 db.update_token_valid_after(email, int(time.time()))
         except jwt.PyJWTError:
             pass
     response.delete_cookie(COOKIE_NAME, path="/")
+    response.delete_cookie(CSRF_COOKIE, path="/")
     return {"ok": True}
 
 
@@ -267,7 +382,8 @@ def me(user: dict = Depends(current_user)):
 
 
 @router.post("/profile")
-def save_profile(body: ProfileBody, user: dict = Depends(current_user)):
+def save_profile(body: ProfileBody, request: Request, user: dict = Depends(current_user),
+                 _csrf: None = Depends(require_csrf)):
     # Hard floor at 13 (ThinkFree is unavailable to children under 13), enforced
     # server-side so the browser check can't be bypassed.
     try:
@@ -279,10 +395,147 @@ def save_profile(body: ProfileBody, user: dict = Depends(current_user)):
     if age > 120:
         raise HTTPException(status_code=400, detail="Enter a valid age")
     db.update_profile(user["email"], body.model_dump())
+    _audit(request, user["email"], "profile_update", "")
     return {"user": _public_user(db.get_user(user["email"]))}
 
 
 @router.post("/a11y")
-def save_a11y(on: bool, user: dict = Depends(current_user)):
+def save_a11y(on: bool, user: dict = Depends(current_user), _csrf: None = Depends(require_csrf)):
     db.update_a11y(user["email"], on)
     return {"ok": True}
+
+
+# ----- MFA (TOTP) enrollment -----
+
+class MfaEnableBody(BaseModel):
+    code: str = Field(min_length=6, max_length=8)
+
+
+@router.post("/mfa/setup")
+def mfa_setup(request: Request, user: dict = Depends(current_user), _csrf: None = Depends(require_csrf)):
+    """Begin MFA enrollment: generate a secret + recovery codes, store the pending
+    secret, and return the otpauth URI and the plaintext recovery codes ONCE."""
+    secret = security.gen_totp_secret()
+    recovery = security.gen_recovery_codes()
+    db.set_mfa_secret(user["email"], secret, json.dumps([security.hash_code(c) for c in recovery]))
+    _audit(request, user["email"], "mfa_setup", "secret issued")
+    return {
+        "secret": secret,
+        "otpauth_uri": security.provisioning_uri(secret, user["email"]),
+        "recovery_codes": recovery,   # shown once; only hashes are stored
+    }
+
+
+@router.post("/mfa/enable")
+def mfa_enable(body: MfaEnableBody, request: Request, user: dict = Depends(current_user),
+               _csrf: None = Depends(require_csrf)):
+    """Confirm enrollment by verifying a code against the pending secret."""
+    fresh = db.get_user(user["email"])
+    if not fresh or not fresh.get("mfa_secret"):
+        raise HTTPException(status_code=400, detail="Start MFA setup first")
+    if not security.verify_totp(fresh["mfa_secret"], body.code):
+        raise HTTPException(status_code=400, detail="That code is not valid. Try again.")
+    db.set_mfa_enabled(user["email"], True)
+    _audit(request, user["email"], "mfa_enabled", "")
+    return {"ok": True, "mfa_enabled": True}
+
+
+@router.post("/mfa/disable")
+def mfa_disable(body: MfaEnableBody, request: Request, user: dict = Depends(current_user),
+                _csrf: None = Depends(require_csrf)):
+    """Disable MFA. Requires a valid current code so a hijacked session cannot
+    silently turn it off."""
+    fresh = db.get_user(user["email"])
+    if not fresh or not fresh.get("mfa_enabled"):
+        return {"ok": True, "mfa_enabled": False}
+    if not security.verify_totp(fresh.get("mfa_secret") or "", body.code):
+        raise HTTPException(status_code=400, detail="That code is not valid.")
+    db.set_mfa_enabled(user["email"], False)
+    db.set_mfa_secret(user["email"], None, None)
+    _audit(request, user["email"], "mfa_disabled", "")
+    return {"ok": True, "mfa_enabled": False}
+
+
+# ----- session / device management -----
+
+class SidBody(BaseModel):
+    sid: str = Field(min_length=1, max_length=80)
+
+
+@router.get("/sessions")
+def sessions(user: dict = Depends(current_user)):
+    """List the user's active devices, marking which one is the current session."""
+    out = db.list_sessions(user["email"])
+    for s in out:
+        s["current"] = (s["sid"] == user.get("sid"))
+    return {"sessions": out}
+
+
+@router.post("/sessions/revoke")
+def revoke_one(body: SidBody, request: Request, user: dict = Depends(current_user),
+               _csrf: None = Depends(require_csrf)):
+    """Log out a single device (ownership-scoped to the caller)."""
+    ok = db.revoke_session(user["email"], body.sid)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Session not found")
+    _audit(request, user["email"], "session_revoke", body.sid)
+    return {"ok": True}
+
+
+@router.post("/logout-all")
+def logout_all(request: Request, user: dict = Depends(current_user), _csrf: None = Depends(require_csrf)):
+    """Log out every other device, keeping the current session active."""
+    db.revoke_all_sessions(user["email"], keep_sid=user.get("sid"))
+    _audit(request, user["email"], "logout_all", "")
+    return {"ok": True}
+
+
+@router.post("/refresh")
+def refresh(request: Request, response: Response, user: dict = Depends(current_user),
+            _csrf: None = Depends(require_csrf)):
+    """Slide the session forward: re-issue the cookie (and CSRF token) for the
+    same active session, extending its expiry without a fresh login."""
+    sid = user.get("sid") or security.new_session_id()
+    if not db.session_active(sid):
+        db.create_session(sid, user["email"], _device_of(request), _client_ip(request), int(time.time()))
+    _set_session_cookie(response, _make_token(user["email"], user["tier"], sid))
+    _set_csrf_cookie(response)
+    return {"ok": True}
+
+
+# ----- data governance: export + account deletion -----
+
+class DeleteBody(BaseModel):
+    confirm: str = Field(min_length=1)
+
+
+@router.get("/account/export")
+def account_export(request: Request, user: dict = Depends(current_user)):
+    """GDPR-style export of everything stored about the caller."""
+    _audit(request, user["email"], "data_export", "")
+    return db.export_user(user["email"])
+
+
+@router.post("/account/delete")
+def account_delete(body: DeleteBody, request: Request, response: Response,
+                   user: dict = Depends(current_user), _csrf: None = Depends(require_csrf)):
+    """Permanently delete the caller's account. Requires typing DELETE to confirm."""
+    if body.confirm.strip().upper() != "DELETE":
+        raise HTTPException(status_code=400, detail='Type "DELETE" to confirm account deletion')
+    email = user["email"]
+    _audit(request, email, "account_delete", "user requested deletion")
+    db.delete_user(email)
+    response.delete_cookie(COOKIE_NAME, path="/")
+    response.delete_cookie(CSRF_COOKIE, path="/")
+    return {"ok": True}
+
+
+# ----- admin: audit access (RBAC, least privilege) -----
+
+@router.get("/admin/audit")
+def admin_audit(limit: int = 200, user: dict = Depends(require_role("admin"))):
+    """Tamper-evident audit tail, admin only. Reports whether the chain verifies."""
+    return {
+        "chain_valid": db.verify_audit_chain(security.audit_hash),
+        "entries": db.audit_tail(min(max(int(limit), 1), 1000)),
+    }

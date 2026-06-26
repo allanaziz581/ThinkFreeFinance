@@ -67,12 +67,25 @@
   // api -- thin JSON fetch helper. Always sends the session cookie (same-origin).
   // Returns {ok, status, data}; only rejects on a network failure, not on HTTP errors,
   // so callers can branch on status (401/403/409/429) without try/catch noise.
+  // readCookie -- read a non-httpOnly cookie value by name (used for the CSRF token).
+  function readCookie(name) {
+    var m = document.cookie.match("(?:^|; )" + name.replace(/([.$?*|{}()\[\]\\\/\+^])/g, "\\$1") + "=([^;]*)");
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
   async function api(path, opts) {
     opts = opts || {};
     var init = { method: opts.method || "GET", credentials: "same-origin", headers: {} };
     if (opts.body !== undefined) {
       init.headers["Content-Type"] = "application/json";
       init.body = JSON.stringify(opts.body);
+    }
+    // CSRF double-submit: echo the tf_csrf cookie in a header on state-changing
+    // requests. The server requires this on protected mutations; safe (GET) and
+    // bootstrap (login/signup) requests do not need it.
+    if (init.method !== "GET" && init.method !== "HEAD") {
+      var csrf = readCookie("tf_csrf");
+      if (csrf) init.headers["X-CSRF-Token"] = csrf;
     }
     var res = await fetch(path, init);
     var data = null;

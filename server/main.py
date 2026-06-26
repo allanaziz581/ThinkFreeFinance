@@ -16,6 +16,9 @@ Run locally:
 """
 from __future__ import annotations
 
+import time
+from collections import deque
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
@@ -36,6 +39,8 @@ app = FastAPI(title="ThinkFree Finance", docs_url=None, redoc_url=None, openapi_
 db.init_db()
 app.include_router(auth.router)
 app.include_router(data.router)
+import billing  # noqa: E402  (subscription/billing seam — stubbed, no live payments)
+app.include_router(billing.router)
 
 # CORS. With the recommended single-server setup the front-end and API share one
 # origin, so the browser never makes a cross-origin call and this is inert (belt
@@ -55,10 +60,38 @@ app.add_middleware(
 # the data is only reachable through the authenticated /api/data/* endpoints.
 _BLOCKED_SUFFIXES = ("_data.js", "news_intel.js", "member_bills.js")
 
+# Coarse global per-IP request throttle: a baseline against floods, scraping, and
+# credential-stuffing bursts that sit underneath the precise per-endpoint limits
+# in auth.py. In-memory and per-process (single-worker beta); a multi-worker or
+# higher-scale deploy puts the real DDoS/WAF layer at the edge (Cloudflare) and
+# moves this to Redis. Generous enough that a normal SPA session never trips it.
+_GLOBAL_MAX = 240            # requests
+_GLOBAL_WINDOW = 60          # per 60 seconds
+_ip_hits: dict[str, deque] = {}
+
+
+def _throttled(ip: str) -> bool:
+    now = time.time()
+    dq = _ip_hits.setdefault(ip, deque())
+    while dq and now - dq[0] > _GLOBAL_WINDOW:
+        dq.popleft()
+    if len(dq) >= _GLOBAL_MAX:
+        return True
+    dq.append(now)
+    return False
+
 
 @app.middleware("http")
 async def security_and_blocklist(request: Request, call_next):
     path = request.url.path
+
+    # Global flood protection (skip the health probe so the LB is never throttled).
+    if path != "/healthz":
+        ip = request.headers.get("x-forwarded-for", "")
+        ip = ip.split(",")[0].strip() if ip else (request.client.host if request.client else "unknown")
+        if _throttled(ip):
+            return JSONResponse({"detail": "Too many requests"}, status_code=429,
+                                headers={"Retry-After": str(_GLOBAL_WINDOW)})
 
     # 0) In production, force HTTPS. Behind a TLS-terminating host (Render/Railway/
     #    Cloudflare) the original scheme arrives in X-Forwarded-Proto; if it is
@@ -85,7 +118,8 @@ async def security_and_blocklist(request: Request, call_next):
     # uses many style="" attributes. Images may come from data: URIs and https.
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'"
+        "img-src 'self' data: https:; connect-src 'self' https://dns.google; "
+        "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
     )
     if config.PRODUCTION:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
