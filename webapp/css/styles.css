@@ -1322,3 +1322,23 @@ body.tf-tp-open .tf-theme-panel { transform: translateX(0); }
 .dc-weight-l { font-size: 10.5px; color: var(--text-tertiary); text-transform: capitalize; margin-top: 2px; }
 .dc-doclist { margin: 8px 0; padding-left: 18px; }
 .dc-doclist li { margin: 5px 0; }
+
+/* ============ Presidential feed ============ */
+.pres-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.pres-chip { font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border-soft);
+  background: var(--bg-card); color: var(--text-secondary); transition: .12s; }
+.pres-chip:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.pres-chip.active { background: var(--info-dim); color: var(--info); border-color: var(--info); }
+.pres-chip-n { opacity: .6; font-weight: 700; margin-left: 2px; }
+.pres-list { display: grid; gap: 12px; }
+.pres-card { background: var(--bg-card); border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md); padding: 14px 16px; }
+.pres-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.pres-cat { font-size: 11px; color: var(--text-tertiary); font-weight: 600; }
+.pres-date { font-size: 11.5px; color: var(--text-tertiary); margin-left: auto; }
+.pres-title { font-weight: 700; font-size: 14.5px; color: var(--text-primary); line-height: 1.35; }
+.pres-sum { font-size: 12.5px; color: var(--text-secondary); margin: 6px 0 0; line-height: 1.5; }
+.pres-foot { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.pres-src { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--info); text-decoration: none; }
+.pres-src:hover { text-decoration: underline; }

@@ -44,4 +44,17 @@ EXTRA_JOBS = [
         "stagger": 480,
         "enabled": True,
     },
+    {
+        # Presidential actions & news (Federal Register + Congress.gov + RSS).
+        # Every 6h: the Federal Register publishes on business days and Congress.gov
+        # updates ~daily, so 6h catches each daily drop without hammering. EOs appear
+        # in the FR a few days after signing (statutory publication lag), so this is
+        # a daily-freshness feed, not real-time.
+        "name": "presidential",
+        "scripts": ["webapp/build_presidential.py"],
+        "export": True,
+        "interval": 6 * 3600,
+        "stagger": 540,
+        "enabled": True,
+    },
 ]

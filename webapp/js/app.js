@@ -1680,6 +1680,7 @@ const PAGES = {
   // Modules loaded after app.js (see boot.js LOGIC_SCRIPTS); resolved lazily at go() time.
   hedgefund: () => (window.renderHedgeFund ? window.renderHedgeFund() : `<div class="page-head"><h2>Hedge Funds</h2><p>Loading…</p></div>`),
   datacenters: () => (window.renderDataCenters ? window.renderDataCenters() : `<div class="page-head"><h2>Data Centers</h2><p>Loading…</p></div>`),
+  presidential: () => (window.renderPresidential ? window.renderPresidential() : `<div class="page-head"><h2>Presidential</h2><p>Loading…</p></div>`),
 };
 const rendered = {};
 
