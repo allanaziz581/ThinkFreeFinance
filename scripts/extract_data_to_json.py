@@ -35,18 +35,22 @@ CATEGORIES = {
         "data.js", "influence_data.js", "relationships_data.js", "nonprofit_data.js",
         "fec_data.js", "sec_data.js", "secbulk_data.js", "usaspending_data.js",
         "states_data.js", "sp500_data.js", "quant_data.js", "member_bills.js",
+        "hedgefund_data.js", "datacenters_data.js",
     ],
     "lazy": ["legiscan_data.js", "openstates_data.js"],
     "live": ["prices_data.js", "news_intel.js"],
 }
 
-ASSIGN_RE = re.compile(r"\s*window\.(\w+)\s*=\s*(.*);\s*$", re.S)
+# Use search (not match) so a leading `// AUTO-GENERATED ...` comment line that
+# the builders prepend doesn't break parsing. (\w+) keeps the captured global
+# name to [A-Za-z0-9_], so it can never produce a path-traversing output name.
+ASSIGN_RE = re.compile(r"window\.(\w+)\s*=\s*(.*);\s*$", re.S)
 
 
 def extract_one(js_path: Path) -> tuple[str, object]:
     """Return (global_name, parsed_value) for a `window.NAME = <json>;` file."""
     text = js_path.read_text(encoding="utf-8")
-    m = ASSIGN_RE.match(text)
+    m = ASSIGN_RE.search(text)
     if not m:
         raise ValueError(f"{js_path.name}: not a 'window.NAME = {{...}};' file")
     name, value = m.group(1), m.group(2)

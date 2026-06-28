@@ -35,6 +35,7 @@
     "js/data.js", "js/influence_data.js", "js/relationships_data.js", "js/nonprofit_data.js",
     "js/fec_data.js", "js/sec_data.js", "js/secbulk_data.js", "js/usaspending_data.js",
     "js/states_data.js", "js/sp500_data.js", "js/quant_data.js", "js/member_bills.js",
+    "js/hedgefund_data.js", "js/datacenters_data.js",
     "js/prices_data.js", "js/news_intel.js",
   ];
 
@@ -45,7 +46,7 @@
   const LOGIC_SCRIPTS = [
     "js/scores.js", "js/genimpact.js", "js/app.js", "js/influenceweb.js",
     "js/usmap_paths.js", "js/congress.js", "js/glossary.js", "js/scoreinfo.js",
-    "js/predictions.js",
+    "js/predictions.js", "js/hedgefund.js", "js/datacenters.js",
   ];
 
   // injectScript -- append a <script> and resolve when it loads (reject on error).
