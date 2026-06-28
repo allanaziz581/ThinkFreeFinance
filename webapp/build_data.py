@@ -774,7 +774,7 @@ def build():
         "breadth_pct": breadth_pct,
         "pct_before": pct_before,
         "avg_lead_days": avg_lead,
-        "top_bills": bill_stats[:8],
+        "top_bills": bill_stats,   # all trade-correlated bills (was capped at 8)
     }
 
     # ---- historical events library (20 events: tulip mania -> AI boom) ----

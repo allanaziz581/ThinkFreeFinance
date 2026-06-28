@@ -199,7 +199,7 @@ function downloadBaseballCard(name) {
   const cv = document.createElement("canvas");
   cv.width = W * dpr; cv.height = H * dpr;
   const x = cv.getContext("2d"); x.scale(dpr, dpr);
-  const brandA = css("--brand-grad-a") || "#F070A0", brandB = css("--brand-grad-b") || "#D05080";
+  const brandA = css("--brand-grad-a") || "#38BDF8", brandB = css("--brand-grad-b") || "#2A93C9";
   const ink = "#0E0B12", panel = "#161320", line = "rgba(255,255,255,0.10)";
   // background
   x.fillStyle = ink; x.fillRect(0, 0, W, H);
@@ -1218,7 +1218,7 @@ function renderPolitical() {
 
         <div class="card-title mt-16" style="margin-bottom:6px;">How Bills Were Influenced</div>
         <div class="timeline">
-          ${(corr.top_bills || []).slice(0, 12).map((b, i) => `
+          ${(corr.top_bills || []).map((b, i) => `
             <div class="tl-item bill-row" data-bill="${esc(b.bill_id)}">
               <div class="tl-dot ${["r", "g", "b", "p"][i % 4]}"></div>
               <div>

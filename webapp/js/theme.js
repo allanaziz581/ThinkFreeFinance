@@ -51,6 +51,10 @@
       { name: "Brick",   h: 0,   s: 54, l: 46 },
     ] },
     { key: "pink", label: "Pink", shades: [
+      // ThinkFree brand pink (the mockup palette ~#F06090 dark / #F080A0 light).
+      // Selecting it here is now the ONLY way pink is applied; pink is no longer
+      // part of the default theme.
+      { name: "ThinkFree Pink", h: 342, s: 80, l: 66 },
       { name: "Light Pink",  h: 332, s: 80, l: 74 },
       { name: "Rose Pink",   h: 345, s: 70, l: 60 },
       { name: "Hot Pink",    h: 330, s: 88, l: 58 },
