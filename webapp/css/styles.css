@@ -1366,3 +1366,40 @@ body.tf-tp-open .tf-theme-panel { transform: translateX(0); }
 .law-banner-h { font-weight:700; font-size:13px; color:var(--brand); margin-bottom:8px; }
 .law-banner p { font-size:13px; line-height:1.6; color:var(--text-secondary); margin:0; }
 @media (max-width:820px){ .law-grid{ grid-template-columns:1fr; } }
+
+/* ============ Law Suspicion leaderboard ============ */
+.susp-controls { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+.susp-sort { display:flex; align-items:center; gap:8px; }
+.susp-board { display:flex; flex-direction:column; gap:8px; }
+.susp-row { display:flex; align-items:center; gap:14px; padding:14px 16px; cursor:pointer;
+  background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-md); transition:border-color .14s, transform .14s, background .14s; }
+.susp-row:hover { border-color:var(--border-strong); transform:translateY(-1px); background:var(--bg-card-2); }
+.susp-row:focus-visible { outline:2px solid var(--info); outline-offset:2px; }
+.susp-rank { flex:0 0 34px; text-align:center; font-size:18px; font-weight:800; color:var(--text-tertiary); font-variant-numeric:tabular-nums; }
+.susp-top .susp-rank { color:var(--text-primary); }
+.susp-top:nth-child(1) .susp-rank { color:var(--warning); }
+.susp-main { flex:1 1 auto; min-width:0; }
+.susp-titlerow { display:flex; align-items:center; gap:10px; }
+.susp-title { font-weight:700; font-size:14.5px; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.susp-tier { flex:0 0 auto; font-size:11px; }
+.susp-meter { display:flex; align-items:center; gap:10px; margin:7px 0 6px; }
+.susp-bar { position:relative; flex:1 1 auto; height:8px; border-radius:999px; background:var(--bg-inner); overflow:hidden; }
+.susp-bar-fill { height:100%; border-radius:999px; transform-origin:left center; animation:suspFill .9s cubic-bezier(.2,.7,.2,1) both; }
+.susp-bar-fill.up   { background:var(--success); }
+.susp-bar-fill.info { background:var(--info); }
+.susp-bar-fill.warn { background:var(--warning); }
+.susp-bar-fill.down { background:var(--danger); }
+.susp-score { flex:0 0 auto; font-weight:800; font-size:15px; color:var(--text-primary); font-variant-numeric:tabular-nums; min-width:26px; text-align:right; }
+.susp-stats { display:flex; flex-wrap:wrap; gap:14px; }
+.susp-stat { font-size:12px; color:var(--text-tertiary); }
+.susp-stat b { color:var(--text-secondary); font-weight:700; }
+.susp-caret { flex:0 0 auto; color:var(--text-faint); font-size:22px; line-height:1; }
+@keyframes suspFill { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .susp-bar-fill { animation:none; } .susp-row:hover { transform:none; } }
+/* suspicion summary inside the bill detail modal */
+.susp-detail { background:var(--bg-inner); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:12px 14px; margin:10px 0 4px; }
+.susp-detail-head { display:flex; align-items:center; gap:10px; }
+.susp-detail-score { font-size:26px; font-weight:850; color:var(--text-primary); }
+.susp-detail-score small { font-size:13px; color:var(--text-tertiary); font-weight:600; }
+.susp-detail-why { font-size:13px; line-height:1.55; color:var(--text-secondary); margin-top:8px; }
+@media (max-width:640px){ .susp-title{ font-size:13.5px; } .susp-stats{ gap:10px; } }

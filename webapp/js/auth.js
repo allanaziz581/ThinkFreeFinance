@@ -49,7 +49,7 @@
     free:   { id: "free",   name: "Free",         refreshMin: 1440, price: "$0",     blurb: "Daily market briefing" },
     hourly: { id: "hourly", name: "Pro · Hourly", refreshMin: 60,   price: "$9/mo",  blurb: "Fresh prices every hour" },
     half:   { id: "half",   name: "Pro · 30-min", refreshMin: 30,   price: "$19/mo", blurb: "Refreshes every 30 minutes, including after hours" },
-    live:   { id: "live",   name: "Pro · 5-min",  refreshMin: 5,    price: "$39/mo", blurb: "Fastest feed — every 5 minutes, including after hours" },
+    live:   { id: "live",   name: "Pro · 5-min",  refreshMin: 5,    price: "$39/mo", blurb: "Fastest feed, every 5 minutes, including after hours" },
     beta:   { id: "beta",   name: "Beta Access",  refreshMin: 5,    price: "Free (beta)", blurb: "Full 5-minute access during the closed beta" },
   };
 
@@ -597,8 +597,8 @@
       try {
         const res = await window.TFBoot.api("/api/billing/checkout", { method: "POST", body: { tier: tierId } });
         if (res && res.ok && res.data && res.data.checkout_url) { location.href = res.data.checkout_url; return { ok: true }; }
-        return { ok: false, message: (res && res.data && res.data.detail) || "Billing isn’t available yet — coming soon." };
-      } catch (e) { return { ok: false, message: "Billing isn’t available yet — coming soon." }; }
+        return { ok: false, message: (res && res.data && res.data.detail) || "Billing isn’t available yet. Coming soon." };
+      } catch (e) { return { ok: false, message: "Billing isn’t available yet. Coming soon." }; }
     },
     a11y: () => !!(currentUser && currentUser.a11y),
     profile: () => (currentUser && currentUser.profile) || null,

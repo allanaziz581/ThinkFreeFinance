@@ -130,7 +130,7 @@
     return `
       <div class="page-head pres-head">
         <div><h2>Presidential Actions</h2>
-          <p>Executive orders, proclamations, memoranda, signed laws, and tariff actions — from the Federal Register and Congress.gov, most recent first. Official records update on business days; EOs publish a few days after signing.</p></div>
+          <p>Executive orders, proclamations, memoranda, signed laws, and tariff actions from the Federal Register and Congress.gov, most recent first. Official records update on business days; EOs publish a few days after signing.</p></div>
         <div id="pres-toggle">${toggle()}</div>
       </div>
       <div id="pres-stage" class="pres-stage ${mode === "reels" ? "is-reels" : "is-list"}">${stageHtml()}</div>

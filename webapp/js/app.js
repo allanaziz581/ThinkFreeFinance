@@ -746,11 +746,20 @@ function billDetail(id) {
       </div>
     </div>
 
-    <div class="section-title">What This Law Does — In Detail</div>
+    ${(() => {
+      const s = suspicionScore(b); const tier = suspicionTier(s.score);
+      if (!s.total) return `<div class="susp-detail"><span class="pill up">Clean</span> <span class="faint fs-sm">No correlated congressional trades on record for this law.</span></div>`;
+      return `<div class="susp-detail">
+        <div class="susp-detail-head"><span class="susp-detail-score">${s.score}<small>/100</small></span><span class="pill ${tier.cls}">${tier.label} suspicion</span></div>
+        <div class="susp-detail-why">Why this score: ${s.before} of ${s.total} correlated trades were placed before the action date, the earliest ${s.maxLead} days ahead, capturing about ${esc(s.profit >= 1000 ? "$" + Math.round(s.profit / 1000) + "K" : "$" + Math.round(s.profit))} in estimated profit.</div>
+      </div>`;
+    })()}
+
+    <div class="section-title">What This Law Does, In Detail</div>
     ${(() => { const ex = lawExplain(b); return `<div class="law-grid" style="margin-bottom:8px;">
-      <div class="law-banner"><div class="law-banner-h">📋 What the law covers</div><p>${esc(ex.covers)}</p></div>
-      <div class="law-banner"><div class="law-banner-h">👤 How it affects you</div><p>${esc(ex.affects)}</p></div>
-      <div class="law-banner"><div class="law-banner-h">🌐 The broader impact</div><p>${esc(ex.broader)}</p></div>
+      <div class="law-banner"><div class="law-banner-h">What the law covers</div><p>${esc(ex.covers)}</p></div>
+      <div class="law-banner"><div class="law-banner-h">How it affects you</div><p>${esc(ex.affects)}</p></div>
+      <div class="law-banner"><div class="law-banner-h">The broader impact</div><p>${esc(ex.broader)}</p></div>
     </div>`; })()}
 
     ${genImpactBlock(b.sectors || [], "Generation Impact" + (b.action_text && /became public law|passed|enacted/i.test(b.action_text) ? " · Status: Passed" : " · Status: In progress"))}
@@ -1128,7 +1137,7 @@ function renderNews() {
       </div>
     </div>
     <div class="section-title" style="margin-top:22px;">Market Signals</div>
-    <p class="faint fs-sm" style="margin:-6px 0 10px;">Sector opportunity scores and per-ticker signals (bullish and bearish) — click a ticker for the reasoning.</p>
+    <p class="faint fs-sm" style="margin:-6px 0 10px;">Sector opportunity scores and per-ticker signals (bullish and bearish). Click a ticker for the reasoning.</p>
     ${marketSignalsBlock()}`;
 }
 
@@ -1281,64 +1290,146 @@ const SECTOR_EXPLAIN = {
   Healthcare: { affects: "It may change what you pay for prescriptions, insurance, and care, and what treatments are covered.", broader: "Drugmakers, hospitals, and insurers are directly affected; costs and coverage shift for employers too." },
   Defense: { affects: "It rarely hits your wallet directly, but it shapes federal spending priorities funded by your taxes.", broader: "Defense contractors win or lose contracts; it can affect manufacturing jobs in certain regions." },
   Industrials: { affects: "It can change prices on cars, appliances, and building materials, and affect factory and construction jobs.", broader: "Manufacturers, builders, and materials suppliers respond; tariffs and infrastructure rules flow downstream." },
-  Consumer: { affects: "It can move prices on everyday goods — groceries, retail, housing — and affect service-sector jobs.", broader: "Retailers and consumer brands adjust; spending shifts ripple through the broader economy." },
+  Consumer: { affects: "It can move prices on everyday goods like groceries, retail, and housing, and affect service-sector jobs.", broader: "Retailers and consumer brands adjust; spending shifts ripple through the broader economy." },
 };
 function lawExplain(bill) {
   const secs = (bill.sectors || []).filter((s) => SECTOR_EXPLAIN[s]);
   const base = bill.plain_summary || bill.title || "This measure sets new federal policy.";
   const covers = `${base} It was advanced in Congress${bill.action_date ? " (latest action " + esc(bill.action_date) + ")" : ""}${(bill.tickers || []).length ? ", and intersects companies such as " + bill.tickers.slice(0, 4).map(esc).join(", ") : ""}. In practice it directs agencies, funding, or rules in the ${secs.length ? secs.map(esc).join(" and ") + " area" : "areas it names"}.`;
   const affects = secs.length ? secs.map((s) => SECTOR_EXPLAIN[s].affects).join(" ")
-    : "Its day-to-day effect on you depends on how agencies implement it — watch for changes in prices, fees, or services tied to the area it covers.";
+    : "Its day-to-day effect on you depends on how agencies implement it. Watch for changes in prices, fees, or services tied to the area it covers.";
   const broader = (secs.length ? secs.map((s) => SECTOR_EXPLAIN[s].broader).join(" ") : "Markets, businesses, and other groups adjust as the rules take effect.")
     + " Winners and losers emerge as the details are written, and related sectors often feel second-order effects.";
   return { covers, affects, broader };
 }
 
-// Repurposed "Markets" tab -> "Explain the Laws": every tracked law with a filter
-// and a structured, plain-English breakdown (what it covers / how it affects you /
-// broader impact). The old market-signals content moved into the News tab.
+// ---- Suspicion Score -------------------------------------------------------
+// A transparent 0-100 measure of how much congressional trading happened BEFORE
+// a law's action date. Built entirely from the trade-correlation data already in
+// D.correlation.top_bills, joined to the browse laws (D.bills) by bill_id.
+//
+// Weights (sum to 100):
+//   35  Pre-trade volume   min(1, before_count / 20)
+//   25  Before/total ratio before_count / trade_count
+//   20  Lead time          min(1, max_lead / 90)   (90 = the correlation window)
+//   20  Profit captured    min(1, total_profit / 250000)
+// Laws with no correlated trades score 0 ("Clean").
+const SUSPICION_WEIGHTS = { volume: 35, ratio: 25, lead: 20, profit: 20 };
+function parsePnl(s) {
+  if (s == null) return 0;
+  const m = String(s).replace(/[, ]/g, "").match(/(-?)\$?([\d.]+)([KMB]?)/i);
+  if (!m) return 0;
+  let n = parseFloat(m[2]) || 0;
+  const mult = { K: 1e3, M: 1e6, B: 1e9 }[m[3].toUpperCase()] || 1;
+  return (m[1] === "-" ? -1 : 1) * n * mult;
+}
+let _corrByBill = null;
+function corrForBill(billId) {
+  if (!_corrByBill) {
+    _corrByBill = {};
+    ((D.correlation || {}).top_bills || []).forEach((b) => { if (b.bill_id) _corrByBill[b.bill_id] = b; });
+  }
+  return _corrByBill[billId] || null;
+}
+function suspicionScore(law) {
+  const c = corrForBill(law.bill_id);
+  const B = c ? (c.before_count || 0) : 0;
+  const T = c ? (c.trade_count || 0) : 0;
+  const L = c ? (c.max_lead || 0) : 0;
+  const profit = c ? (c.traders || []).reduce((s, t) => s + Math.max(0, parsePnl(t.pnl_fmt)), 0) : 0;
+  const ratio = T > 0 ? B / T : 0;
+  const volN = Math.min(1, B / 20), leadN = Math.min(1, L / 90), profN = Math.min(1, profit / 250000);
+  const parts = {
+    volume: SUSPICION_WEIGHTS.volume * volN,
+    ratio: SUSPICION_WEIGHTS.ratio * ratio,
+    lead: SUSPICION_WEIGHTS.lead * leadN,
+    profit: SUSPICION_WEIGHTS.profit * profN,
+  };
+  const score = T > 0 ? Math.round(parts.volume + parts.ratio + parts.lead + parts.profit) : 0;
+  return { score, before: B, total: T, maxLead: L, profit, ratio, parts };
+}
+function suspicionTier(score) {
+  if (score >= 70) return { label: "High", cls: "down" };       // --danger
+  if (score >= 45) return { label: "Elevated", cls: "warn" };   // --warning
+  if (score >= 20) return { label: "Moderate", cls: "info" };   // --info
+  return { label: "Clean", cls: "up" };                          // --success
+}
+
+// ---- "Explain the Laws" -> Suspicion Score leaderboard ---------------------
 let _lawFilter = "all";
+let _lawSort = "score";   // score | date | profit
 function lawSectorsList() {
   const set = new Set();
   (D.bills || []).forEach((b) => (b.sectors || []).forEach((s) => set.add(s)));
   return ["all", ...Array.from(set).sort()];
 }
-function lawCards() {
-  const bills = (D.bills || []).filter((b) => _lawFilter === "all" || (b.sectors || []).includes(_lawFilter));
-  if (!bills.length) return `<div class="faint" style="padding:20px;">No laws match this filter.</div>`;
-  return bills.map((b) => {
-    const ex = lawExplain(b);
-    const secTags = (b.sectors || []).map((s) => `<span class="pres-tag sector">${esc(s)}</span>`).join("");
-    const src = b.url ? `<a class="pres-src" href="${esc(b.url)}" target="_blank" rel="noopener noreferrer">congress.gov ↗</a>` : "";
-    return `<div class="card pad-lg law-card">
-      <div class="law-head"><div><span class="bill-chip">${esc(b.bill_id || "")}</span> <span class="law-title">${esc(b.title || "")}</span></div>${src}</div>
-      <div class="law-tags">${secTags}</div>
-      <div class="law-grid">
-        <div class="law-banner"><div class="law-banner-h">📋 What the law covers</div><p>${esc(ex.covers)}</p></div>
-        <div class="law-banner"><div class="law-banner-h">👤 How it affects you</div><p>${esc(ex.affects)}</p></div>
-        <div class="law-banner"><div class="law-banner-h">🌐 The broader impact</div><p>${esc(ex.broader)}</p></div>
-      </div>
-    </div>`;
-  }).join("");
-}
 function lawFilterChips() {
   return lawSectorsList().map((s) => `<button type="button" class="pres-chip${s === _lawFilter ? " active" : ""}" data-lawfilter="${esc(s)}">${esc(s === "all" ? "All laws" : s)}</button>`).join("");
 }
+function lawSortChips() {
+  const opt = (id, label) => `<button type="button" class="pres-chip${id === _lawSort ? " active" : ""}" data-lawsort="${id}">${label}</button>`;
+  return opt("score", "Suspicion") + opt("date", "Most recent") + opt("profit", "Profit");
+}
+function rankedLaws() {
+  let rows = (D.bills || [])
+    .filter((b) => _lawFilter === "all" || (b.sectors || []).includes(_lawFilter))
+    .map((b) => ({ law: b, s: suspicionScore(b) }));
+  if (_lawSort === "date") rows.sort((a, z) => String(z.law.action_date || "").localeCompare(String(a.law.action_date || "")));
+  else if (_lawSort === "profit") rows.sort((a, z) => z.s.profit - a.s.profit);
+  else rows.sort((a, z) => z.s.score - a.s.score || z.s.profit - a.s.profit);
+  return rows;
+}
+function lawLeaderboard() {
+  const rows = rankedLaws();
+  if (!rows.length) return `<div class="faint" style="padding:20px;">No laws match this filter.</div>`;
+  return rows.map(({ law, s }, i) => {
+    const tier = suspicionTier(s.score);
+    const rank = i + 1;
+    const profitFmt = s.profit >= 1000 ? "$" + (s.profit / 1000).toFixed(s.profit >= 100000 ? 0 : 1) + "K" : "$" + Math.round(s.profit);
+    const stats = s.total > 0
+      ? `<span class="susp-stat"><b>${s.before}</b> trades before vote</span><span class="susp-stat">max lead <b>${s.maxLead}</b>d</span><span class="susp-stat">profit <b>${esc(profitFmt)}</b></span>`
+      : `<span class="susp-stat faint">No correlated trades on record</span>`;
+    return `<div class="susp-row${rank <= 3 ? " susp-top" : ""}" data-bill="${esc(law.bill_id)}" role="button" tabindex="0" aria-label="Open ${esc(law.title || law.bill_id)}">
+      <div class="susp-rank">${rank}</div>
+      <div class="susp-main">
+        <div class="susp-titlerow"><span class="susp-title">${esc(law.title || law.bill_id)}</span><span class="pill ${tier.cls} susp-tier">${tier.label}</span></div>
+        <div class="susp-meter"><div class="susp-bar"><div class="susp-bar-fill ${tier.cls}" style="width:${s.score}%"></div></div><div class="susp-score">${s.score}</div></div>
+        <div class="susp-stats">${stats}</div>
+      </div>
+      <div class="susp-caret" aria-hidden="true">›</div>
+    </div>`;
+  }).join("");
+}
+function lawMethodology() {
+  return `<div class="tf-methodology" style="margin-top:16px;">
+    <div class="tf-meth-title">How the Suspicion Score works</div>
+    <p>A transparent 0 to 100 measure of how much congressional trading happened BEFORE a law's action date, built only from public disclosure timing. Weights: pre-trade volume 35, share of correlated trades placed before the vote 25, how early the earliest trade was 20, and profit captured 20. Laws with no correlated trades score 0 (Clean). Bands: High 70 plus, Elevated 45 to 69, Moderate 20 to 44, Clean under 20.</p>
+    <p class="faint">This measures timing relationships between public disclosures and legislative dates. It does not imply or allege wrongdoing of any kind.</p>
+  </div>`;
+}
 if (!window.__lawFilterWired) {
   window.__lawFilterWired = true;
-  document.addEventListener("click", (e) => {
-    const c = e.target.closest("[data-lawfilter]");
-    if (!c) return;
-    _lawFilter = c.dataset.lawfilter;
+  const rerender = () => {
     const bar = document.getElementById("law-chips"); if (bar) bar.innerHTML = lawFilterChips();
-    const list = document.getElementById("law-list"); if (list) list.innerHTML = lawCards();
+    const sort = document.getElementById("law-sort"); if (sort) sort.innerHTML = lawSortChips();
+    const list = document.getElementById("law-list"); if (list) list.innerHTML = lawLeaderboard();
+  };
+  document.addEventListener("click", (e) => {
+    const f = e.target.closest("[data-lawfilter]");
+    if (f) { _lawFilter = f.dataset.lawfilter; rerender(); return; }
+    const so = e.target.closest("[data-lawsort]");
+    if (so) { _lawSort = so.dataset.lawsort; rerender(); return; }
   });
 }
 function renderMarkets() {
   return `
-    <div class="page-head"><h2>Explain the Laws</h2><p>Every tracked law in plain English — what it covers, how it affects you, and the broader impact. Filter by area.</p></div>
-    <div id="law-chips" class="pres-chips">${lawFilterChips()}</div>
-    <div id="law-list" class="pres-listwrap">${lawCards()}</div>`;
+    <div class="page-head"><h2>Law Suspicion Leaderboard</h2><p>Every tracked law ranked by how much congressional trading happened before it passed. Tap any law for the full breakdown: what it covers, who traded it, and the profit captured.</p></div>
+    <div class="susp-controls">
+      <div id="law-chips" class="pres-chips">${lawFilterChips()}</div>
+      <div class="susp-sort"><span class="faint fs-sm">Sort:</span><div id="law-sort" class="pres-chips">${lawSortChips()}</div></div>
+    </div>
+    <div id="law-list" class="susp-board">${lawLeaderboard()}</div>
+    ${lawMethodology()}`;
 }
 
 // Market signals block (sector opportunity scores + per-ticker signals with a
@@ -1997,7 +2088,7 @@ function init() {
       const note = document.getElementById("planNote");
       if (note) note.textContent = "Starting checkout…";
       window.Auth.startCheckout(up.dataset.upgrade).then((r) => {
-        if (note) note.textContent = (r && r.message) || (r && r.ok ? "" : "Billing isn’t available yet — coming soon.");
+        if (note) note.textContent = (r && r.message) || (r && r.ok ? "" : "Billing isn’t available yet. Coming soon.");
       });
       return;
     }
@@ -2010,6 +2101,10 @@ function init() {
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { closeModal(); document.getElementById("searchResults").classList.remove("open"); }
+    if (e.key === "Enter" || e.key === " ") {
+      const row = e.target.closest && e.target.closest(".susp-row[data-bill]");
+      if (row) { e.preventDefault(); billDetail(row.dataset.bill); }
+    }
   });
   document.getElementById("modal").addEventListener("keydown", trapModal);
 
