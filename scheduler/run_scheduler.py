@@ -156,6 +156,18 @@ JOBS = [
         "enabled": True,
     },
     {
+        # Presidential actions & news (Federal Register + Congress.gov + RSS).
+        # Every 6h: the Federal Register publishes on business days and EOs appear
+        # a few days after signing; Congress.gov updates ~daily. Daily-freshness,
+        # not real-time.
+        "name": "presidential",
+        "scripts": ["webapp/build_presidential.py"],
+        "export": True,
+        "interval": 6 * HOUR,
+        "stagger": 540,
+        "enabled": True,
+    },
+    {
         # OpenAI-metered news summaries. DISABLED by default so the scheduler
         # never spends money on its own. Enable with TF_SCHED_NEWS_INTEL=1.
         "name": "news_intel",

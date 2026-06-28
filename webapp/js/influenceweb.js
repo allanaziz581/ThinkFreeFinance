@@ -1184,15 +1184,25 @@
       if (!sec) return;
       const congress = nodes.find((n) => n.type === "congress");
       const sn = nodes.find((n) => n.type === "sector" && n.sec === sec);
+      // Center the camera on a company node at a comfortable, readable zoom.
+      // focus() may fit the company's whole (wide) subtree and land too far out,
+      // so we override the camera target to frame the node itself.
+      const centerCompany = (cn) => {
+        if (!cn) return;
+        focus(cn);
+        const z = 1.35;
+        const px = cn.tx != null ? cn.tx : cn.x, py = cn.ty != null ? cn.ty : cn.y;
+        camT = { x: W / 2 - px * z, y: H / 2 - py * z, zoom: z };
+      };
       if (sn) {
         focus(sn);
-        // after the sector expands, focus the company node
+        // after the sector expands, focus + frame the company node
         setTimeout(() => {
           const cn = nodes.find((n) => n.type === "company" && n.ticker === tk);
-          if (cn) focus(cn);
+          if (cn) centerCompany(cn);
           else { // company beyond the top-12; reveal more then focus
             const more = nodes.find((n) => n.type === "more" && nodeById[n.moreOf] === sn);
-            if (more) { revealMore(more); setTimeout(() => { const c2 = nodes.find((n) => n.type === "company" && n.ticker === tk); if (c2) focus(c2); }, 120); }
+            if (more) { revealMore(more); setTimeout(() => { const c2 = nodes.find((n) => n.type === "company" && n.ticker === tk); if (c2) centerCompany(c2); }, 120); }
           }
         }, 120);
       }

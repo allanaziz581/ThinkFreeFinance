@@ -369,6 +369,37 @@ def build():
     bills_raw = load("congress_bills.json")
     hist_events = load("historical_events_db.json")
 
+    # Full-history congressional trade counts (from QuiverQuant /bulk via
+    # build_trades.py). Keyed by a normalized politician name so the displayed
+    # trade count + transparency/integrity scores reflect REAL volume, not the
+    # ~1000-row recent slice that undercounted frequent traders.
+    _tc = load("congress_trade_counts.json", default={})
+    _tc_pols = (_tc.get("politicians", {}) if isinstance(_tc, dict) else {})
+
+    def _norm_name(s: str) -> str:
+        s = re.sub(r"^(mr|mrs|ms|dr|rep|sen|senator|representative)\.?\s+", "", str(s or "").strip(), flags=re.I)
+        return re.sub(r"\s+", " ", s).lower()
+
+    _counts_by_name = {}
+    for _nm, _c in _tc_pols.items():
+        k = _norm_name(_nm)
+        # keep the record with the most trades when name variants collide
+        if k not in _counts_by_name or _c.get("all_time", 0) > _counts_by_name[k].get("all_time", 0):
+            _counts_by_name[k] = _c
+
+    def trade_counts_for(name: str) -> dict:
+        return _counts_by_name.get(_norm_name(name), {})
+
+    def transparency_integrity(all_time: int, avg_lag):
+        """Real scores: prompt disclosure raises transparency; very high trade
+        volume lowers both (more activity to scrutinize). avg_lag in days."""
+        lag = avg_lag if isinstance(avg_lag, (int, float)) else 30
+        vol = all_time or 0
+        transparency = 100 - lag * 1.0 - min(35, vol * 0.08)
+        integrity = 100 - lag * 0.9 - min(45, vol * 0.10)
+        clamp = lambda x: max(5, min(99, round(x)))
+        return clamp(transparency), clamp(integrity)
+
     # ---- bioguide map (name -> bioguide id for photo lookup) ----
     bioguide = {}
     for name, meta in (parties or {}).items():
@@ -515,6 +546,21 @@ def build():
             "ret": p.get("Est. Return (%)", 0),
             "bioguide": bioguide.get(nm, ""),
         }
+        # Real full-history counts + recomputed transparency/integrity scores.
+        _c = trade_counts_for(nm)
+        _all = _c.get("all_time", 0)
+        _month = _c.get("past_month", 0)
+        _lag = _c.get("avg_disclosure_lag_days")
+        _transp, _integ = transparency_integrity(_all, _lag)
+        rec_p["trades_all_time"] = _all
+        rec_p["trades_past_month"] = _month
+        rec_p["avg_disclosure_lag_days"] = _lag
+        rec_p["transparency_score"] = _transp
+        rec_p["integrity_score"] = _integ
+        # Use the real all-time count as the headline "trades" when available
+        # (fixes the undercount); fall back to the 6-month figure otherwise.
+        if _all:
+            rec_p["trades"] = _all
         rec_p.update(enrich(nm, p))
         politicians.append(rec_p)
 
@@ -564,13 +610,66 @@ def build():
             "direction": s.get("direction", ""),
             "rationale": s.get("rationale", ""),
         })
-    tickers_opp = []
-    for s in (opp.get("ticker_opportunities", []) if isinstance(opp, dict) else [])[:8]:
-        tickers_opp.append({
-            "ticker": s.get("ticker", s.get("symbol", "")),
-            "score": s.get("opportunity_score", 0),
-            "direction": s.get("direction", ""),
-        })
+    # Ticker signals derived from REAL per-ticker quant signals (RSI/MACD/trend/
+    # probabilities/Sharpe) so scores actually vary and we surface both bullish
+    # AND bearish names. The old path read a uniform opportunity_score (all 7.0).
+    def _load_window_js(fname: str) -> dict:
+        p = ROOT / "webapp" / "js" / fname
+        if not p.exists():
+            return {}
+        try:
+            txt = p.read_text(encoding="utf-8")
+            m = re.search(r"window\.\w+\s*=\s*", txt)
+            body = txt[m.end():].rsplit(";", 1)[0]
+            d = json.loads(body)
+            return d.get("byTicker", d) if isinstance(d, dict) else {}
+        except Exception:
+            return {}
+
+    def ticker_signal(q: dict):
+        score = 5.0
+        cross = q.get("macd_cross", "")
+        if cross == "bullish": score += 1.2
+        elif cross == "bearish": score -= 1.2
+        trend = q.get("trend", "")
+        if trend == "golden": score += 1.0
+        elif trend == "death": score -= 1.0
+        rsi = q.get("rsi", 50) or 50
+        if rsi < 30: score += 1.0
+        elif rsi > 70: score -= 1.0
+        score += (float(q.get("prob_up", 0) or 0) - float(q.get("prob_down", 0) or 0)) * 0.04
+        er = float(q.get("exp_return_1mo", 0) or 0)
+        score += max(-1.5, min(1.5, er * 0.3))
+        score += max(-1.0, min(1.0, float(q.get("sharpe", 0) or 0) * 0.5))
+        score = round(max(0.5, min(9.9, score)), 1)
+        direction = "Bullish" if score >= 6 else ("Bearish" if score <= 4.3 else "Neutral")
+        bits = []
+        if cross: bits.append(f"MACD {cross} cross")
+        if trend in ("golden", "death"): bits.append(f"{trend} cross (50/200d)")
+        bits.append(f"RSI {rsi:.0f} ({'oversold' if rsi < 30 else 'overbought' if rsi > 70 else 'neutral'})")
+        if er: bits.append(f"model expects {er:+.1f}% over 1mo")
+        sh = float(q.get("sharpe", 0) or 0)
+        if sh: bits.append(f"Sharpe {sh:.2f}")
+        why = "; ".join(bits) + "."
+        return score, direction, why
+
+    quant = _load_window_js("quant_data.js")
+    sig_rows = []
+    for tk, q in (quant.items() if isinstance(quant, dict) else []):
+        if not isinstance(q, dict):
+            continue
+        sc, direction, why = ticker_signal(q)
+        sig_rows.append({"ticker": tk, "score": sc, "direction": direction, "why": why,
+                         "price": q.get("price"), "rsi": q.get("rsi")})
+    # Most decisive signals first (furthest from neutral), keeping both extremes.
+    sig_rows.sort(key=lambda r: abs(r["score"] - 5), reverse=True)
+    tickers_opp = sig_rows[:28]
+    # Fallback to the legacy source if quant_data wasn't available.
+    if not tickers_opp:
+        for s in (opp.get("ticker_opportunities", []) if isinstance(opp, dict) else [])[:8]:
+            tickers_opp.append({"ticker": s.get("ticker", s.get("symbol", "")),
+                                "score": s.get("opportunity_score", 0),
+                                "direction": s.get("direction", ""), "why": ""})
 
     # ---- historical parallels ----
     parallels = []

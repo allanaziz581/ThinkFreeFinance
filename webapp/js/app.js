@@ -173,11 +173,69 @@ function polFundingShare(name) {
 }
 function polScore3(p) {
   const fs = polFundingShare(p.name), pac = fs ? fs.pac : 0;
+  const vol = p.trades_all_time || p.trades || 0;   // real full-history volume
+  // Prefer the build_data-computed scores (from real disclosure lag + volume);
+  // fall back to a local estimate if the data layer didn't supply them.
+  const transparency = (p.transparency_score != null)
+    ? p.transparency_score
+    : Math.round(Math.max(5, 100 - pac * 1.4 - vol * 0.05));
   return {
-    influence: Math.round(Math.min(100, 30 + (p.trades || 0) * 0.3 + pac * 0.6 + Math.abs(p.ret || 0) * 0.5)),
+    influence: Math.round(Math.min(100, 30 + Math.min(40, vol * 0.02) + pac * 0.6 + Math.abs(p.ret || 0) * 0.5)),
     publicImpact: Math.round(Math.max(10, 70 - pac * 0.5 + (fs ? fs.ind : 0) * 0.2)),
-    transparency: Math.round(Math.max(5, 100 - pac * 1.4 - (p.trades || 0) * 0.15)),
+    transparency: transparency,
+    integrity: (p.integrity_score != null) ? p.integrity_score : transparency,
   };
+}
+
+// Generate a downloadable "trading card" PNG for a politician. Pure canvas draw
+// (no remote assets, no HTML injection) -> data URL -> programmatic download.
+function downloadBaseballCard(name) {
+  const p = polByName(name);
+  if (!p) return;
+  const s = polScore3(p);
+  const lawsPassed = (p.related_bills || []).length;
+  const css = (v) => getComputedStyle(document.body).getPropertyValue(v).trim() || v;
+  const W = 600, H = 860, dpr = Math.min(2, window.devicePixelRatio || 1);
+  const cv = document.createElement("canvas");
+  cv.width = W * dpr; cv.height = H * dpr;
+  const x = cv.getContext("2d"); x.scale(dpr, dpr);
+  const brandA = css("--brand-grad-a") || "#F070A0", brandB = css("--brand-grad-b") || "#D05080";
+  const ink = "#0E0B12", panel = "#161320", line = "rgba(255,255,255,0.10)";
+  // background
+  x.fillStyle = ink; x.fillRect(0, 0, W, H);
+  const g = x.createLinearGradient(0, 0, W, 160); g.addColorStop(0, brandA); g.addColorStop(1, brandB);
+  x.fillStyle = g; x.fillRect(0, 0, W, 150);
+  x.fillStyle = "#fff"; x.font = "700 16px Inter, sans-serif"; x.fillText("THINKFREE · CONGRESSIONAL TRADING CARD", 28, 46);
+  x.font = "800 34px Inter, sans-serif"; x.fillText(p.name || "", 28, 100);
+  x.font = "600 17px Inter, sans-serif";
+  x.fillText(`${p.party || ""}  ·  ${p.chamber || ""}  ·  ${p.state || ""}`, 28, 130);
+  // stat rows
+  const rows = [
+    ["Estimated P&L", p.pnl_fmt || "$0"],
+    ["Estimated Return", (p.ret != null ? (p.ret > 0 ? "+" : "") + p.ret + "%" : "n/a")],
+    ["All-Time Trades", String(p.trades_all_time != null ? p.trades_all_time : (p.trades || 0))],
+    ["Trades · Past Month", String(p.trades_past_month || 0)],
+    ["Laws Tied to Trades", String(lawsPassed)],
+    ["Integrity Score", `${s.integrity}/100`],
+    ["Transparency Score", `${s.transparency}/100`],
+    ["Avg Disclosure Lag", (p.avg_disclosure_lag_days != null ? p.avg_disclosure_lag_days + " days" : "n/a")],
+  ];
+  let y = 210;
+  rows.forEach(([k, v], i) => {
+    x.fillStyle = i % 2 ? "rgba(255,255,255,0.03)" : panel;
+    x.fillRect(28, y - 30, W - 56, 60);
+    x.fillStyle = "#9aa3b2"; x.font = "600 15px Inter, sans-serif"; x.fillText(String(k).toUpperCase(), 48, y - 4);
+    x.fillStyle = "#fff"; x.font = "800 26px Inter, sans-serif"; x.fillText(String(v), 48, y + 22);
+    y += 74;
+  });
+  x.strokeStyle = line; x.strokeRect(14, 14, W - 28, H - 28);
+  x.fillStyle = "#6b7280"; x.font = "500 12px Inter, sans-serif";
+  x.fillText("Estimates from public disclosures. Identifies timing relationships only; no wrongdoing implied.", 28, H - 30);
+  // download
+  const a = document.createElement("a");
+  a.href = cv.toDataURL("image/png");
+  a.download = `thinkfree-${String(p.name || "card").replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.png`;
+  document.body.appendChild(a); a.click(); a.remove();
 }
 function polBadge(kind, name, val) { return window.ScoreInfo ? window.ScoreInfo.badge(kind, name, val) : String(val); }
 function fecBlock(name) {
@@ -302,6 +360,7 @@ function politicianProfile(name) {
         <div class="pf-name">${esc(p.name)}</div>
         <div class="pf-sub">${esc(p.party)} <span class="tag ${esc(p.party_abbr)}">${esc(p.party_abbr)}</span></div>
       </div>
+      <button type="button" class="bbcard-btn" data-bbcard="${esc(p.name)}" title="Download trading card (PNG)">⬇ Card</button>
     </div>
 
     <div class="profile-stats">
@@ -687,8 +746,12 @@ function billDetail(id) {
       </div>
     </div>
 
-    <div class="section-title">What This Bill Does</div>
-    <div class="summary-box">${esc(b.plain_summary || b.action_text || "This measure affects federal policy in the sectors above.")}</div>
+    <div class="section-title">What This Law Does — In Detail</div>
+    ${(() => { const ex = lawExplain(b); return `<div class="law-grid" style="margin-bottom:8px;">
+      <div class="law-banner"><div class="law-banner-h">📋 What the law covers</div><p>${esc(ex.covers)}</p></div>
+      <div class="law-banner"><div class="law-banner-h">👤 How it affects you</div><p>${esc(ex.affects)}</p></div>
+      <div class="law-banner"><div class="law-banner-h">🌐 The broader impact</div><p>${esc(ex.broader)}</p></div>
+    </div>`; })()}
 
     ${genImpactBlock(b.sectors || [], "Generation Impact" + (b.action_text && /became public law|passed|enacted/i.test(b.action_text) ? " · Status: Passed" : " · Status: In progress"))}
 
@@ -1063,7 +1126,10 @@ function renderNews() {
             </div>`).join("") || '<div class="faint">No items today.</div>'}
         </div>
       </div>
-    </div>`;
+    </div>
+    <div class="section-title" style="margin-top:22px;">Market Signals</div>
+    <p class="faint fs-sm" style="margin:-6px 0 10px;">Sector opportunity scores and per-ticker signals (bullish and bearish) — click a ticker for the reasoning.</p>
+    ${marketSignalsBlock()}`;
 }
 
 // PAGE: Political Watch - congressional trading and funding-influence overview.
@@ -1096,7 +1162,7 @@ function renderPolitical() {
       <div class="card span-2 pad-lg">
         <div class="card-head"><div class="card-title">Top 10 Politicians by Estimated Trading Gains</div></div>
         <table class="tf">
-          <thead><tr><th>#</th><th>Politician</th><th>Party</th><th>State</th><th class="num">Trades</th><th class="num">Return</th><th class="num">Est. P&amp;L</th><th class="num">Influence</th><th class="num">Public</th><th class="num">Transp.</th></tr></thead>
+          <thead><tr><th>#</th><th>Politician</th><th>Party</th><th>State</th><th class="num">All-Time</th><th class="num">Past Mo.</th><th class="num">Return</th><th class="num">Est. P&amp;L</th><th class="num">Integrity</th><th class="num">Transp.</th></tr></thead>
           <tbody>
             ${(D.politicians || []).slice(0, 10).map((p, i) => { const s = polScore3(p); return `
               <tr>
@@ -1104,11 +1170,11 @@ function renderPolitical() {
                 <td style="font-weight:700;">${polLink(p.name)}</td>
                 <td><span class="tag ${esc(p.party_abbr)}">${esc(p.party_abbr)}</span></td>
                 <td class="muted">${esc(p.state)}</td>
-                <td class="num">${esc(p.trades)}</td>
+                <td class="num" style="font-weight:700;">${esc((p.trades_all_time != null ? p.trades_all_time : p.trades) || 0)}</td>
+                <td class="num">${esc(p.trades_past_month || 0)}</td>
                 <td class="num ${colorFor(p.ret)}">${pct(p.ret)}</td>
                 <td class="num ${colorFor(p.pnl)}" style="font-weight:700;">${esc(p.pnl_fmt)}</td>
-                <td class="num">${polBadge("pol-influence", p.name, s.influence)}</td>
-                <td class="num">${polBadge("pol-public", p.name, s.publicImpact)}</td>
+                <td class="num">${polBadge("pol-influence", p.name, s.integrity)}</td>
                 <td class="num">${polBadge("pol-transparency", p.name, s.transparency)}</td>
               </tr>`; }).join("")}
           </tbody>
@@ -1152,7 +1218,7 @@ function renderPolitical() {
 
         <div class="card-title mt-16" style="margin-bottom:6px;">How Bills Were Influenced</div>
         <div class="timeline">
-          ${(corr.top_bills || []).slice(0, 4).map((b, i) => `
+          ${(corr.top_bills || []).slice(0, 12).map((b, i) => `
             <div class="tl-item bill-row" data-bill="${esc(b.bill_id)}">
               <div class="tl-dot ${["r", "g", "b", "p"][i % 4]}"></div>
               <div>
@@ -1206,27 +1272,110 @@ function renderPortfolio() {
 }
 
 // PAGE: Markets / Reasoning / History - data-backed sector, economic-reasoning, and historical views.
+// Sector-aware plain-English explanation templates (no model calls). Each law's
+// detail is built from its sectors + title into three structured sections.
+const SECTOR_EXPLAIN = {
+  Technology: { affects: "It can change the price and availability of phones, apps, internet service, and AI tools you use, and shift tech-sector jobs.", broader: "Tech companies, chipmakers, and cloud providers feel it first; supply chains and data-privacy rules often follow." },
+  Energy: { affects: "It tends to move what you pay at the gas pump and on your utility bill, and affects heating and cooling costs.", broader: "Oil, gas, utilities, and renewable firms are directly exposed; it ripples into transport and manufacturing costs." },
+  Financials: { affects: "It can affect your loan rates, credit-card terms, bank fees, and how easy it is to borrow for a home or car.", broader: "Banks, lenders, and insurers adjust; tighter or looser credit spreads through the whole economy." },
+  Healthcare: { affects: "It may change what you pay for prescriptions, insurance, and care, and what treatments are covered.", broader: "Drugmakers, hospitals, and insurers are directly affected; costs and coverage shift for employers too." },
+  Defense: { affects: "It rarely hits your wallet directly, but it shapes federal spending priorities funded by your taxes.", broader: "Defense contractors win or lose contracts; it can affect manufacturing jobs in certain regions." },
+  Industrials: { affects: "It can change prices on cars, appliances, and building materials, and affect factory and construction jobs.", broader: "Manufacturers, builders, and materials suppliers respond; tariffs and infrastructure rules flow downstream." },
+  Consumer: { affects: "It can move prices on everyday goods — groceries, retail, housing — and affect service-sector jobs.", broader: "Retailers and consumer brands adjust; spending shifts ripple through the broader economy." },
+};
+function lawExplain(bill) {
+  const secs = (bill.sectors || []).filter((s) => SECTOR_EXPLAIN[s]);
+  const base = bill.plain_summary || bill.title || "This measure sets new federal policy.";
+  const covers = `${base} It was advanced in Congress${bill.action_date ? " (latest action " + esc(bill.action_date) + ")" : ""}${(bill.tickers || []).length ? ", and intersects companies such as " + bill.tickers.slice(0, 4).map(esc).join(", ") : ""}. In practice it directs agencies, funding, or rules in the ${secs.length ? secs.map(esc).join(" and ") + " area" : "areas it names"}.`;
+  const affects = secs.length ? secs.map((s) => SECTOR_EXPLAIN[s].affects).join(" ")
+    : "Its day-to-day effect on you depends on how agencies implement it — watch for changes in prices, fees, or services tied to the area it covers.";
+  const broader = (secs.length ? secs.map((s) => SECTOR_EXPLAIN[s].broader).join(" ") : "Markets, businesses, and other groups adjust as the rules take effect.")
+    + " Winners and losers emerge as the details are written, and related sectors often feel second-order effects.";
+  return { covers, affects, broader };
+}
+
+// Repurposed "Markets" tab -> "Explain the Laws": every tracked law with a filter
+// and a structured, plain-English breakdown (what it covers / how it affects you /
+// broader impact). The old market-signals content moved into the News tab.
+let _lawFilter = "all";
+function lawSectorsList() {
+  const set = new Set();
+  (D.bills || []).forEach((b) => (b.sectors || []).forEach((s) => set.add(s)));
+  return ["all", ...Array.from(set).sort()];
+}
+function lawCards() {
+  const bills = (D.bills || []).filter((b) => _lawFilter === "all" || (b.sectors || []).includes(_lawFilter));
+  if (!bills.length) return `<div class="faint" style="padding:20px;">No laws match this filter.</div>`;
+  return bills.map((b) => {
+    const ex = lawExplain(b);
+    const secTags = (b.sectors || []).map((s) => `<span class="pres-tag sector">${esc(s)}</span>`).join("");
+    const src = b.url ? `<a class="pres-src" href="${esc(b.url)}" target="_blank" rel="noopener noreferrer">congress.gov ↗</a>` : "";
+    return `<div class="card pad-lg law-card">
+      <div class="law-head"><div><span class="bill-chip">${esc(b.bill_id || "")}</span> <span class="law-title">${esc(b.title || "")}</span></div>${src}</div>
+      <div class="law-tags">${secTags}</div>
+      <div class="law-grid">
+        <div class="law-banner"><div class="law-banner-h">📋 What the law covers</div><p>${esc(ex.covers)}</p></div>
+        <div class="law-banner"><div class="law-banner-h">👤 How it affects you</div><p>${esc(ex.affects)}</p></div>
+        <div class="law-banner"><div class="law-banner-h">🌐 The broader impact</div><p>${esc(ex.broader)}</p></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+function lawFilterChips() {
+  return lawSectorsList().map((s) => `<button type="button" class="pres-chip${s === _lawFilter ? " active" : ""}" data-lawfilter="${esc(s)}">${esc(s === "all" ? "All laws" : s)}</button>`).join("");
+}
+if (!window.__lawFilterWired) {
+  window.__lawFilterWired = true;
+  document.addEventListener("click", (e) => {
+    const c = e.target.closest("[data-lawfilter]");
+    if (!c) return;
+    _lawFilter = c.dataset.lawfilter;
+    const bar = document.getElementById("law-chips"); if (bar) bar.innerHTML = lawFilterChips();
+    const list = document.getElementById("law-list"); if (list) list.innerHTML = lawCards();
+  });
+}
 function renderMarkets() {
   return `
-    <div class="page-head"><h2>Markets</h2><p>Sector opportunity scores and signals</p></div>
-    <div class="grid cols-2">
+    <div class="page-head"><h2>Explain the Laws</h2><p>Every tracked law in plain English — what it covers, how it affects you, and the broader impact. Filter by area.</p></div>
+    <div id="law-chips" class="pres-chips">${lawFilterChips()}</div>
+    <div id="law-list" class="pres-listwrap">${lawCards()}</div>`;
+}
+
+// Market signals block (sector opportunity scores + per-ticker signals with a
+// click-to-reveal "why" and both bullish & bearish). Folded into the News tab.
+function marketSignalsBlock() {
+  return `
+    <div class="grid cols-2" style="margin-top:18px;">
       <div class="card pad-lg">
         <div class="card-head"><div class="card-title">Sector Opportunity Scores</div></div>
         ${(D.sectors || []).map((s) => `
           <div class="bar-row" style="grid-template-columns:1fr auto;">
-            <div class="bar-label">${esc(s.sector)} <span class="pill ${s.direction === "Bullish" ? "up" : "info"}" style="margin-left:6px;">${esc(s.direction)}</span></div>
+            <div class="bar-label">${esc(s.sector)} <span class="pill ${s.direction === "Bullish" ? "up" : s.direction === "Bearish" ? "down" : "info"}" style="margin-left:6px;">${esc(s.direction)}</span></div>
             <div class="bar-val">${Number(s.score).toFixed(1)}</div>
             <div class="bar-track"><div class="bar-fill" style="width:${(s.score / 10) * 100}%"></div></div>
           </div>`).join("")}
       </div>
       <div class="card pad-lg">
-        <div class="card-head"><div class="card-title">Ticker Signals</div></div>
+        <div class="card-head"><div class="card-title">Ticker Signals</div><span class="faint fs-sm">click a row for why</span></div>
         <table class="tf">
           <thead><tr><th>Ticker</th><th>Direction</th><th class="num">Score</th></tr></thead>
-          <tbody>${(D.tickers_opp || []).map((t) => `<tr><td style="font-weight:700;">${esc(t.ticker)}</td><td><span class="pill ${t.direction === "Bullish" ? "up" : t.direction === "Bearish" ? "down" : "info"}">${esc(t.direction)}</span></td><td class="num">${Number(t.score).toFixed(1)}</td></tr>`).join("")}</tbody>
+          <tbody>${(D.tickers_opp || []).map((t, i) => `
+            <tr class="sig-row" data-sig="${i}" style="cursor:pointer;"><td style="font-weight:700;">${esc(t.ticker)}</td>
+              <td><span class="pill ${t.direction === "Bullish" ? "up" : t.direction === "Bearish" ? "down" : "info"}">${esc(t.direction)}</span></td>
+              <td class="num">${Number(t.score).toFixed(1)}</td></tr>
+            <tr class="sig-why" id="sig-why-${i}" hidden><td colspan="3" class="faint fs-sm" style="padding:8px 10px;">${esc(t.why || "Signal derived from RSI, MACD, trend, and model probabilities.")}</td></tr>`).join("")}</tbody>
         </table>
       </div>
     </div>`;
+}
+if (!window.__sigWired) {
+  window.__sigWired = true;
+  document.addEventListener("click", (e) => {
+    const row = e.target.closest("[data-sig]");
+    if (!row) return;
+    const w = document.getElementById("sig-why-" + row.dataset.sig);
+    if (w) w.hidden = !w.hidden;
+  });
 }
 
 function renderReasoning() {
@@ -1515,8 +1664,8 @@ function renderLegDetail(ab) {
     const topics = (b.topics || []).slice(0, 3).map((t) => `<span class="pill mini">${esc(t)}</span>`).join(" ");
     const votes = (b.votes || []).length ? `<div class="leg-votes">${b.votes.slice(0, 2).map((v) => `<span class="leg-vote ${v.passed ? "up" : "down"}">${v.chamber} ${v.yea}-${v.nay} ${v.passed ? "passed" : "failed"}</span>`).join(" ")}</div>` : "";
     return `<tr>
-      <td><a href="${esc(b.url)}" target="_blank" rel="noopener" style="font-weight:700;">${esc(b.number)}</a></td>
-      <td><div style="font-weight:600;">${esc(b.title)}</div><div class="leg-topics">${topics}</div>${votes}</td>
+      <td><a href="${esc(b.url)}" target="_blank" rel="noopener" style="font-weight:700;color:var(--text-primary);">${esc(b.number)}</a></td>
+      <td><div style="font-weight:600;color:var(--text-primary);">${esc(b.title)}</div><div class="leg-topics">${topics}</div>${votes}</td>
       <td class="num"><span class="pill ${stClass}">${esc(b.status)}</span><div class="faint" style="margin-top:4px;">${esc(b.last_action_date || "")}</div></td>
     </tr>`;
   };
@@ -1736,6 +1885,7 @@ const PAGES = {
   news: renderNews,
   political: renderPolitical,
   portfolio: renderPortfolio,
+  presidential: () => (window.renderPresidential ? window.renderPresidential() : `<div class="page-head"><h2>Presidential</h2><p>Loading…</p></div>`),
   markets: renderMarkets,
   reasoning: renderReasoning,
   history: renderHistory,
@@ -1823,6 +1973,9 @@ function init() {
 
     const iwco = e.target.closest("[data-iwco]");
     if (iwco) { go("influence"); requestAnimationFrame(() => { if (window.IW && window.IW.openCompany) window.IW.openCompany(iwco.dataset.iwco); }); return; }
+
+    const bb = e.target.closest("[data-bbcard]");
+    if (bb) { e.stopPropagation(); downloadBaseballCard(bb.dataset.bbcard); return; }
 
     const pol = e.target.closest("[data-pol]");
     if (pol) { politicianProfile(pol.dataset.pol); return; }
