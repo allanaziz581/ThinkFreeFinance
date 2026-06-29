@@ -39,6 +39,22 @@ function photoEl(name, bioguide, cls = "pf-photo") {
   return `<div class="${cls} placeholder">${ini}</div>`;
 }
 
+/* Wrap every data table in a horizontal-scroll container so on small screens the
+   columns keep a legible width and only the table scrolls sideways, instead of the
+   cells crushing into one-character-per-line text. Idempotent (skips already
+   wrapped tables), and harmless on desktop where tables fit and never scroll. */
+function wrapTables(root) {
+  if (!root) return;
+  root.querySelectorAll("table").forEach((t) => {
+    const p = t.parentElement;
+    if (!p || p.classList.contains("tbl-scroll")) return;
+    const w = document.createElement("div");
+    w.className = "tbl-scroll";
+    p.insertBefore(w, t);
+    w.appendChild(t);
+  });
+}
+
 /* SVG radial gauge. value 0..max */
 function gauge(value, max, color, label) {
   const r = 50, c = 2 * Math.PI * r;
@@ -325,7 +341,9 @@ function showDisclaimerConsent() {
 let _modalLastFocus = null;
 function openModal(html) {
   _modalLastFocus = document.activeElement;   // restore focus here on close (WCAG 2.4.3)
-  document.getElementById("modalContent").innerHTML = html;
+  const mc = document.getElementById("modalContent");
+  mc.innerHTML = html;
+  wrapTables(mc);   // tables inside modals (profiles, case files) scroll, not crush
   const overlay = document.getElementById("modal");
   overlay.classList.add("open");
   // always start the new content at the top, regardless of prior scroll
@@ -2137,6 +2155,7 @@ function go(page) {
   const host = document.getElementById("page-" + page);
   if (host && !rendered[page]) {
     host.innerHTML = PAGES[page]();
+    wrapTables(host);   // keep wide data tables readable (scroll, not per-char crush)
     rendered[page] = true;
   }
   document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
@@ -2149,7 +2168,7 @@ function go(page) {
   if (page === "states") {
     ensureStateData(() => {
       const mount = document.getElementById("leg-watch-mount");
-      if (mount) mount.innerHTML = renderLegWatch();
+      if (mount) { mount.innerHTML = renderLegWatch(); wrapTables(mount); }
     });
   }
 

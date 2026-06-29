@@ -454,6 +454,11 @@ html, body {
 .tag.I { background: rgba(168,85,247,0.16); color: var(--purple); }
 
 /* data table */
+/* Horizontal-scroll wrapper injected around every table by wrapTables() in app.js.
+   On desktop the table fits, so this never scrolls; on a phone it lets a wide
+   table scroll sideways inside its own box (keeping legible columns) instead of
+   crushing the cells into one-character-per-line text or pushing the page wide. */
+.tbl-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table.tf { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 table.tf thead th {
   text-align: left; color: var(--text-tertiary); font-weight: 600;
@@ -1647,8 +1652,16 @@ body.tf-tp-open .tf-theme-panel { transform: translateX(0); }
 
   /* ---- wide media scrolls within its own box, never the page ---- */
   img, svg, video, canvas, iframe { max-width: 100%; }
-  pre, table { max-width: 100%; overflow-x: auto; }
-  table { display: block; }
+  pre { max-width: 100%; overflow-x: auto; }
+  /* Data tables: do NOT make the table itself display:block (that squeezes the
+     columns until text wraps one character per line). Instead the JS wraps every
+     table in a .tbl-scroll box; here we keep real table layout, size the table to
+     its content with a legible floor, and stop the cells from wrapping. The
+     .tbl-scroll box (rule below, all viewports) provides the sideways scroll. */
+  .tbl-scroll table { width: max-content; min-width: 100%; max-width: none; display: table; }
+  table.tf th, table.tf td, table.si-m-table th, table.si-m-table td {
+    white-space: nowrap; word-break: normal; overflow-wrap: normal;
+  }
   .econ-chart, .hf-chart, .spark, .gn-wrap { max-width: 100%; }
   /* containers that hold a wide chart/graph scroll inside themselves */
   .tbl-wrap, .table-wrap, .chart-wrap, .scroll-x { max-width: 100%; overflow-x: auto; }
