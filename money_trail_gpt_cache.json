@@ -1,0 +1,310 @@
+{
+ "S4465-119": {
+  "beneficiaries": [
+   "BAH",
+   "CACI",
+   "SAIC",
+   "LDOS",
+   "NOC",
+   "LMT"
+  ],
+  "rationale": "These companies provide technology and defense services to the US government, which may include surveillance and intelligence solutions impacted by FISA regulations.",
+  "basis": "model-inferred"
+ },
+ "HJRES140-119": {
+  "beneficiaries": [
+   "CLF",
+   "NUE",
+   "STLD"
+  ],
+  "rationale": "The bill affects mining activities in Minnesota, impacting companies like Cleveland-Cliffs, Nucor, and Steel Dynamics that rely on iron ore and related resources from the region.",
+  "basis": "model-inferred"
+ },
+ "HR8322-119": {
+  "beneficiaries": [
+   "BAH",
+   "SAIC",
+   "LDOS",
+   "CACI",
+   "NOC",
+   "LMT"
+  ],
+  "rationale": "These companies provide technology and defense services to the US government, which includes intelligence and surveillance operations impacted by FISA regulations.",
+  "basis": "model-inferred"
+ },
+ "HJRES142-119": {
+  "beneficiaries": [],
+  "rationale": "The bill pertains to a local tax amendment in Washington D.C., which does not directly impact the revenue of any specific publicly traded companies.",
+  "basis": "model-inferred"
+ },
+ "S269-119": {
+  "beneficiaries": [
+   "FIS",
+   "FISV",
+   "GPN",
+   "JKHY",
+   "PAYX",
+   "ADP"
+  ],
+  "rationale": "These companies provide payment processing and financial services that could be impacted by regulations aimed at preventing improper payments to deceased individuals.",
+  "basis": "model-inferred"
+ },
+ "S3424-119": {
+  "beneficiaries": [
+   "COOP",
+   "RJF",
+   "BK",
+   "JPM",
+   "BAC",
+   "C"
+  ],
+  "rationale": "These companies are involved in financial services and banking, which include handling bankruptcy proceedings and related financial transactions.",
+  "basis": "model-inferred"
+ },
+ "HR224-119": {
+  "beneficiaries": [],
+  "rationale": "The Disabled Veterans Housing Support Act is unlikely to have a direct, material impact on the revenue of any specific publicly traded US companies.",
+  "basis": "model-inferred"
+ },
+ "HR1601-119": {
+  "beneficiaries": [],
+  "rationale": "The bill's focus on Ukraine's territorial integrity does not directly impact the revenue of any specific publicly traded US companies.",
+  "basis": "model-inferred"
+ },
+ "SJRES86-119": {
+  "beneficiaries": [
+   "D",
+   "DUK",
+   "SO",
+   "NEE",
+   "AEP",
+   "XEL"
+  ],
+  "rationale": "These utility companies could be affected by changes in EPA regulations related to air quality and regional haze, impacting their operations and compliance costs.",
+  "basis": "model-inferred"
+ },
+ "HRES979-119": {
+  "beneficiaries": [],
+  "rationale": "The bill pertains to internal congressional procedures and does not directly impact the revenue of any publicly traded companies.",
+  "basis": "model-inferred"
+ },
+ "HRES978-119": {
+  "beneficiaries": [],
+  "rationale": "The bill is a resolution expressing sorrow over a representative's death and does not have a direct impact on any publicly traded company's revenue.",
+  "basis": "model-inferred"
+ },
+ "HRES976-119": {
+  "beneficiaries": [],
+  "rationale": "The bill is procedural and does not directly impact the revenue of any publicly traded companies.",
+  "basis": "model-inferred"
+ },
+ "HRES975-119": {
+  "beneficiaries": [],
+  "rationale": "The bill is procedural and does not directly impact any publicly traded company's revenue.",
+  "basis": "model-inferred"
+ },
+ "HRES974-119": {
+  "beneficiaries": [],
+  "rationale": "The bill is procedural and does not directly impact the revenue of any publicly traded companies.",
+  "basis": "model-inferred"
+ },
+ "HR6244-119": {
+  "beneficiaries": [],
+  "rationale": "The bill focuses on veterans' memorials and disability assistance, which does not directly impact the revenue of any publicly traded companies.",
+  "basis": "model-inferred"
+ },
+ "HRES970-119": {
+  "beneficiaries": [],
+  "rationale": "The resolution focuses on foreign policy and peace efforts in Sudan, which does not directly impact the revenue of any specific publicly traded US companies.",
+  "basis": "model-inferred"
+ },
+ "HR6888-119": {
+  "beneficiaries": [],
+  "rationale": "The Trump Tariff Transparency Act primarily involves government transparency and does not directly impact the revenue of specific publicly traded companies.",
+  "basis": "model-inferred"
+ },
+ "HR6892-119": {
+  "beneficiaries": [],
+  "rationale": "The bill pertains to the US government's investment in an international financial institution, which does not directly impact the revenue of any specific publicly traded US companies.",
+  "basis": "model-inferred"
+ },
+ "HR6886-119": {
+  "beneficiaries": [],
+  "rationale": "The Reverse Transfer Efficiency Act of 2025 primarily impacts educational institutions and does not directly affect the revenue of publicly traded companies.",
+  "basis": "model-inferred"
+ },
+ "HRES967-119": {
+  "beneficiaries": [
+   "GOOGL",
+   "META",
+   "MSFT",
+   "AAPL",
+   "AMZN",
+   "NFLX"
+  ],
+  "rationale": "These companies are major American tech firms whose operations and innovations could be impacted by European laws and regulations affecting digital services and online speech.",
+  "basis": "model-inferred"
+ },
+ "HRES954-119": {
+  "beneficiaries": [],
+  "rationale": "The bill pertains to internal House of Representatives procedures and does not directly impact the revenue of any publicly traded companies.",
+  "basis": "model-inferred"
+ },
+ "SRES554-119": {
+  "beneficiaries": [
+   "ALL",
+   "PGR",
+   "TRV",
+   "CB",
+   "AIG",
+   "HIG"
+  ],
+  "rationale": "These insurance companies are directly impacted by climate change as it affects their underwriting and pricing strategies, leading to changes in insurance premiums.",
+  "basis": "model-inferred"
+ },
+ "SRES559-119": {
+  "beneficiaries": [],
+  "rationale": "The resolution acknowledges climate change impacts on wildfires but does not directly affect any specific companies' revenues.",
+  "basis": "model-inferred"
+ },
+ "SRES551-119": {
+  "beneficiaries": [],
+  "rationale": "The resolution recognizes climate change impacts but does not propose specific actions or regulations that would directly affect the revenue of any publicly traded companies.",
+  "basis": "model-inferred"
+ },
+ "SRES558-119": {
+  "beneficiaries": [
+   "GRMN",
+   "TRMB",
+   "SPIR",
+   "IRDM",
+   "MAXR",
+   "VRSK"
+  ],
+  "rationale": "These companies are involved in weather monitoring, satellite technology, and data analytics, which are crucial for tracking and responding to climate change-driven extreme weather events.",
+  "basis": "model-inferred"
+ },
+ "SRES555-119": {
+  "beneficiaries": [
+   "RKT",
+   "Z",
+   "LEN",
+   "PHM",
+   "DHI",
+   "NVR"
+  ],
+  "rationale": "These companies are involved in mortgage origination or homebuilding, sectors that could be directly impacted by changes in home values due to climate change.",
+  "basis": "model-inferred"
+ },
+ "SRES557-119": {
+  "beneficiaries": [
+   "BLK",
+   "GS",
+   "JPM",
+   "MS",
+   "BAC",
+   "C"
+  ],
+  "rationale": "These financial institutions are heavily involved in global markets and asset management, making them sensitive to financial market collapses linked to climate change.",
+  "basis": "model-inferred"
+ },
+ "SRES556-119": {
+  "beneficiaries": [
+   "HIG",
+   "TRV",
+   "ALL",
+   "PGR",
+   "CB"
+  ],
+  "rationale": "These companies are major players in the property and casualty insurance market, which is directly affected by climate risks in Florida.",
+  "basis": "model-inferred"
+ },
+ "S1049-119": {
+  "beneficiaries": [],
+  "rationale": "The Preventing Child Trafficking Act of 2025 does not have a direct impact on the revenue of any publicly traded US companies as it is focused on legal and social measures rather than commercial activities.",
+  "basis": "model-inferred"
+ },
+ "HRES956-119": {
+  "beneficiaries": [],
+  "rationale": "The bill is a condemnation of antisemitic violence and does not directly impact the revenue of any publicly traded US companies.",
+  "basis": "model-inferred"
+ },
+ "HR6737-119": {
+  "beneficiaries": [
+   "LEN",
+   "DHI",
+   "PHM",
+   "TOL",
+   "NVR",
+   "KBH"
+  ],
+  "rationale": "The SPUR Housing Act is likely to impact homebuilders like Lennar, D.R. Horton, PulteGroup, Toll Brothers, NVR, and KB Home, whose revenues are directly tied to housing market conditions.",
+  "basis": "model-inferred"
+ },
+ "S3511-119": {
+  "beneficiaries": [],
+  "rationale": "The PRIMED Act's title and summary do not provide enough information to identify any publicly traded US companies with a clear, material revenue link.",
+  "basis": "model-inferred"
+ },
+ "S3506-119": {
+  "beneficiaries": [
+   "PCOR",
+   "FLR",
+   "J",
+   "ACM",
+   "TTEK",
+   "GVA"
+  ],
+  "rationale": "These companies are involved in construction, engineering, and environmental services which are crucial for post-wildfire recovery and environmental restoration efforts.",
+  "basis": "model-inferred"
+ },
+ "HR6712-119": {
+  "beneficiaries": [],
+  "rationale": "The Robert Parris Moses Congressional Gold Medal Act is a commemorative bill and does not have a direct impact on the revenue of any publicly traded companies.",
+  "basis": "model-inferred"
+ },
+ "HR6705-119": {
+  "beneficiaries": [
+   "JPM",
+   "BAC",
+   "C",
+   "WFC",
+   "GS",
+   "MS"
+  ],
+  "rationale": "These major US banks could be directly impacted by restrictions on bonuses as they are significant players in the banking industry.",
+  "basis": "model-inferred"
+ },
+ "S3476-119": {
+  "beneficiaries": [],
+  "rationale": "The Fed Forward Act of 2025 does not provide enough specific information to identify publicly traded companies with a direct revenue link.",
+  "basis": "model-inferred"
+ },
+ "HR6669-119": {
+  "beneficiaries": [
+   "MMM",
+   "DOW",
+   "DD",
+   "SHW",
+   "ECL",
+   "CE"
+  ],
+  "rationale": "These companies are involved in chemical manufacturing and remediation services, which may be impacted by legislation affecting PFAS remediation costs.",
+  "basis": "model-inferred"
+ },
+ "HRES432-119": {
+  "beneficiaries": [],
+  "rationale": "The bill relates to federal labor-management relations and does not directly impact the revenue of any publicly traded companies.",
+  "basis": "model-inferred"
+ },
+ "HR6290-119": {
+  "beneficiaries": [],
+  "rationale": "The bill's title and summary do not provide enough information to determine which companies' revenues would be directly impacted.",
+  "basis": "model-inferred"
+ },
+ "HR6623-119": {
+  "beneficiaries": [],
+  "rationale": "The Community Development Block Grant Equity Act of 2025 primarily involves government funding for community development and does not directly impact the revenue of any specific publicly traded companies.",
+  "basis": "model-inferred"
+ }
+}

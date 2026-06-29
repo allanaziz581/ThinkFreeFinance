@@ -275,10 +275,12 @@ class MoneyTrailDetectiveEngine:
 
     EVIDENCE_WEIGHTS = {"law": 0.20, "trade": 0.35, "payoff": 0.25, "pattern": 0.20}
 
-    def __init__(self, excess_index: dict, baselines: dict, committee_rosters: dict | None = None):
+    def __init__(self, excess_index: dict, baselines: dict, committee_rosters: dict | None = None,
+                 gpt_materiality: dict | None = None):
         self.excess = excess_index
         self.baselines = baselines
         self.committee_rosters = committee_rosters or {}
+        self.gpt_materiality = gpt_materiality or {}
         self.member_case_count: dict = {}   # filled during a two-pass pattern step
 
     # ---- Link 1: The Law (economic action) ----
@@ -303,6 +305,15 @@ class MoneyTrailDetectiveEngine:
                 if traded_benef:
                     return 0.92, f"The law materially affects {cat} companies; traded names {', '.join(traded_benef)} sit in that group.", beneficiaries, "curated"
                 return 0.55, f"The law materially affects {cat} companies, though the traded names are not core {cat} beneficiaries.", beneficiaries, "curated"
+        # gpt-4o model-inferred beneficiaries (titles + summaries path), labeled.
+        g = self.gpt_materiality.get(corr.get("bill_id", ""))
+        if g and g.get("beneficiaries"):
+            beneficiaries = g["beneficiaries"]
+            traded_benef = [t for t in beneficiaries if t in matched_tickers]
+            rat = (" " + g["rationale"]) if g.get("rationale") else ""
+            if traded_benef:
+                return 0.7, f"Model-inferred beneficiaries (gpt-4o): traded names {', '.join(traded_benef)} are among them.{rat}", beneficiaries, "model-inferred"
+            return 0.45, f"Model-inferred beneficiaries (gpt-4o), though the traded names are not among the core list.{rat}", beneficiaries, "model-inferred"
         if matched_tickers:
             return 0.3, "Beneficiaries are inferred from keyword sector tags, not a verified revenue dependency.", sorted(matched_tickers)[:8], "keyword"
         return 0.05, "No specific corporate beneficiary could be identified for this law.", [], "none"
@@ -484,6 +495,7 @@ def verdict_sentence(case: dict) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=80, help="max bills to analyze")
+    ap.add_argument("--gpt", action="store_true", help="run the gpt-4o materiality pass (titles+summaries, cached)")
     args = ap.parse_args()
 
     cb = json.loads((ROOT / "congress_bills.json").read_text(encoding="utf-8"))
@@ -499,7 +511,19 @@ def main() -> int:
     excess_index, baselines = load_excess_index()
     print(f"   baselines for {len(baselines)} members")
 
-    engine = MoneyTrailDetectiveEngine(excess_index, baselines, rosters)
+    gpt_map = {}
+    if args.gpt:
+        print("[money_trail] running gpt-4o materiality pass (Phase 4, titles+summaries)...")
+        gpt_map = build_gpt_materiality(correlations)
+    else:
+        # reuse any cached inferences without spending
+        if GPT_CACHE.exists():
+            try:
+                gpt_map = json.loads(GPT_CACHE.read_text(encoding="utf-8"))
+            except Exception:
+                gpt_map = {}
+
+    engine = MoneyTrailDetectiveEngine(excess_index, baselines, rosters, gpt_map)
 
     # First pass: fetch evidence + provisional cases (also count member repetition).
     raw = []
@@ -556,17 +580,67 @@ def main() -> int:
     return 0
 
 
-# ---- Phase 4 scaffold: gpt-4o-grounded beneficiary inference (NOT run at scale) ----
-def infer_beneficiaries_via_gpt(bill_title: str, bill_text: str) -> dict:
-    """SCAFFOLD ONLY. Reads bill text and proposes the specific companies whose
-    revenue depends on it, labeled model-inferred. Disabled by default to avoid
-    OpenAI spend; enable per the cost estimate in the docs. Returns
-    {"beneficiaries": [...], "basis": "model-inferred", "rationale": "..."}.
+# ---- Phase 4: gpt-4o-grounded beneficiary inference (TITLES + SUMMARIES path) ----
+GPT_CACHE = ROOT / "money_trail_gpt_cache.json"
+_VALID_TICKER = re.compile(r"^[A-Z][A-Z.]{0,5}$")
+
+
+def infer_beneficiaries_via_gpt(bill_title: str, bill_summary: str) -> dict:
+    """Read a bill's TITLE + SUMMARY (not full text) and propose the specific
+    publicly-traded companies whose revenue most directly depends on it. Labeled
+    model-inferred. Cheap path: ~900 input + ~300 output tokens per law.
+    Returns {"beneficiaries": [...tickers...], "rationale": "...", "basis": "model-inferred"}.
     """
-    raise NotImplementedError(
-        "gpt-4o materiality path is scaffolded but not enabled. See docs for the "
-        "cost estimate before running it across all laws."
+    key = os.environ.get("OPENAI_API_KEY", "") or _key("OPENAI_API_KEY")
+    if not key:
+        return {"beneficiaries": [], "rationale": "", "basis": "model-inferred"}
+    from openai import OpenAI
+    client = OpenAI(api_key=key)
+    sys = ("You are a financial analyst. Given a US bill's title and summary, name up to 6 "
+           "publicly traded US companies whose revenue most directly depends on the bill, by "
+           "stock ticker. Only include companies with a clear, material revenue link. Reply as "
+           "JSON: {\"tickers\": [\"AAA\", ...], \"rationale\": \"one sentence, no em dashes, no emojis\"}.")
+    user = f"Title: {bill_title}\nSummary: {bill_summary}"[:1600]
+    resp = client.chat.completions.create(
+        model="gpt-4o", temperature=0.2, response_format={"type": "json_object"},
+        messages=[{"role": "system", "content": sys}, {"role": "user", "content": user}],
     )
+    try:
+        data = json.loads(resp.choices[0].message.content or "{}")
+    except Exception:
+        data = {}
+    tickers = [str(t).upper().strip() for t in (data.get("tickers") or []) if _VALID_TICKER.match(str(t).upper().strip())][:6]
+    rationale = re.sub(r"[—–]", ",", str(data.get("rationale", "")))[:240]
+    return {"beneficiaries": tickers, "rationale": rationale, "basis": "model-inferred"}
+
+
+def build_gpt_materiality(correlations: list) -> dict:
+    """Run the gpt-4o summaries path for laws that the curated map does NOT cover
+    (to keep spend on the cheap path). Cached on disk so re-runs are free.
+    Returns {bill_id: {"beneficiaries": [...], "rationale": "...", "basis": "model-inferred"}}."""
+    cache = {}
+    if GPT_CACHE.exists():
+        try:
+            cache = json.loads(GPT_CACHE.read_text(encoding="utf-8"))
+        except Exception:
+            cache = {}
+    spent = 0
+    for corr in correlations:
+        bid = corr.get("bill_id", "")
+        if not bid or bid in cache:
+            continue
+        text = f"{corr.get('title','')} {corr.get('action_text','')}".lower()
+        if any(any(k in text for k in spec["kw"]) for spec in MATERIALITY.values()):
+            continue   # curated covers it; do not spend
+        try:
+            cache[bid] = infer_beneficiaries_via_gpt(corr.get("title", ""), corr.get("action_text", ""))
+            spent += 1
+        except Exception as e:
+            print(f"   [gpt materiality] {bid}: {type(e).__name__}")
+    if spent:
+        GPT_CACHE.write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"   gpt materiality: inferred {spent} new laws (cached {len(cache)} total)")
+    return cache
 
 
 if __name__ == "__main__":

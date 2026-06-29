@@ -100,14 +100,19 @@ UI copy uses no emojis and no em dashes, and color comes only from the semantic
 theme tokens (`--info`, `--warning`, `--danger`, `--success`); pink is reachable
 only through Customize Display.
 
-## Phase 4: gpt-4o materiality (scaffolded, not run)
+## Phase 4: gpt-4o materiality (enabled, titles + summaries path)
 
-`infer_beneficiaries_via_gpt()` is a scaffold for extending materiality to every
-law by reading bill text and proposing the specific beneficiaries, labeled
-**model-inferred**. It is disabled by default to avoid spend. Estimated cost of a
-full run with gpt-4o: roughly **$0.40 to $1.70** sending titles and summaries
-(80 to 322 laws), or **$2 to $8** sending fuller bill text. Enable only after
-approving that spend.
+`infer_beneficiaries_via_gpt(title, summary)` reads a bill's title and summary
+(not full text) and proposes the specific publicly-traded companies whose revenue
+most directly depends on it, labeled **model-inferred**. It runs only for laws the
+curated map does not already cover, and results are cached in
+`money_trail_gpt_cache.json` so re-runs do not re-spend. Enable with the `--gpt`
+flag (`build_money_trail.py --gpt`); the scheduler job runs the cached path.
+
+Actual first run: 40 of 80 laws needed inference (the rest were curated), for
+about **$0.15** on gpt-4o. Materiality basis now splits roughly curated 40,
+model-inferred 16, keyword fallback 24. The fuller-bill-text path remains an
+option at higher cost (~$2 to $8) and is not enabled.
 
 ## Known limitations (evidenced vs inferred)
 
