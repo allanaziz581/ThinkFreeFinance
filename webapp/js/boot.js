@@ -36,7 +36,7 @@
     "js/fec_data.js", "js/sec_data.js", "js/secbulk_data.js", "js/usaspending_data.js",
     "js/states_data.js", "js/sp500_data.js", "js/quant_data.js", "js/member_bills.js",
     "js/presidential_data.js", "js/money_trail_data.js", "js/hedgefund_data.js", "js/datacenters_data.js",
-    "js/prices_data.js", "js/news_intel.js",
+    "js/economy_data.js", "js/prices_data.js", "js/news_intel.js",
   ];
 
   // Logic/asset scripts that READ the globals (at eval time and later). Loaded in
@@ -47,6 +47,7 @@
     "js/scores.js", "js/genimpact.js", "js/app.js", "js/influenceweb.js",
     "js/usmap_paths.js", "js/congress.js", "js/glossary.js", "js/scoreinfo.js",
     "js/predictions.js", "js/presidential.js", "js/hedgefund.js", "js/datacenters.js",
+    "js/economy.js",
   ];
 
   // injectScript -- append a <script> and resolve when it loads (reject on error).

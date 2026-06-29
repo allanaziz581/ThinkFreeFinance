@@ -82,6 +82,7 @@ run "state economics (FRED)"      webapp/build_states.py
 run "census"                      webapp/build_census.py
 run "hedge fund (OFR)"            webapp/build_hedgefund.py
 run "data centers (EIA/Census)"   webapp/build_datacenters.py
+run "economy tracker (FRED)"      webapp/build_economy.py
 run "aggregate -> TF_DATA"        webapp/build_data.py
 run "Money Trail engine (free)"   webapp/build_money_trail.py            # no --gpt: zero OpenAI spend
 run "export -> private_data"      scripts/extract_data_to_json.py
@@ -92,7 +93,8 @@ git add \
   webapp/js/presidential_data.js webapp/js/money_trail_data.js \
   webapp/js/fec_data.js webapp/js/usaspending_data.js webapp/js/legiscan_data.js \
   webapp/js/openstates_data.js webapp/js/states_data.js \
-  webapp/js/hedgefund_data.js webapp/js/datacenters_data.js \
+  webapp/js/hedgefund_data.js webapp/js/datacenters_data.js webapp/js/economy_data.js \
+  datacenters_geo_cache.json \
   congress_bills.json politician_performance.json recession_signals_output.json \
   congress_trade_counts.json 2>/dev/null
 

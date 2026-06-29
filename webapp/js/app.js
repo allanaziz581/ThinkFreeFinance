@@ -16,7 +16,7 @@ const D = window.TF_DATA || {};
 
 // Tiny DOM and formatting helpers used throughout this file.
 const $ = (sel, root = document) => root.querySelector(sel);
-const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const initials = (name) => String(name || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 const colorFor = (v) => (v > 0 ? "up" : v < 0 ? "down" : "");
 const pct = (v) => `${v > 0 ? "+" : ""}${Number(v).toFixed(2)}%`;
@@ -2117,6 +2117,7 @@ const PAGES = {
   // Modules loaded after app.js (see boot.js LOGIC_SCRIPTS); resolved lazily at go() time.
   hedgefund: () => (window.renderHedgeFund ? window.renderHedgeFund() : `<div class="page-head"><h2>Hedge Funds</h2><p>Loading…</p></div>`),
   datacenters: () => (window.renderDataCenters ? window.renderDataCenters() : `<div class="page-head"><h2>Data Centers</h2><p>Loading…</p></div>`),
+  economy: () => (window.renderEconomy ? window.renderEconomy() : `<div class="page-head"><h2>Economy and Cost of Living</h2><p>Loading…</p></div>`),
 };
 const rendered = {};
 

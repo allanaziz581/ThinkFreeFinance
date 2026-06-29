@@ -57,4 +57,16 @@ EXTRA_JOBS = [
         "stagger": 540,
         "enabled": True,
     },
+    {
+        # Economic / cost-of-living indicators (FRED, which mirrors BLS/BEA/Census/
+        # Freddie Mac/UMich series). CPI components publish monthly, weekly rates
+        # weekly; a daily rebuild keeps the "since Jan 2025" cards current without
+        # hammering. Free FRED key, no OpenAI, so it is cheap to run on the cron.
+        "name": "economy_tracker",
+        "scripts": ["webapp/build_economy.py"],
+        "export": True,
+        "interval": DAY,
+        "stagger": 600,
+        "enabled": True,
+    },
 ]

@@ -36,6 +36,7 @@ CATEGORIES = {
         "fec_data.js", "sec_data.js", "secbulk_data.js", "usaspending_data.js",
         "states_data.js", "sp500_data.js", "quant_data.js", "member_bills.js",
         "presidential_data.js", "money_trail_data.js", "hedgefund_data.js", "datacenters_data.js",
+        "economy_data.js",
     ],
     "lazy": ["legiscan_data.js", "openstates_data.js"],
     "live": ["prices_data.js", "news_intel.js"],
