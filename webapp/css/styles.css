@@ -1732,3 +1732,16 @@ body.tf-tp-open .tf-theme-panel { transform: translateX(0); }
 .tf-loading-msg { color: var(--text-secondary); font-size: 13.5px; letter-spacing: .01em; }
 @keyframes tf-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .tf-spinner { animation-duration: 2s; } }
+
+/* ============================================================
+   GRID-AS-TABLE rows (built from divs, so wrapTables cannot wrap
+   them): keep their cells on a single line on phones so short
+   values never stack one character per line. The flexible name
+   column truncates with an ellipsis instead of wrapping.
+   ============================================================ */
+@media (max-width: 768px) {
+  .rank-row { min-width: 0; }
+  .rank-row > * { white-space: nowrap; min-width: 0; }
+  .rank-row .nm { overflow: hidden; text-overflow: ellipsis; }
+  .rank-row .nm small { white-space: nowrap; }
+}

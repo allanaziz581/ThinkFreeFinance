@@ -1945,7 +1945,7 @@ function renderLegDetail(ab) {
 }
 window.tfShowLegState = function (ab) {
   const el = document.getElementById("leg-detail");
-  if (el) el.innerHTML = renderLegDetail(ab);
+  if (el) { el.innerHTML = renderLegDetail(ab); wrapTables(el); }
 };
 
 function renderStates() {
