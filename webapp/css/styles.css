@@ -576,6 +576,9 @@ table.tf td.num, table.tf th.num { text-align: right; font-variant-numeric: tabu
   color: #e9c987; font-size: 11.5px; line-height: 1.5;
   display: flex; gap: 10px; align-items: flex-start;
 }
+/* keep the bold "Note" label on one line; without this it collapses to its
+   min-content width and stacks one character per line on narrow screens */
+.disclaimer > span:first-child { white-space: nowrap; flex-shrink: 0; }
 
 /* "How This Affects You" aligned list */
 .affect-list { display: flex; flex-direction: column; }
