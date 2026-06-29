@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -61,6 +62,7 @@ def extract_one(js_path: Path) -> tuple[str, object]:
 def main() -> None:
     OUT_DIR.mkdir(exist_ok=True)
     manifest: dict[str, list[str]] = {"core": [], "lazy": [], "live": []}
+    failed: list[str] = []
 
     for category, files in CATEGORIES.items():
         for fname in files:
@@ -68,15 +70,31 @@ def main() -> None:
             if not src.exists():
                 print(f"  SKIP (missing): {fname}")
                 continue
-            name, value = extract_one(src)
-            out = OUT_DIR / f"{name}.json"
-            out.write_text(json.dumps(value, separators=(",", ":")), encoding="utf-8")
+            # Resilience: a single malformed or unparseable dataset must NOT abort
+            # the whole extract (which on Render would fail the entire deploy). Warn
+            # and skip it; the manifest simply omits it, so the bundle serves every
+            # other dataset and the affected view degrades gracefully.
+            try:
+                name, value = extract_one(src)
+                out = OUT_DIR / f"{name}.json"
+                out.write_text(json.dumps(value, separators=(",", ":")), encoding="utf-8")
+            except (ValueError, json.JSONDecodeError, OSError) as e:
+                failed.append(fname)
+                print(f"  WARN  {fname:24} -> SKIPPED ({type(e).__name__}: {str(e)[:80]})")
+                continue
             manifest[category].append(name)
             print(f"  {category:5} {fname:24} -> private_data/{name}.json")
 
     (OUT_DIR / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     total = sum(len(v) for v in manifest.values())
     print(f"\nWrote {total} datasets + manifest.json to {OUT_DIR}")
+    if failed:
+        print(f"WARNING: {len(failed)} dataset(s) skipped (left out of the bundle): {', '.join(failed)}")
+    # Only a TOTAL failure (nothing extracted) should fail the build; a partial
+    # extract still produces a usable site.
+    if total == 0:
+        print("ERROR: no datasets extracted at all; failing so the broken build is caught.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
