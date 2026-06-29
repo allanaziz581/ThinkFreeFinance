@@ -74,12 +74,44 @@ services:
       - key: TF_STRIPE_WEBHOOK_SECRET
         sync: false
 
-# NOTE on automated data refresh (the scheduler):
-#   A Render Cron Job is intentionally NOT defined here. The refresh builders write
-#   webapp/js/*_data.js + private_data/, but a Render cron runs on an ephemeral,
-#   separate filesystem and cannot persist that output back to the web service
-#   without a shared persistent disk, and some builders pull heavier deps. The
-#   clean paths are: (a) run the scheduler on a worker that shares a Render Disk
-#   mounted into the web service, or (b) refresh locally and commit the updated
-#   *_data.js snapshots, which auto-deploys. Pick one before relying on live
-#   refresh in production.
+  # ---- Autonomous live-data refresh (daily) ----
+  # A cron job runs the FREE/CHEAP builders + the (free) Money Trail engine, then
+  # commits the refreshed webapp/js/*_data.js back to main via GITHUB_TOKEN. That
+  # push triggers the web service's autoDeploy, which rebuilds private_data/ from
+  # the new snapshots. Git is the durable handoff (a cron and the web service
+  # cannot share a Render persistent disk). No paid OpenAI steps run here:
+  # build_news_intel is not invoked, build_money_trail runs without --gpt, and
+  # OPENAI_API_KEY is intentionally NOT set on this job.
+  - type: cron
+    name: thinkfree-refresh
+    runtime: python
+    plan: standard          # 2GB: comfortable for pandas + the ~113k-row trade history; runs ~daily for minutes
+    region: oregon
+    branch: main
+    schedule: "0 8 * * *"   # 08:00 UTC daily (~3-4am US Eastern, off-peak)
+    buildCommand: "pip install -r scheduler/requirements-refresh.txt"
+    startCommand: "bash scheduler/refresh_and_commit.sh"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: GITHUB_TOKEN          # push access for the auto-commit; set via API/dashboard
+        sync: false
+      # Data-source keys the cheap builders need (no OPENAI_API_KEY on purpose):
+      - key: FINNHUB_API_KEY
+        sync: false
+      - key: QUIVERQUANT_API_KEY
+        sync: false
+      - key: CONGRESS_API_KEY
+        sync: false
+      - key: FRED_API_KEY
+        sync: false
+      - key: FEC_API_KEY
+        sync: false
+      - key: CENSUS_API_KEY
+        sync: false
+      - key: LEGISCAN_API_KEY
+        sync: false
+      - key: OPENSTATES_API_KEY
+        sync: false
+      - key: EIA_API_KEY
+        sync: false

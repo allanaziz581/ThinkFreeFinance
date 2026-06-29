@@ -1,0 +1,10 @@
+# Minimal dependencies for the Render refresh cron (scheduler/refresh_and_commit.sh).
+# Deliberately light: the cheap data builders use mostly the standard library; only
+# a few need these. This avoids the heavy pipeline deps (torch / faiss /
+# sentence-transformers) which are NOT used by the webapp builders.
+requests>=2.28
+feedparser>=6.0
+yfinance>=0.2.40
+pandas>=2.0
+numpy<2
+python-dotenv>=1.0
