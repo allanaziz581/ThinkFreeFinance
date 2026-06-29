@@ -76,11 +76,17 @@
       </div>
     </aside>
 
+    <!-- mobile nav drawer backdrop (only visible when body.nav-open on small screens) -->
+    <div class="nav-backdrop" id="navBackdrop" aria-hidden="true"></div>
+
     <!-- ============ MAIN ============ -->
     <div class="main">
       <div class="ticker" id="ticker"></div>
 
       <div class="topbar">
+        <button class="nav-toggle" id="navToggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="nav">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
         <div class="greeting">
           <span class="streak" title="3-day streak">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c1 3 4 4 4 7a4 4 0 1 1-8 0c0-1 .5-2 1-2.5C9 9 12 7 12 3Z"/></svg>

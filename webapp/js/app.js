@@ -2177,10 +2177,23 @@ function init() {
 
   initTicker();
 
+  // mobile nav drawer: hamburger opens the off-canvas sidebar, backdrop / nav
+  // selection / Escape close it. On desktop the drawer rules are inert (the
+  // sidebar is a normal grid column), so this is a no-op there.
+  const navToggle = document.getElementById("navToggle");
+  const navBackdrop = document.getElementById("navBackdrop");
+  const setNav = (open) => {
+    document.body.classList.toggle("nav-open", open);
+    if (navToggle) navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  };
+  if (navToggle) navToggle.addEventListener("click", () => setNav(!document.body.classList.contains("nav-open")));
+  if (navBackdrop) navBackdrop.addEventListener("click", () => setNav(false));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") setNav(false); });
+
   // nav clicks
   document.getElementById("nav").addEventListener("click", (e) => {
     const item = e.target.closest(".nav-item");
-    if (item) go(item.dataset.page);
+    if (item) { go(item.dataset.page); setNav(false); }
   });
   // keyboard: Enter/Space activate a focused nav item (WCAG 2.1.1)
   document.getElementById("nav").addEventListener("keydown", (e) => {

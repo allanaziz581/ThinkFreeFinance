@@ -1550,3 +1550,122 @@ body.tf-tp-open .tf-theme-panel { transform: translateX(0); }
   border-radius: var(--radius-sm); padding: 10px 12px; text-align: center; }
 .econ-stat-v { font-size: 18px; font-weight: 800; }
 .econ-stat-l { font-size: 11px; color: var(--text-tertiary); margin-top: 3px; }
+
+/* ============================================================
+   RESPONSIVE / MOBILE CONTAINMENT  (additive; desktop unchanged)
+   Breakpoints: tablet <= 768px, phone <= 480px.
+   Theme: strict containment. No horizontal scroll, no overlap,
+   single column on phones. Wide media scrolls inside its own box.
+   ============================================================ */
+
+/* hamburger + drawer backdrop are hidden on desktop by default */
+.nav-toggle { display: none; }
+.nav-backdrop { display: none; }
+
+@media (max-width: 768px) {
+  :root { --page-pad: 14px; }
+
+  /* ---- hard containment: nothing exceeds the viewport width ---- */
+  html, body { max-width: 100%; overflow-x: hidden; }
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 100vh;
+    width: 100%; max-width: 100%; overflow-x: hidden;
+  }
+  .main { width: 100%; max-width: 100%; min-width: 0; overflow-x: hidden; }
+  .viewport { padding: 14px; max-width: 100%; overflow-x: hidden; }
+  .page { max-width: 100%; overflow-x: hidden; }
+  /* let flex / grid children shrink instead of forcing the row wider */
+  .viewport .card, .viewport [class*="-row"], .viewport [class*="-head"],
+  .greeting, .greeting > div, .topbar, .search-wrap { min-width: 0; }
+  /* break long unbroken strings (urls, tickers) instead of overflowing */
+  .viewport, .card, .modal-content { overflow-wrap: break-word; word-break: break-word; }
+
+  /* ---- sidebar becomes an off-canvas drawer ---- */
+  .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: min(84vw, 290px); max-width: 290px;
+    z-index: 200; padding: 18px 14px;
+    transform: translateX(-100%);
+    transition: transform .26s cubic-bezier(.2,.8,.2,1);
+    box-shadow: 8px 0 30px rgba(0,0,0,0.45);
+  }
+  body.nav-open .sidebar { transform: translateX(0); }
+  .nav-backdrop {
+    display: block; position: fixed; inset: 0; z-index: 150;
+    background: rgba(2,5,12,0.6); backdrop-filter: blur(2px);
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  body.nav-open .nav-backdrop { opacity: 1; pointer-events: auto; }
+
+  /* ---- hamburger button (in the topbar) ---- */
+  .nav-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; flex-shrink: 0; order: 0;
+    border-radius: 10px; border: 1px solid var(--border-soft);
+    background: var(--bg-card); color: var(--text-secondary); cursor: pointer;
+  }
+  .nav-toggle svg { width: 20px; height: 20px; }
+
+  /* the older <= 820px rule collapsed the sidebar to a 64px icon rail and hid
+     every label; inside the drawer there is room, so restore the labels. */
+  .sidebar .brand-name, .sidebar .brand-sub, .nav-item span:not(.ico),
+  .nav-label, .user-name, .user-plan, .toggle-row span:first-child { display: revert; }
+
+  /* ---- topbar stacks: row 1 = hamburger + greeting, row 2 = full-width search ---- */
+  .topbar {
+    height: auto; min-height: 0; flex-wrap: wrap;
+    align-items: center; justify-content: flex-start;
+    padding: 10px 14px; row-gap: 10px; column-gap: 10px;
+  }
+  .greeting { order: 1; flex: 1 1 auto; }
+  .greeting h1 { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .greeting .sub { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search-wrap { order: 2; flex: 1 1 100%; width: 100%; }
+  .search { width: 100%; max-width: 100%; }
+  .search-results { width: 100%; max-width: 100%; left: 0; right: 0; }
+
+  /* ---- ticker: its own contained, horizontally scrollable strip ---- */
+  .ticker { padding: 0 14px; max-width: 100%; }
+
+  /* ---- every multi-column grid collapses to one column on phones ---- */
+  .cols-2, .cols-3, .cols-4, .qa-grid, .sector-sum, .gimp-dim-grid,
+  .law-grid, .evb-grid, .hf-snap, .hf-snap.wide, .profile-stats,
+  .econ-modal-stats, .grid, .dc-kpis, .dc-weights {
+    grid-template-columns: 1fr !important;
+  }
+  .econ-cards { grid-template-columns: 1fr !important; }
+  .gi-row, .hf-bar-row, .cd-gen-mini { gap: 8px; }
+
+  /* ---- wide media scrolls within its own box, never the page ---- */
+  img, svg, video, canvas, iframe { max-width: 100%; }
+  pre, table { max-width: 100%; overflow-x: auto; }
+  table { display: block; }
+  .econ-chart, .hf-chart, .spark, .gn-wrap { max-width: 100%; }
+  /* containers that hold a wide chart/graph scroll inside themselves */
+  .tbl-wrap, .table-wrap, .chart-wrap, .scroll-x { max-width: 100%; overflow-x: auto; }
+
+  /* ---- cards + headings ---- */
+  .card { max-width: 100%; }
+  .page-head h2 { font-size: 19px; }
+  .page-head p { font-size: 12.5px; }
+
+  /* ---- modal near full width on phones ---- */
+  .modal-overlay { padding: 12px; align-items: flex-start; }
+  .modal { max-width: 100%; }
+  .modal-content { padding: 18px 16px; }
+
+  /* ---- InfluenceWeb graph: contain it; pull the absolutely-placed UI in ---- */
+  .iw-breadcrumb { left: 12px; right: 12px; top: 10px; }
+  .iw-panel { width: 90%; max-width: 90%; }
+  .iw-legend { left: 12px; bottom: 12px; padding: 8px 10px; font-size: 11px; }
+}
+
+/* tablet: where desktop showed 3 or 4 columns, show 2 (phones already 1) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .cols-3, .cols-4, .hf-snap, .hf-snap.wide, .law-grid, .evb-grid,
+  .gimp-dim-grid, .sector-sum, .econ-modal-stats, .profile-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .econ-cards { grid-template-columns: repeat(2, 1fr) !important; }
+}
