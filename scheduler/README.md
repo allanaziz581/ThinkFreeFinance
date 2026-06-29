@@ -15,6 +15,8 @@ runs the aggregate + export step so fresh data reaches the gated
 | `macro` | `build_states.py`, `recession_signals.py` | daily | FRED weekly/monthly |
 | `trades` | `build_trades.py`, `politician_performance.py`, `build_data.py` | **hourly** | QuiverQuant /live updates ~daily; trades carry a 2-45 day STOCK Act disclosure lag |
 | `money_trail` | `build_money_trail.py` | daily | The Money Trail Detective Engine: Congress.gov milestones/committees + QuiverQuant excess return; full run takes a few minutes |
+| `hedge_funds` | `build_hedgefund.py` (via extra_jobs.py) | daily | OFR Hedge Fund Monitor (Form PF) |
+| `data_centers` | `build_datacenters.py` (via extra_jobs.py) | daily | EIA + Census + curated locations |
 | `news_intel` | `build_news_intel.py` | **OFF by default** (6 h) | OpenAI-metered; opt-in |
 
 After every job the export step (`scripts/extract_data_to_json.py`) regenerates

@@ -191,6 +191,14 @@ JOBS = [
     },
 ]
 
+# Feature-branch jobs (data centers + hedge fund) live in a separate module so
+# they merge without touching the core JOBS list above. See scheduler/extra_jobs.py.
+try:
+    from extra_jobs import EXTRA_JOBS
+    JOBS += EXTRA_JOBS
+except Exception:  # pragma: no cover - scheduler still runs without the extras
+    pass
+
 EXPORT_SCRIPT = "scripts/extract_data_to_json.py"
 
 

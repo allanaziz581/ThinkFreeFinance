@@ -1446,3 +1446,54 @@ body.tf-tp-open .tf-theme-panel { transform: translateX(0); }
 @keyframes evbIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
 @media (prefers-reduced-motion: reduce){ .ct-svg circle, .evb-card, .evb-bar-fill { animation:none; } }
 @media (max-width:760px){ .evb-grid{ grid-template-columns:1fr; } }
+/* ============ Hedge Fund Monitor + Data Centers (shared) ============ */
+.tf-methodology { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; }
+.tf-methodology p { margin: 8px 0; }
+.tf-methodology a { color: var(--info); }
+.tf-meth-title { font-weight: 700; color: var(--text-primary); margin-top: 12px; font-size: 12px;
+  text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ---- Hedge Funds ---- */
+.hf-snap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.hf-snap.wide { grid-template-columns: repeat(4, 1fr); }
+.hf-stat { background: var(--bg-inner); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm); padding: 12px 14px; }
+.hf-stat-v { font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.01em; }
+.hf-stat-l { font-size: 11px; color: var(--text-tertiary); margin-top: 3px; }
+.hf-chart-title { font-size: 11.5px; color: var(--text-secondary); font-weight: 600; margin-bottom: 4px; }
+.hf-chart { width: 100%; height: 130px; display: block; }
+.hf-axis { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-faint); margin-top: 2px; }
+.hf-read { margin-top: 12px; padding: 11px 14px; border-radius: var(--radius-sm); font-size: 13px;
+  background: var(--bg-inner); border-left: 3px solid var(--text-tertiary); color: var(--text-primary); }
+.hf-read.down { border-left-color: var(--danger); }
+.hf-read.warn { border-left-color: var(--warning); }
+.hf-read.up { border-left-color: var(--success); }
+.hf-bar-row { display: grid; grid-template-columns: 150px 1fr auto; align-items: center; gap: 10px; margin: 7px 0; }
+.hf-bar-label { font-size: 12px; color: var(--text-secondary); }
+.hf-bar-track { height: 8px; background: var(--bg-hover); border-radius: 5px; overflow: hidden; }
+.hf-bar-fill { height: 100%; border-radius: 5px; }
+.hf-bar-val { font-size: 11.5px; color: var(--text-primary); font-weight: 600; white-space: nowrap; }
+
+/* ---- Data Centers ---- */
+.dc-kpi { text-align: center; }
+.dc-kpi-v { font-size: 20px; font-weight: 800; color: var(--text-primary); }
+.dc-kpi-l { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+.dc-risk { display: flex; align-items: center; gap: 8px; }
+.dc-risk-track { flex: 1; height: 9px; background: var(--bg-hover); border-radius: 5px; overflow: hidden; max-width: 160px; }
+.dc-risk-fill { height: 100%; border-radius: 5px; }
+.dc-risk-num { font-weight: 800; font-size: 13px; }
+.dc-risk-num.down { color: var(--danger); } .dc-risk-num.warn { color: var(--warning); } .dc-risk-num.up { color: var(--success); }
+.dc-inputs { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+.dc-inp { display: flex; align-items: center; gap: 5px; }
+.dc-inp-l { font-size: 9.5px; color: var(--text-faint); width: 50px; }
+.dc-inp-track { width: 46px; height: 5px; background: var(--bg-hover); border-radius: 3px; overflow: hidden; }
+.dc-inp-fill { height: 100%; border-radius: 3px; }
+.dc-formula code { background: var(--bg-inner); border: 1px solid var(--border-subtle); padding: 4px 8px;
+  border-radius: 6px; font-size: 12px; color: var(--accent, var(--info)); }
+.dc-weights { display: flex; gap: 12px; margin: 12px 0; }
+.dc-weight { background: var(--bg-inner); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+  padding: 10px 16px; text-align: center; flex: 1; }
+.dc-weight-v { font-size: 17px; font-weight: 800; color: var(--text-primary); }
+.dc-weight-l { font-size: 10.5px; color: var(--text-tertiary); text-transform: capitalize; margin-top: 2px; }
+.dc-doclist { margin: 8px 0; padding-left: 18px; }
+.dc-doclist li { margin: 5px 0; }

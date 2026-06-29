@@ -1795,6 +1795,8 @@ function renderIntelligence() {
   return `
     <div class="page-head"><h2>Influence Intelligence</h2><p>Company and industry scores computed from federal contracts, lobbying, congressional trading, and legislation. Transparency, not accusation.</p></div>
 
+    ${window.renderHedgeFundCard ? window.renderHedgeFundCard() : ""}
+
     <div class="grid cols-2">
       <div class="card pad-lg">
         <div class="card-head"><div class="card-title"><span class="dot"></span>Influence Score: Top Companies</div></div>
@@ -2106,6 +2108,9 @@ const PAGES = {
   reasoning: renderReasoning,
   history: renderHistory,
   settings: renderSettings,
+  // Modules loaded after app.js (see boot.js LOGIC_SCRIPTS); resolved lazily at go() time.
+  hedgefund: () => (window.renderHedgeFund ? window.renderHedgeFund() : `<div class="page-head"><h2>Hedge Funds</h2><p>Loading…</p></div>`),
+  datacenters: () => (window.renderDataCenters ? window.renderDataCenters() : `<div class="page-head"><h2>Data Centers</h2><p>Loading…</p></div>`),
 };
 const rendered = {};
 
