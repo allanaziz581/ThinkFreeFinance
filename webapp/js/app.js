@@ -1355,6 +1355,39 @@ function suspicionTier(score) {
   return { label: "Clean", cls: "up" };                          // --success
 }
 
+// ---- The Money Trail Detective Engine (front end) --------------------------
+// Reads window.MONEY_TRAIL (built by webapp/build_money_trail.py): a chain-of-
+// evidence CASE FILE per law. The leaderboard ranks by CASE STRENGTH; clicking a
+// row opens the Case File. Falls back to the timing-only suspicion score when the
+// engine data is not present.
+let _mtByBill = null;
+function mtCaseFor(billId) {
+  if (!_mtByBill) {
+    _mtByBill = {};
+    (((window.MONEY_TRAIL || {}).cases) || []).forEach((c) => { if (c.bill_id) _mtByBill[c.bill_id] = c; });
+  }
+  return _mtByBill[billId] || null;
+}
+function caseTier(score) {
+  if (score >= 70) return { label: "Strong case", cls: "down" };   // --danger
+  if (score >= 45) return { label: "Notable", cls: "warn" };       // --warning
+  if (score >= 25) return { label: "Emerging", cls: "info" };      // --info
+  return { label: "Thin", cls: "up" };                             // --success
+}
+function lawScore(law) {
+  const c = mtCaseFor(law.bill_id);
+  if (c) return { engine: true, score: c.case_strength, caseObj: c, profit: 0 };
+  const s = suspicionScore(law);   // fallback: timing-only
+  return { engine: false, score: s.score, caseObj: null, profit: s.profit, s };
+}
+// parse a disclosed amount range ("$1,001 - $15,000") to a rough midpoint
+function amountMid(s) {
+  const nums = String(s || "").match(/[\d,]+/g);
+  if (!nums) return 0;
+  const v = nums.map((x) => parseFloat(x.replace(/,/g, "")) || 0);
+  return v.length >= 2 ? (v[0] + v[1]) / 2 : v[0];
+}
+
 // ---- "Explain the Laws" -> Suspicion Score leaderboard ---------------------
 let _lawFilter = "all";
 let _lawSort = "score";   // score | date | profit
@@ -1368,28 +1401,34 @@ function lawFilterChips() {
 }
 function lawSortChips() {
   const opt = (id, label) => `<button type="button" class="pres-chip${id === _lawSort ? " active" : ""}" data-lawsort="${id}">${label}</button>`;
-  return opt("score", "Suspicion") + opt("date", "Most recent") + opt("profit", "Profit");
+  return opt("score", "Case strength") + opt("date", "Most recent") + opt("payoff", "Abnormal return");
 }
 function rankedLaws() {
   let rows = (D.bills || [])
     .filter((b) => _lawFilter === "all" || (b.sectors || []).includes(_lawFilter))
-    .map((b) => ({ law: b, s: suspicionScore(b) }));
+    .map((b) => ({ law: b, s: lawScore(b) }));
   if (_lawSort === "date") rows.sort((a, z) => String(z.law.action_date || "").localeCompare(String(a.law.action_date || "")));
-  else if (_lawSort === "profit") rows.sort((a, z) => z.s.profit - a.s.profit);
-  else rows.sort((a, z) => z.s.score - a.s.score || z.s.profit - a.s.profit);
+  else if (_lawSort === "payoff") rows.sort((a, z) => ((z.s.caseObj && z.s.caseObj.abnormal_return_pct) || 0) - ((a.s.caseObj && a.s.caseObj.abnormal_return_pct) || 0));
+  else rows.sort((a, z) => z.s.score - a.s.score);
   return rows;
 }
 function lawLeaderboard() {
   const rows = rankedLaws();
   if (!rows.length) return `<div class="faint" style="padding:20px;">No laws match this filter.</div>`;
   return rows.map(({ law, s }, i) => {
-    const tier = suspicionTier(s.score);
+    const tier = s.engine ? caseTier(s.score) : suspicionTier(s.score);
     const rank = i + 1;
-    const profitFmt = s.profit >= 1000 ? "$" + (s.profit / 1000).toFixed(s.profit >= 100000 ? 0 : 1) + "K" : "$" + Math.round(s.profit);
-    const stats = s.total > 0
-      ? `<span class="susp-stat"><b>${s.before}</b> trades before vote</span><span class="susp-stat">max lead <b>${s.maxLead}</b>d</span><span class="susp-stat">profit <b>${esc(profitFmt)}</b></span>`
-      : `<span class="susp-stat faint">No correlated trades on record</span>`;
-    return `<div class="susp-row${rank <= 3 ? " susp-top" : ""}" data-bill="${esc(law.bill_id)}" role="button" tabindex="0" aria-label="Open ${esc(law.title || law.bill_id)}">
+    const c = s.caseObj;
+    let stats;
+    if (c) {
+      const access = (c.links.find((l) => l.key === "access") || {}).strength || 0;
+      const accessTxt = access >= 0.8 ? "sponsor/cosponsor access" : access >= 0.7 ? "committee access" : "no confirmed access";
+      const benef = (c.beneficiaries || []).slice(0, 3).join(", ") || "none identified";
+      stats = `<span class="susp-stat">beneficiaries <b>${esc(benef)}</b></span><span class="susp-stat">${esc(accessTxt)}</span><span class="susp-stat">abnormal return <b>${esc((c.abnormal_return_pct > 0 ? "+" : "") + c.abnormal_return_pct)}%</b></span>`;
+    } else {
+      stats = `<span class="susp-stat faint">No correlated trades on record</span>`;
+    }
+    return `<div class="susp-row${rank <= 3 ? " susp-top" : ""}" data-case="${esc(law.bill_id)}" role="button" tabindex="0" aria-label="Open the case file for ${esc(law.title || law.bill_id)}">
       <div class="susp-rank">${rank}</div>
       <div class="susp-main">
         <div class="susp-titlerow"><span class="susp-title">${esc(law.title || law.bill_id)}</span><span class="pill ${tier.cls} susp-tier">${tier.label}</span></div>
@@ -1402,9 +1441,9 @@ function lawLeaderboard() {
 }
 function lawMethodology() {
   return `<div class="tf-methodology" style="margin-top:16px;">
-    <div class="tf-meth-title">How the Suspicion Score works</div>
-    <p>A transparent 0 to 100 measure of how much congressional trading happened BEFORE a law's action date, built only from public disclosure timing. Weights: pre-trade volume 35, share of correlated trades placed before the vote 25, how early the earliest trade was 20, and profit captured 20. Laws with no correlated trades score 0 (Clean). Bands: High 70 plus, Elevated 45 to 69, Moderate 20 to 44, Clean under 20.</p>
-    <p class="faint">This measures timing relationships between public disclosures and legislative dates. It does not imply or allege wrongdoing of any kind.</p>
+    <div class="tf-meth-title">How The Money Trail Detective Engine scores a case</div>
+    <p>Each law is a chain of six evidence links, each scored 0 to 1: the Law (what economic action it takes), the Beneficiary (the specific companies whose revenue depends on it), the Access (did a trader sponsor, cosponsor, or sit on the committee), the Trade (did access holders trade those companies before the committee or markup milestone, not just final passage), the Payoff (market-adjusted return above the member's own baseline), and the Pattern (repetition and clustering). Case strength leans multiplicative on the two critical links: with no real beneficiary or no access, a case cannot score high no matter how many trades exist. Bands: Strong case 70 plus, Notable 45 to 69, Emerging 25 to 44, Thin under 25.</p>
+    <p class="faint">This measures timing relationships between public disclosures, legislative milestones, and market-adjusted returns. It does not imply or allege wrongdoing of any kind. Links marked model inferred are not verified.</p>
   </div>`;
 }
 if (!window.__lawFilterWired) {
@@ -1419,17 +1458,103 @@ if (!window.__lawFilterWired) {
     if (f) { _lawFilter = f.dataset.lawfilter; rerender(); return; }
     const so = e.target.closest("[data-lawsort]");
     if (so) { _lawSort = so.dataset.lawsort; rerender(); return; }
+    const cse = e.target.closest("[data-case]");
+    if (cse) { caseFile(cse.dataset.case); return; }
   });
 }
 function renderMarkets() {
+  const have = ((window.MONEY_TRAIL || {}).cases || []).length;
   return `
-    <div class="page-head"><h2>Law Suspicion Leaderboard</h2><p>Every tracked law ranked by how much congressional trading happened before it passed. Tap any law for the full breakdown: what it covers, who traded it, and the profit captured.</p></div>
+    <div class="page-head"><h2>The Money Trail Detective</h2><p>${have ? "Every tracked law scored as a chain of evidence: the law, who it pays, who knew, who traded, the payoff, and the pattern. Tap any law to open its Case File." : "Money Trail cases are still building. Showing timing-based scores for now."}</p></div>
     <div class="susp-controls">
       <div id="law-chips" class="pres-chips">${lawFilterChips()}</div>
       <div class="susp-sort"><span class="faint fs-sm">Sort:</span><div id="law-sort" class="pres-chips">${lawSortChips()}</div></div>
     </div>
     <div id="law-list" class="susp-board">${lawLeaderboard()}</div>
     ${lawMethodology()}`;
+}
+
+// ---- The Money Trail Detective: Case File view -----------------------------
+// SVG timeline: one track for the bill with milestone markers, trades plotted
+// below as points (colored by buy/sell, sized by disclosed amount) so pre-markup
+// clustering is visually obvious.
+function caseTimeline(c) {
+  const ms = c.milestones || {};
+  const MLABEL = { introduced: "Introduced", to_committee: "To committee", markup: "Markup", passed_house: "Passed House", passed_senate: "Passed Senate", enacted: "Enacted" };
+  const milestones = Object.keys(MLABEL).filter((k) => ms[k]).map((k) => ({ key: k, label: MLABEL[k], date: ms[k] }));
+  const trades = c.trades || [];
+  const dates = milestones.map((m) => m.date).concat(trades.map((t) => t.date)).filter(Boolean).map((d) => +new Date(d)).filter((n) => !isNaN(n));
+  if (!dates.length) return `<div class="faint fs-sm">No dated milestones or trades to plot.</div>`;
+  let lo = Math.min(...dates), hi = Math.max(...dates);
+  if (lo === hi) { lo -= 8.64e7; hi += 8.64e7; }
+  const W = 720, H = 168, padX = 16, top = 34, axis = 70;
+  const x = (d) => padX + ((+new Date(d) - lo) / (hi - lo)) * (W - 2 * padX);
+  const amts = trades.map((t) => amountMid(t.amount)).filter((v) => v > 0);
+  const maxAmt = amts.length ? Math.max(...amts) : 1;
+  const r = (a) => 4 + 7 * Math.sqrt(Math.min(1, (amountMid(a) || 1) / maxAmt));
+  const anchorKey = ms.markup ? "markup" : ms.to_committee ? "to_committee" : ms.introduced ? "introduced" : null;
+  const mLines = milestones.map((m) => {
+    const px = x(m.date).toFixed(1);
+    const hot = m.key === anchorKey;
+    return `<line x1="${px}" y1="${top}" x2="${px}" y2="${axis + 60}" stroke="${hot ? "var(--warning)" : "var(--border-strong)"}" stroke-width="${hot ? 2 : 1}" stroke-dasharray="${hot ? "0" : "3 3"}"/>
+      <circle cx="${px}" cy="${axis}" r="4" fill="${hot ? "var(--warning)" : "var(--text-tertiary)"}"/>
+      <text x="${px}" y="${top - 8}" text-anchor="middle" class="ct-mlabel">${esc(m.label)}</text>`;
+  }).join("");
+  const pts = trades.map((t) => {
+    const px = x(t.date).toFixed(1);
+    const cls = t.action === "BUY" ? "ct-buy" : "ct-sell";
+    const emph = (t.before_anchor && t.access) ? ' stroke="var(--warning)" stroke-width="2"' : "";
+    return `<circle cx="${px}" cy="${axis + 60}" r="${r(t.amount).toFixed(1)}" class="${cls}"${emph}><title>${esc(t.politician)} ${esc(t.action)} ${esc(t.ticker)} ${esc(t.date)}${t.before_anchor ? ", before the anchor milestone" : ""}</title></circle>`;
+  }).join("");
+  return `<svg class="ct-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Bill milestone timeline with trades plotted">
+    <line x1="${padX}" y1="${axis}" x2="${W - padX}" y2="${axis}" stroke="var(--border-soft)"/>
+    ${mLines}${pts}
+    <text x="${padX}" y="${H - 6}" class="ct-axis">${esc(new Date(lo).toISOString().slice(0, 10))}</text>
+    <text x="${W - padX}" y="${H - 6}" text-anchor="end" class="ct-axis">${esc(new Date(hi).toISOString().slice(0, 10))}</text>
+  </svg>
+  <div class="ct-legend"><span class="ct-dot ct-buy"></span>Buy <span class="ct-dot ct-sell"></span>Sell <span class="ct-dot ct-anchor"></span>Pre-milestone access trade, point size is the disclosed amount.</div>`;
+}
+function caseEvidenceCards(c) {
+  const order = ["law", "beneficiary", "access", "trade", "payoff", "pattern"];
+  const flow = { law: "The Law", beneficiary: "Who It Pays", access: "Who Knew", trade: "Who Traded", payoff: "The Payoff", pattern: "The Pattern" };
+  return order.map((key, i) => {
+    const L = c.links.find((x) => x.key === key) || { strength: 0, why: "" };
+    const pctw = Math.round(L.strength * 100);
+    const cls = L.strength >= 0.66 ? "down" : L.strength >= 0.33 ? "warn" : "info";
+    const crit = L.critical ? `<span class="pill mini warn">Critical link</span>` : "";
+    return `<div class="evb-card" style="--i:${i}">
+      <div class="evb-stage">${i + 1}. ${esc(flow[key])}</div>
+      <div class="evb-head"><span class="evb-name">${esc(L.name || flow[key])}</span>${crit}</div>
+      <div class="evb-meter"><div class="evb-bar"><div class="evb-bar-fill ${cls}" style="width:${pctw}%"></div></div><span class="evb-val">${pctw}</span></div>
+      <p class="evb-why">${esc(L.why)}</p>
+    </div>`;
+  }).join("");
+}
+function caseFile(billId) {
+  const c = mtCaseFor(billId);
+  if (!c) { billDetail(billId); return; }   // fall back to the basic detail if no case
+  const tier = caseTier(c.case_strength);
+  const wl = c.weak_link || {};
+  const basisNote = c.materiality_basis === "keyword"
+    ? "Beneficiaries here are keyword inferred, not a verified revenue dependency."
+    : c.materiality_basis === "none" ? "No specific corporate beneficiary was identified." : "";
+  openModal(`
+    <div class="cf-top">
+      <div class="cf-badge">Case File</div>
+      <div class="cf-titlewrap">
+        <div class="cf-title">${esc(c.title || c.bill_id)}</div>
+        <div class="cf-sub"><span class="bill-chip">${esc(c.bill_id)}</span>${c.committees && c.committees.length ? " " + esc(c.committees.slice(0, 2).join(", ")) : ""}</div>
+      </div>
+      <div class="cf-scorebox"><div class="cf-score">${c.case_strength}<small>/100</small></div><span class="pill ${tier.cls}">${tier.label}</span></div>
+    </div>
+    <div class="cf-verdict">${esc(c.verdict || "")}</div>
+    ${wl.strength != null && wl.strength < 0.3 ? `<div class="cf-weak">Weakest link: ${esc(wl.name)}. Read this as evidence, not a conclusion.${basisNote ? " " + esc(basisNote) : ""}</div>` : (basisNote ? `<div class="cf-weak">${esc(basisNote)}</div>` : "")}
+    <div class="cf-section-title">The timeline</div>
+    <div class="cf-timeline">${caseTimeline(c)}</div>
+    <div class="cf-section-title">The chain of evidence</div>
+    <div class="evb-grid">${caseEvidenceCards(c)}</div>
+    <div class="sample-note">Engine: The Money Trail Detective. Trades are re-anchored to the ${esc(c.anchor_milestone || "earliest")} milestone, not final passage. Abnormal return is measured against each member's own baseline, market adjusted.</div>
+    <div class="disclaimer" style="margin-top:14px;"><span style="font-weight:800;">Note</span><span>${esc((window.MONEY_TRAIL || {}).disclaimer || "This identifies timing relationships only and does not imply or allege wrongdoing of any kind.")}</span></div>`);
 }
 
 // Market signals block (sector opportunity scores + per-ticker signals with a
@@ -2102,8 +2227,8 @@ function init() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { closeModal(); document.getElementById("searchResults").classList.remove("open"); }
     if (e.key === "Enter" || e.key === " ") {
-      const row = e.target.closest && e.target.closest(".susp-row[data-bill]");
-      if (row) { e.preventDefault(); billDetail(row.dataset.bill); }
+      const row = e.target.closest && e.target.closest(".susp-row[data-case]");
+      if (row) { e.preventDefault(); caseFile(row.dataset.case); }
     }
   });
   document.getElementById("modal").addEventListener("keydown", trapModal);

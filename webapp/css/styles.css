@@ -1403,3 +1403,46 @@ body.tf-tp-open .tf-theme-panel { transform: translateX(0); }
 .susp-detail-score small { font-size:13px; color:var(--text-tertiary); font-weight:600; }
 .susp-detail-why { font-size:13px; line-height:1.55; color:var(--text-secondary); margin-top:8px; }
 @media (max-width:640px){ .susp-title{ font-size:13.5px; } .susp-stats{ gap:10px; } }
+
+/* ============ The Money Trail Detective: Case File ============ */
+.cf-top { display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap; }
+.cf-badge { font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--warning);
+  border:1px solid var(--warning); border-radius:999px; padding:4px 10px; }
+.cf-titlewrap { flex:1 1 auto; min-width:0; }
+.cf-title { font-size:19px; font-weight:800; line-height:1.25; color:var(--text-primary); }
+.cf-sub { font-size:12px; color:var(--text-tertiary); margin-top:5px; }
+.cf-scorebox { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+.cf-score { font-size:30px; font-weight:850; color:var(--text-primary); line-height:1; }
+.cf-score small { font-size:13px; color:var(--text-tertiary); font-weight:600; }
+.cf-verdict { margin:14px 0 8px; font-size:14.5px; line-height:1.6; color:var(--text-secondary);
+  border-left:3px solid var(--info); padding-left:12px; }
+.cf-weak { font-size:12.5px; color:var(--warning); background:var(--warning-dim); border-radius:var(--radius-sm); padding:9px 12px; margin-bottom:6px; }
+.cf-section-title { font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-tertiary); margin:18px 0 8px; }
+.cf-timeline { background:var(--bg-inner); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:10px; overflow-x:auto; }
+.ct-svg { width:100%; min-width:560px; height:auto; display:block; }
+.ct-mlabel { fill:var(--text-secondary); font-size:10px; font-weight:600; font-family:inherit; }
+.ct-axis { fill:var(--text-faint); font-size:10px; font-family:inherit; }
+.ct-buy { fill:var(--success); opacity:.85; }
+.ct-sell { fill:var(--danger); opacity:.85; }
+.ct-svg circle { animation:ctPop .5s ease both; }
+.ct-legend { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:11px; color:var(--text-tertiary); margin-top:8px; }
+.ct-dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+.ct-dot.ct-buy { background:var(--success); } .ct-dot.ct-sell { background:var(--danger); }
+.ct-dot.ct-anchor { background:transparent; border:2px solid var(--warning); }
+@keyframes ctPop { from { transform:scale(0); opacity:0; } to { transform:scale(1); opacity:.85; } }
+/* evidence board */
+.evb-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.evb-card { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:12px;
+  animation:evbIn .4s ease both; animation-delay:calc(var(--i) * .05s); }
+.evb-stage { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint); }
+.evb-head { display:flex; align-items:center; gap:8px; margin:3px 0 8px; }
+.evb-name { font-weight:700; font-size:13.5px; color:var(--text-primary); }
+.evb-meter { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.evb-bar { flex:1 1 auto; height:7px; border-radius:999px; background:var(--bg-inner); overflow:hidden; }
+.evb-bar-fill { height:100%; border-radius:999px; transform-origin:left; animation:suspFill .8s cubic-bezier(.2,.7,.2,1) both; }
+.evb-bar-fill.down { background:var(--danger); } .evb-bar-fill.warn { background:var(--warning); } .evb-bar-fill.info { background:var(--info); }
+.evb-val { font-weight:800; font-size:13px; color:var(--text-secondary); min-width:20px; text-align:right; }
+.evb-why { font-size:12px; line-height:1.5; color:var(--text-secondary); margin:0; }
+@keyframes evbIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .ct-svg circle, .evb-card, .evb-bar-fill { animation:none; } }
+@media (max-width:760px){ .evb-grid{ grid-template-columns:1fr; } }

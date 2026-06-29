@@ -156,6 +156,18 @@ JOBS = [
         "enabled": True,
     },
     {
+        # The Money Trail Detective Engine: chain-of-evidence case files per law
+        # (Congress.gov milestones + committee rosters + QuiverQuant excess return).
+        # Daily: the upstreams (Congress.gov, QuiverQuant) update ~daily and a full
+        # run takes a few minutes, so daily keeps cases fresh without churn.
+        "name": "money_trail",
+        "scripts": ["webapp/build_money_trail.py"],
+        "export": True,
+        "interval": DAY,
+        "stagger": 600,
+        "enabled": True,
+    },
+    {
         # Presidential actions & news (Federal Register + Congress.gov + RSS).
         # Every 6h: the Federal Register publishes on business days and EOs appear
         # a few days after signing; Congress.gov updates ~daily. Daily-freshness,

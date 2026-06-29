@@ -35,7 +35,7 @@
     "js/data.js", "js/influence_data.js", "js/relationships_data.js", "js/nonprofit_data.js",
     "js/fec_data.js", "js/sec_data.js", "js/secbulk_data.js", "js/usaspending_data.js",
     "js/states_data.js", "js/sp500_data.js", "js/quant_data.js", "js/member_bills.js",
-    "js/presidential_data.js",
+    "js/presidential_data.js", "js/money_trail_data.js",
     "js/prices_data.js", "js/news_intel.js",
   ];
 
