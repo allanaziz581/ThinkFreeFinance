@@ -370,6 +370,19 @@ function politicianProfile(name) {
       <div class="profile-stat"><div class="l">Est. P&amp;L</div><div class="v ${colorFor(p.pnl)}">${esc(p.pnl_fmt)}</div></div>
     </div>
 
+    <div class="section-title">Trading Activity <span class="faint" style="font-weight:400;text-transform:none;letter-spacing:0;">(full QuiverQuant disclosure history)</span></div>
+    <div class="profile-stats">
+      <div class="profile-stat"><div class="l">All-Time Trades</div><div class="v">${esc(p.trades_all_time != null ? p.trades_all_time : (p.trades || 0))}</div></div>
+      <div class="profile-stat"><div class="l">Trades, Past Month</div><div class="v">${esc(p.trades_past_month || 0)}</div></div>
+      <div class="profile-stat"><div class="l">Total Volume</div><div class="v">${esc(p.total_volume_fmt || "n/a")}</div></div>
+      <div class="profile-stat"><div class="l">Avg Trade Size</div><div class="v">${esc(p.avg_trade_size_fmt || "n/a")}</div></div>
+      <div class="profile-stat"><div class="l">Win Rate</div><div class="v ${p.win_rate != null ? (p.win_rate >= 50 ? "up" : "down") : ""}">${p.win_rate != null ? esc(p.win_rate) + "%" : "n/a"}</div></div>
+      <div class="profile-stat"><div class="l">Avg Return per Trade</div><div class="v ${colorFor(p.avg_return_pct)}">${p.avg_return_pct != null ? (p.avg_return_pct > 0 ? "+" : "") + esc(p.avg_return_pct) + "%" : "n/a"}</div></div>
+      <div class="profile-stat"><div class="l">Last Trade</div><div class="v" style="font-size:13px;">${esc(p.last_trade_date || "n/a")}</div></div>
+      <div class="profile-stat"><div class="l">Avg Disclosure Lag</div><div class="v" style="font-size:13px;">${p.avg_disclosure_lag_days != null ? esc(p.avg_disclosure_lag_days) + " days" : "n/a"}</div></div>
+    </div>
+    <div class="sample-note">Volume and trade size are estimated from the midpoints of disclosed amount ranges. Win rate and average return use QuiverQuant market-adjusted (excess) returns. Average holding period and verified net worth require a separate financial-disclosure source and are not shown rather than estimated.</div>
+
     <div class="section-title">ThinkFree Accountability Scores</div>
     <div class="profile-stats">
       <div class="profile-stat"><div class="l">Influence</div><div class="v">${polBadge("pol-influence", p.name, s.influence + "/100")}</div></div>
@@ -935,12 +948,6 @@ function renderDashboard() {
             </div>`).join("")}
         </div>
       </div>
-      <div class="card kpi">
-        <div class="card-head"><div class="card-title">My Portfolio</div><div class="card-action" data-goto="portfolio">Open →</div></div>
-        <div class="kpi-value">${esc(port.value_fmt || "$0")}</div>
-        <div class="kpi-foot"><span class="pill ${colorFor(port.return_pct)}">${pct(port.return_pct || 0)}</span> ${port.open_count || 0} open positions</div>
-        ${sparkline(8841, C.green, "up")}
-      </div>
       <div class="card">
         <div class="card-head"><div class="card-title">Historical Parallels</div><div class="card-action" data-goto="history">More →</div></div>
         ${(D.parallels || []).slice(0, 2).map((p) => `
@@ -955,7 +962,6 @@ function renderDashboard() {
           <div class="qa" data-goto="news"><span class="qa-t">News Feed</span><span class="qa-d">Today's headlines</span></div>
           <div class="qa" data-goto="political"><span class="qa-t">Politics</span><span class="qa-d">Congress trades</span></div>
           <div class="qa" data-goto="markets"><span class="qa-t">Markets</span><span class="qa-d">Sector data</span></div>
-          <div class="qa" data-goto="portfolio"><span class="qa-t">Portfolio</span><span class="qa-d">Your positions</span></div>
         </div>
       </div>
     </div>`;
@@ -1225,9 +1231,10 @@ function renderPolitical() {
           <div class="profile-stat"><div class="l">Avg Lead Time</div><div class="v">${corr.avg_lead_days || 0}d</div></div>
         </div>
 
-        <div class="card-title mt-16" style="margin-bottom:6px;">How Bills Were Influenced</div>
-        <div class="timeline">
-          ${(corr.top_bills || []).map((b, i) => `
+        <div class="card-title mt-16" style="margin-bottom:2px;">How Bills Were Influenced</div>
+        <div class="faint fs-sm" style="margin-bottom:8px;">Showing the past month of bill activity. Scroll inside the box for more.</div>
+        <div class="timeline tl-scroll">
+          ${(() => { const cut = new Date(Date.now() - 31 * 864e5).toISOString().slice(0, 10); return (corr.top_bills || []).filter((b) => String(b.action_date || "") >= cut); })().map((b, i) => `
             <div class="tl-item bill-row" data-bill="${esc(b.bill_id)}">
               <div class="tl-dot ${["r", "g", "b", "p"][i % 4]}"></div>
               <div>
@@ -1237,7 +1244,7 @@ function renderPolitical() {
                 <div class="tl-body" style="color:var(--success);">${b.before_count} of ${b.trade_count} trades placed up to ${b.max_lead}d before the action. Click for who traded it &amp; the lobbying behind it.</div>
               </div>
             </div>`).join("") || `
-            <div class="tl-item bill-row" data-bill="${esc(tb.bill_id)}"><div class="tl-dot b"></div><div><div class="tl-title"><span class="bill-chip">${esc(tb.bill_id)}</span></div><div class="tl-body">Related sector legislation.</div></div></div>`}
+            <div class="faint fs-sm" style="padding:14px 0;">No correlated bill activity in the past month.</div>`}
         </div>
         <div class="sample-note">Index weights how widely (and how far ahead) trades were placed before related bills. Click any bill to see what it does, who traded it, their profit, and the lobbying behind it.</div>
       </div>
@@ -2102,7 +2109,6 @@ const PAGES = {
   states: renderStates,
   news: renderNews,
   political: renderPolitical,
-  portfolio: renderPortfolio,
   presidential: () => (window.renderPresidential ? window.renderPresidential() : `<div class="page-head"><h2>Presidential</h2><p>Loading…</p></div>`),
   markets: renderMarkets,
   reasoning: renderReasoning,

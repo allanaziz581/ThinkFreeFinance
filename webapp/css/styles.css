@@ -1497,3 +1497,18 @@ body.tf-tp-open .tf-theme-panel { transform: translateX(0); }
 .dc-weight-l { font-size: 10.5px; color: var(--text-tertiary); text-transform: capitalize; margin-top: 2px; }
 .dc-doclist { margin: 8px 0; padding-left: 18px; }
 .dc-doclist li { margin: 5px 0; }
+
+/* ============ Filter chips (Money Trail leaderboard, Explain the Laws, Presidential) ============ */
+/* Restored after the branch merge dropped them, which made the filters render as
+   white browser-default buttons. Dark theme semantic tokens only. */
+.pres-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.pres-chip { font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border-soft);
+  background: var(--bg-card); color: var(--text-secondary); transition: .12s; }
+.pres-chip:hover { color: var(--text-primary); border-color: var(--border-strong); background: var(--bg-card-2); }
+.pres-chip.active { background: var(--info-dim); color: var(--info); border-color: var(--info); }
+.pres-chip-n { opacity: .6; font-weight: 700; margin-left: 2px; }
+
+/* "How Bills Were Influenced" past-month list: fixed height, only this box scrolls */
+.tl-scroll { max-height: 360px; overflow-y: auto; overscroll-behavior: contain;
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 10px 12px; background: var(--bg-inner); }

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ThinkFree Finance — Recession Signals Engine (Phase 13)
+ThinkFree Finance , Recession Signals Engine (Phase 13)
 
 Downloads publicly available macro indicators and produces a plain-English
 recession risk score from 0 (no risk) to 10 (very high risk).
@@ -77,15 +77,15 @@ def fetch_vix() -> dict:
         vix = float(close.dropna().iloc[-1])
 
         if vix < 15:
-            stress = "Low — markets are calm"
+            stress = "Low , markets are calm"
         elif vix < 20:
-            stress = "Normal — typical market conditions"
+            stress = "Normal , typical market conditions"
         elif vix < 30:
-            stress = "Elevated — investors are nervous"
+            stress = "Elevated , investors are nervous"
         elif vix < 40:
-            stress = "High — significant market stress"
+            stress = "High , significant market stress"
         else:
-            stress = "Extreme — market panic conditions"
+            stress = "Extreme , market panic conditions"
 
         return {"vix": round(vix, 2), "stress_level": stress}
     except Exception as e:
@@ -113,7 +113,7 @@ def _fetch_fred_csv(series_id: str) -> "pd.Series | None":
 
 
 def fetch_fred_indicators() -> dict:
-    """Fetch unemployment and GDP — uses public FRED CSV first, API key as fallback."""
+    """Fetch unemployment and GDP , uses public FRED CSV first, API key as fallback."""
     # Try public CSV (no key needed)
     try:
         unrate_series = _fetch_fred_csv("UNRATE")
@@ -169,7 +169,7 @@ def fetch_fred_indicators() -> dict:
 
 def compute_recession_score(yield_curve: dict, vix_data: dict, fred: dict) -> dict:
     """
-    Score recession risk 0–10 based on available indicators.
+    Score recession risk 0-10 based on available indicators.
     Each indicator contributes points toward the total.
     """
     score = 0.0
@@ -179,7 +179,7 @@ def compute_recession_score(yield_curve: dict, vix_data: dict, fred: dict) -> di
     def clamp(x, lo=0.0, hi=1.0):
         return max(lo, min(hi, x))
 
-    # ── Yield curve (up to 4 pts — strongest predictor) ───────────────
+    # ── Yield curve (up to 4 pts , strongest predictor) ───────────────
     # Graduated: deeply inverted is worst, but a flattening / recently
     # un-inverted curve (low positive spread) still carries real risk and
     # should NOT score zero. Healthy = spread comfortably above ~1.3%.
@@ -191,7 +191,7 @@ def compute_recession_score(yield_curve: dict, vix_data: dict, fred: dict) -> di
             score += curve_score
             factors.append(
                 f"The yield curve is INVERTED (spread: {spread:.2f}%). "
-                "Short-term borrowing costs more than long-term — historically one "
+                "Short-term borrowing costs more than long-term , historically one "
                 "of the most reliable early warning signs of a recession."
             )
         else:
@@ -202,13 +202,13 @@ def compute_recession_score(yield_curve: dict, vix_data: dict, fred: dict) -> di
             if spread < 0.5:
                 factors.append(
                     f"The yield curve is very flat (spread: {spread:.2f}%). "
-                    "Borrowing costs are nearly equal for short and long-term debt — "
+                    "Borrowing costs are nearly equal for short and long-term debt , "
                     "a warning sign worth watching."
                 )
             elif spread < 1.0:
                 factors.append(
                     f"The yield curve is flattening (spread: {spread:.2f}%). "
-                    "It is positive but historically narrow — when a curve steepens "
+                    "It is positive but historically narrow , when a curve steepens "
                     "back up after an inversion, recessions have often followed."
                 )
             else:
@@ -217,7 +217,7 @@ def compute_recession_score(yield_curve: dict, vix_data: dict, fred: dict) -> di
                     "Long-term borrowing costs more than short-term, which is healthy."
                 )
 
-    # ── VIX (up to 3 pts) — graduated, no hard cliff at 20 ────────────
+    # ── VIX (up to 3 pts) , graduated, no hard cliff at 20 ────────────
     if vix_data.get("vix") is not None:
         max_possible += 3
         vix = vix_data["vix"]
@@ -225,13 +225,13 @@ def compute_recession_score(yield_curve: dict, vix_data: dict, fred: dict) -> di
         vix_risk = clamp((vix - 14) / (40 - 14))
         score += round(3.0 * vix_risk, 2)
         if vix >= 30:
-            factors.append(f"Market fear (VIX: {vix}) is very high — significant investor anxiety.")
+            factors.append(f"Market fear (VIX: {vix}) is very high , significant investor anxiety.")
         elif vix >= 20:
             factors.append(f"Market anxiety (VIX: {vix}) is elevated.")
         elif vix >= 16:
             factors.append(f"Market volatility (VIX: {vix}) is creeping above its calm baseline.")
         else:
-            factors.append(f"Markets are calm (VIX: {vix}) — no major fear signals.")
+            factors.append(f"Markets are calm (VIX: {vix}) , no major fear signals.")
 
     # ── FRED indicators (up to 3 pts if available) ────────────────────
     if fred.get("available"):
@@ -247,7 +247,7 @@ def compute_recession_score(yield_curve: dict, vix_data: dict, fred: dict) -> di
             if gdp_neg:
                 score += 1.5
                 factors.append(
-                    f"GDP growth is negative ({gdp}%) — the economy actually shrank. "
+                    f"GDP growth is negative ({gdp}%) , the economy actually shrank. "
                     "Two quarters of this officially defines a recession."
                 )
             else:
@@ -255,11 +255,11 @@ def compute_recession_score(yield_curve: dict, vix_data: dict, fred: dict) -> di
                 score += round(1.5 * gdp_risk, 2)
                 if gdp < 2.0:
                     factors.append(
-                        f"GDP growth is {gdp}% — below the ~2% trend. Sustained "
+                        f"GDP growth is {gdp}% , below the ~2% trend. Sustained "
                         "'stall speed' growth has historically preceded recessions."
                     )
                 else:
-                    factors.append(f"GDP growth is {gdp}% — at or above trend, which is healthy.")
+                    factors.append(f"GDP growth is {gdp}% , at or above trend, which is healthy.")
 
         # Unemployment: graduated. Rising matters even below 5% (Sahm-style).
         if unemp is not None:
@@ -286,7 +286,7 @@ def compute_recession_score(yield_curve: dict, vix_data: dict, fred: dict) -> di
             "Add a free FRED_API_KEY to .env for a more complete score."
         )
 
-    # Normalize to 0–10
+    # Normalize to 0-10
     if max_possible > 0:
         normalized = round((score / max_possible) * 10, 1)
     else:
@@ -330,7 +330,7 @@ def explain_real_world_impact(score: float, yield_inverted: bool, vix: float | N
             "credit_cards": "No major rate changes expected in the near term.",
             "jobs": "Job market remains relatively healthy.",
             "groceries_gas": "No recession-driven price pressure detected.",
-            "savings": "A good time to build your emergency fund — always valuable regardless of conditions.",
+            "savings": "A good time to build your emergency fund , always valuable regardless of conditions.",
         }
     elif score <= 6:
         return {
@@ -347,7 +347,7 @@ def explain_real_world_impact(score: float, yield_inverted: bool, vix: float | N
                 "Healthcare, utilities, and essential services tend to be more stable."
             ),
             "groceries_gas": (
-                "Economic slowdowns can cut both ways — sometimes prices fall as demand drops, "
+                "Economic slowdowns can cut both ways , sometimes prices fall as demand drops, "
                 "but supply disruptions can keep them elevated. No clear direction right now."
             ),
             "savings": (
@@ -385,7 +385,7 @@ def explain_real_world_impact(score: float, yield_inverted: bool, vix: float | N
 # ------------------------------------------------------------------
 
 def run_recession_signals() -> dict:
-    print("=== ThinkFree — Recession Signals Engine ===")
+    print("=== ThinkFree , Recession Signals Engine ===")
     print("Fetching yield curve data...")
     yield_curve = fetch_yield_curve()
 
@@ -418,7 +418,7 @@ def run_recession_signals() -> dict:
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2)
 
-    print(f"\nRecession Risk Score: {score_data['score']}/10 — {score_data['label']}")
+    print(f"\nRecession Risk Score: {score_data['score']}/10 , {score_data['label']}")
     print(f"{score_data['plain_english_summary']}")
     print(f"\nSaved to: {OUTPUT_PATH}")
 

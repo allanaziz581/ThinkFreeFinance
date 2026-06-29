@@ -18,7 +18,6 @@ SERVER_DIR = Path(__file__).resolve().parent           # .../ThinkFree-main/serv
 ROOT_DIR = SERVER_DIR.parent                            # .../ThinkFree-main
 WEBAPP_DIR = ROOT_DIR / "webapp"                        # static front-end shell
 PRIVATE_DATA_DIR = ROOT_DIR / "private_data"            # built JSON, never web-served
-DB_PATH = SERVER_DIR / "users.db"                       # sqlite user store (gitignored)
 
 # Load server/.env if present. In production the platform injects real env vars and
 # this file is absent, which is fine: load_dotenv() simply does nothing.
@@ -27,6 +26,12 @@ load_dotenv(SERVER_DIR / ".env")
 
 def _get(name: str, default: str = "") -> str:
     return os.environ.get(name, default)
+
+
+# SQLite user store. On an ephemeral host (Render) the local filesystem is wiped on
+# every redeploy, which would erase all accounts; set TF_DB_PATH to a persistent
+# disk mount (e.g. /var/data/users.db) so accounts survive redeploys.
+DB_PATH = Path(_get("TF_DB_PATH", str(SERVER_DIR / "users.db")))
 
 
 # Secret used to sign session tokens. We refuse to start with the placeholder so a

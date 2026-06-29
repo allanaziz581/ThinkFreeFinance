@@ -1,4 +1,4 @@
-"""ThinkFree Web Front-End — Data Compiler.
+"""ThinkFree Web Front-End , Data Compiler.
 
 Reads the real ThinkFree project JSON outputs and emits webapp/js/data.js as
 `window.TF_DATA = {...}`. This lets the static front-end render real content
@@ -93,9 +93,10 @@ def credibility_tier(score: float) -> str:
 
 
 def _clean_str(s: str) -> str:
-    """Remove em/en dashes from displayed text. Never use '—'."""
-    s = s.replace(" — ", ", ").replace("— ", ", ").replace(" —", ",").replace("—", ", ")
-    s = s.replace(" – ", " to ").replace("–", "-")
+    """Remove em/en dashes from displayed text (UI rule: no em/en dashes).
+    Uses \\u escapes so the source itself contains no em/en dash characters."""
+    s = s.replace(" — ", ", ").replace("—", ", ")   # em dash -> comma
+    s = s.replace(" – ", " to ").replace("–", "-")  # en dash -> hyphen
     # tidy artifacts
     while "  " in s:
         s = s.replace("  ", " ")
@@ -251,7 +252,7 @@ def plain_bill(title: str, sectors, tickers) -> str:
 
 
 def build_everyday(raw: dict, oil_price: float, rec: dict) -> list:
-    """Translate market/economic indicators into plain-English everyday impact —
+    """Translate market/economic indicators into plain-English everyday impact ,
     the core ThinkFree mission. Grounded in real indicators where available."""
     yc = raw.get("yield_curve", {}) or {}
     fred = raw.get("fred", {}) or {}
@@ -271,7 +272,7 @@ def build_everyday(raw: dict, oil_price: float, rec: dict) -> list:
             "category": "Rent & Mortgages",
             "dir": "up" if mortgage >= 6.5 else "neutral",
             "impact": f"30-year mortgage rates are around {mortgage}%",
-            "detail": (f"With the 10-year Treasury at {ten_year}%, home loans stay expensive — "
+            "detail": (f"With the 10-year Treasury at {ten_year}%, home loans stay expensive , "
                        "a higher monthly payment on any new mortgage, and landlords often pass "
                        "elevated financing costs through to rent."),
         })
@@ -280,7 +281,7 @@ def build_everyday(raw: dict, oil_price: float, rec: dict) -> list:
     items.append({
         "category": "Credit Cards & Auto Loans",
         "dir": "up" if (ten_year or 0) >= 4 else "neutral",
-        "impact": "Borrowing stays pricey — APRs remain high",
+        "impact": "Borrowing stays pricey , APRs remain high",
         "detail": ("Credit-card and car-loan rates track the Fed's benchmark, which is still "
                    "elevated. Carrying a balance or financing a vehicle costs more than it did "
                    "a few years ago; paying down high-interest debt is the best 'return' available."),
@@ -290,9 +291,9 @@ def build_everyday(raw: dict, oil_price: float, rec: dict) -> list:
     items.append({
         "category": "Gas Prices",
         "dir": "down" if oil_price < 80 else "up",
-        "impact": f"Crude oil near ${oil_price:.0f}/barrel — pump prices {'easing' if oil_price < 80 else 'climbing'}",
-        "detail": ("Gas at the pump follows crude oil with a 1–2 week lag. "
-                   f"At ${oil_price:.0f}, fill-ups are {'a bit cheaper' if oil_price < 80 else 'getting more expensive'} — "
+        "impact": f"Crude oil near ${oil_price:.0f}/barrel , pump prices {'easing' if oil_price < 80 else 'climbing'}",
+        "detail": ("Gas at the pump follows crude oil with a 1-2 week lag. "
+                   f"At ${oil_price:.0f}, fill-ups are {'a bit cheaper' if oil_price < 80 else 'getting more expensive'} , "
                    "which also feeds into the cost of anything shipped by truck."),
     })
 
@@ -323,12 +324,12 @@ def build_everyday(raw: dict, oil_price: float, rec: dict) -> list:
     items.append({
         "category": "Jobs & Hiring",
         "dir": job_dir,
-        "impact": (f"Unemployment {unemp}% — job market is steady but cooling"
+        "impact": (f"Unemployment {unemp}% , job market is steady but cooling"
                    if unemp is not None else "Job market is steady but cooling"),
         "detail": (f"GDP growth at {gdp}% is below trend, so hiring is slowing without big layoffs. "
                    "It's a tougher market to switch jobs into than a year ago, but widespread job "
                    "losses aren't showing up yet." if gdp is not None else
-                   "Hiring is slowing without major layoffs — a more cautious market than a year ago."),
+                   "Hiring is slowing without major layoffs , a more cautious market than a year ago."),
     })
 
     # Consumer goods & tariffs
@@ -345,7 +346,7 @@ def build_everyday(raw: dict, oil_price: float, rec: dict) -> list:
     items.append({
         "category": "Savings & CDs",
         "dir": "up",
-        "impact": "High-yield savings still pay well — for now",
+        "impact": "High-yield savings still pay well , for now",
         "detail": ("Because rates are elevated, savings accounts, CDs, and money-market funds are "
                    "still paying some of the best yields in years. A good moment to build an "
                    "emergency fund before rates eventually come down."),
@@ -446,7 +447,7 @@ def build():
         if ci < 80:
             bills.append(b)
         for nm in names:
-            if len(pol_bills[nm]) < 4 and not any(x["bill_id"] == bid for x in pol_bills[nm]):
+            if not any(x["bill_id"] == bid for x in pol_bills[nm]):   # dedup only, no 4-bill cap
                 pol_bills[nm].append(b)
         # trade-level: link each (politician, ticker) to a bill, keeping the
         # one the trade most precedes (most-negative days_delta = strongest signal)
@@ -462,6 +463,30 @@ def build():
             if prev is None or dd < prev["days_delta"]:
                 corr_by_pt[key] = entry
 
+    # Broaden related bills: also link a member to any tracked bill whose tickers
+    # intersect the tickers that member actually traded (not just the small
+    # time-correlated subset). This fixes the undercount (e.g. Pelosi showing 2).
+    # Prefer the FULL traded-ticker set from the bulk history (congress_trade_counts)
+    # so the linkage reflects everything a member ever traded, not just the recent
+    # slice in trade_detail. Fall back to by_pol when counts are unavailable.
+    pol_tickers = {}
+    for nm in by_pol.keys():
+        full = set(trade_counts_for(nm).get("traded_tickers", []) or [])
+        if not full:
+            full = set(t.get("ticker", "") for t in by_pol.get(nm, []) if t.get("ticker"))
+        if full:
+            pol_tickers[nm] = full
+    for b in bills:
+        bt = set(b.get("tickers", []) or [])
+        if not bt:
+            continue
+        for nm, tks in pol_tickers.items():
+            if (bt & tks) and not any(x["bill_id"] == b["bill_id"] for x in pol_bills[nm]):
+                pol_bills[nm].append(b)
+    # Most-recent first, capped so a profile stays readable.
+    for nm in list(pol_bills.keys()):
+        pol_bills[nm] = sorted(pol_bills[nm], key=lambda x: x.get("action_date", ""), reverse=True)[:20]
+
     def enrich(nm: str, p_meta: dict):
         trades = by_pol.get(nm, [])
         cnt = Counter(t.get("ticker", "") for t in trades if t.get("ticker"))
@@ -474,12 +499,12 @@ def build():
         summary_txt = (
             f"{nm} ({p_meta.get('Party','')}, {p_meta.get('State','')}) disclosed "
             f"{p_meta.get('Trades (6mo)',0)} trades over the past 6 months "
-            f"({buys} buys, {sells} sells) — a {direction}. Estimated activity totals "
+            f"({buys} buys, {sells} sells) , a {direction}. Estimated activity totals "
             f"{money(p_meta.get('Est. Total Traded',0))} with an estimated P&L of "
             f"{money(p_meta.get('Est. P&L ($)',0))} ({ret}% return). Most-traded names: {tickers_str}. "
             f"All figures are estimates from public disclosure ranges and reflect timing relationships only."
         )
-        # est net worth: not provided by public APIs — show a labeled estimate range
+        # est net worth: not provided by public APIs , show a labeled estimate range
         nw_low = est_value * 2.5
         nw_high = est_value * 6.0
 
@@ -517,7 +542,7 @@ def build():
             "summary": summary_txt,
             "top_tickers": top,
             "est_portfolio_value_fmt": money(est_value),
-            "networth_range_fmt": f"{money(nw_low)} – {money(nw_high)}",
+            "networth_range_fmt": f"{money(nw_low)} - {money(nw_high)}",
             "donors": make_donors(nm),
             "supporters": make_supporters(nm),
             "related_bills": pol_bills.get(nm, []),
@@ -557,6 +582,14 @@ def build():
         rec_p["avg_disclosure_lag_days"] = _lag
         rec_p["transparency_score"] = _transp
         rec_p["integrity_score"] = _integ
+        # Richer real stats from the full QuiverQuant history.
+        rec_p["total_volume"] = _c.get("total_volume", 0)
+        rec_p["total_volume_fmt"] = money(_c.get("total_volume", 0))
+        rec_p["avg_trade_size"] = _c.get("avg_trade_size", 0)
+        rec_p["avg_trade_size_fmt"] = money(_c.get("avg_trade_size", 0))
+        rec_p["win_rate"] = _c.get("win_rate")
+        rec_p["avg_return_pct"] = _c.get("avg_return_pct")
+        rec_p["last_trade_date"] = _c.get("last_trade", "")
         # Use the real all-time count as the headline "trades" when available
         # (fixes the undercount); fall back to the 6-month figure otherwise.
         if _all:
@@ -765,7 +798,7 @@ def build():
         "index": index,
         "headline": (
             f"{breadth_pct}% of {bills_with_trades} related bills had trades opened "
-            f"beforehand — {len(before_all):,} trades positioned an avg {avg_lead} days "
+            f"beforehand , {len(before_all):,} trades positioned an avg {avg_lead} days "
             f"ahead of the bill's action."
         ),
         "correlated_trades": total_ct,

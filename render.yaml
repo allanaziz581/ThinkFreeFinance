@@ -28,12 +28,25 @@ services:
     # server/ and the module is main:app.
     startCommand: "uvicorn main:app --app-dir server --host 0.0.0.0 --port $PORT"
     healthCheckPath: /healthz
+    # Persistent disk so the SQLite user store (accounts/sessions) survives the
+    # daily refresh redeploys. Without this, every redeploy wipes all accounts.
+    disk:
+      name: thinkfree-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       # --- non-secret toggles (safe to commit) ---
       - key: PYTHON_VERSION
         value: "3.11.9"
       - key: TF_PRODUCTION
         value: "1"           # Secure cookies + HSTS + HTTPS redirect
+      - key: TF_DB_PATH
+        value: "/var/data/users.db"   # on the persistent disk; survives redeploys
+      # First-boot admin seed (idempotent). Set real values in the dashboard/API.
+      - key: TF_ADMIN_EMAIL
+        sync: false
+      - key: TF_ADMIN_PASSWORD
+        sync: false
       # --- secrets / per-deploy values: set in the dashboard or via the API ---
       - key: TF_SECRET_KEY          # session signing key; the app refuses to boot without a real one
         sync: false

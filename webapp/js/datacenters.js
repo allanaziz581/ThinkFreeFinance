@@ -58,12 +58,12 @@
       </tr>`).join("");
 
     const inputDocs = Object.entries(M.inputs || {}).map(([k, v]) =>
-      `<li><b>${esc(k.replace(/_/g, " "))}</b> — ${esc(v)}</li>`).join("");
+      `<li><b>${esc(k.replace(/_/g, " "))}</b> , ${esc(v)}</li>`).join("");
     const sources = (DC.sources || []).map((s) => `<li>${esc(s)}</li>`).join("");
 
     return `
       <div class="page-head"><h2>Data Centers &amp; Cost of Living</h2>
-        <p>The hyperscale data-center buildout competes with households for local electricity, water, and land — which can push up utility rates and housing costs in host counties. This tracks where buildout pressure is highest and shows the cost-of-living side directly.</p></div>
+        <p>The hyperscale data-center buildout competes with households for local electricity, water, and land , which can push up utility rates and housing costs in host counties. This tracks where buildout pressure is highest and shows the cost-of-living side directly.</p></div>
 
       <div class="tf-disclaimer compact" style="margin-bottom:16px;">
         <strong>Informational, sourced from public records.</strong>
@@ -73,7 +73,7 @@
       <div class="grid cols-3">
         <div class="card pad-lg dc-kpi"><div class="dc-kpi-v">${esc(REGIONS.length)}</div><div class="dc-kpi-l">Counties tracked</div></div>
         <div class="card pad-lg dc-kpi"><div class="dc-kpi-v">${esc(REGIONS[0].county)}, ${esc(REGIONS[0].state)}</div><div class="dc-kpi-l">Highest buildout-risk county</div></div>
-        <div class="card pad-lg dc-kpi"><div class="dc-kpi-v">${topRent ? esc(topRent.rent_burden_pct) + "%" : "n/a"}</div><div class="dc-kpi-l">Highest rent burden${topRent ? " — " + esc(topRent.county) : ""}</div></div>
+        <div class="card pad-lg dc-kpi"><div class="dc-kpi-v">${topRent ? esc(topRent.rent_burden_pct) + "%" : "n/a"}</div><div class="dc-kpi-l">Highest rent burden${topRent ? " , " + esc(topRent.county) : ""}</div></div>
       </div>
 
       <div class="card pad-lg">
@@ -87,7 +87,7 @@
       </div>
 
       <div class="card pad-lg">
-        <div class="card-head"><div class="card-title">Methodology — every input &amp; weight is visible</div></div>
+        <div class="card-head"><div class="card-title">Methodology , every input &amp; weight is visible</div></div>
         <div class="tf-methodology">
           <p>${esc(M.summary || "")}</p>
           <p class="dc-formula"><code>${esc(M.formula || "")}</code></p>

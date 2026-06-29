@@ -183,7 +183,7 @@
   // lives in the functions above.
   const FORMULAS = {
     company: ["How we calculate company scores", [
-      "<b>Influence Score</b> = 12 base + federal contracts (log scale, up to 40) + bill mentions (×3, up to 18) + congressional trades (×0.4, up to 18) + distinct members trading it (×1.4, up to 12) + registered lobbying (×7) + board size (×0.4, up to 5). Capped 0–100.",
+      "<b>Influence Score</b> = 12 base + federal contracts (log scale, up to 40) + bill mentions (×3, up to 18) + congressional trades (×0.4, up to 18) + distinct members trading it (×1.4, up to 12) + registered lobbying (×7) + board size (×0.4, up to 5). Capped 0-100.",
       "<b>Government Dependency</b> = federal contract dollars ÷ ~5 years of revenue, scaled ×140 and capped at 100 (≈70% government revenue → ~98).",
     ]],
     pol: ["How we calculate member scores", [

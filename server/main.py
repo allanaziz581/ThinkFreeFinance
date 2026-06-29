@@ -36,7 +36,28 @@ if config.PRODUCTION and config.is_placeholder_secret():
 
 app = FastAPI(title="ThinkFree Finance", docs_url=None, redoc_url=None, openapi_url=None)
 
+config.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 db.init_db()
+
+# Seed an admin account on first boot so the deployed site is immediately usable.
+# Idempotent: does nothing if TF_ADMIN_EMAIL / TF_ADMIN_PASSWORD are unset or the
+# account already exists. With a persistent disk this runs once and then sticks.
+def _seed_admin() -> None:
+    email = config._get("TF_ADMIN_EMAIL", "").strip().lower()
+    pw = config._get("TF_ADMIN_PASSWORD", "")
+    if not email or not pw or db.get_user(email):
+        return
+    import datetime
+    db.create_user(email, "Admin", auth.hash_password(pw), "beta", datetime.date.today().isoformat())
+    try:
+        db.set_role(email, "admin")
+    except Exception:
+        # Never log the email or password; a generic signal is enough to flag a
+        # seeded-but-not-admin misconfiguration without leaking the credential.
+        print("[seed] admin role assignment failed; seeded account exists without admin role")
+
+
+_seed_admin()
 app.include_router(auth.router)
 app.include_router(data.router)
 import billing  # noqa: E402  (subscription/billing seam — stubbed, no live payments)

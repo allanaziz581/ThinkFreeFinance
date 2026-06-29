@@ -610,7 +610,7 @@ def infer_beneficiaries_via_gpt(bill_title: str, bill_summary: str) -> dict:
     except Exception:
         data = {}
     tickers = [str(t).upper().strip() for t in (data.get("tickers") or []) if _VALID_TICKER.match(str(t).upper().strip())][:6]
-    rationale = re.sub(r"[—–]", ",", str(data.get("rationale", "")))[:240]
+    rationale = re.sub(r"[,-]", ",", str(data.get("rationale", "")))[:240]
     return {"beneficiaries": tickers, "rationale": rationale, "basis": "model-inferred"}
 
 

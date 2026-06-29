@@ -44,7 +44,7 @@
   // it for static/offline mode and are overwritten at boot by GET /api/data/tiers
   // (see loadTierCatalog) so client and server can never drift. The server also
   // ENFORCES the cadence on /api/data/live, so this client copy is convenience
-  // only — it cannot be edited to refresh faster than the tier allows.
+  // only , it cannot be edited to refresh faster than the tier allows.
   const TIERS = {
     free:   { id: "free",   name: "Free",         refreshMin: 1440, price: "$0",     blurb: "Daily market briefing" },
     hourly: { id: "hourly", name: "Pro · Hourly", refreshMin: 60,   price: "$9/mo",  blurb: "Fresh prices every hour" },

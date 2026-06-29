@@ -101,6 +101,10 @@ def normalize(rows: list[dict]) -> list[dict]:
         txn_clean = "Sale" if "sale" in txn.lower() else ("Purchase" if "purchase" in txn.lower() or "buy" in txn.lower() else txn)
         chamber = "Senate" if str(row.get("Chamber", row.get("House", "")) or "").lower().startswith("s") else "House"
         size = str(row.get("Trade_Size_USD", "") or row.get("Amount", "") or "")
+        try:
+            excess = float(row.get("excess_return")) if row.get("excess_return") not in (None, "") else None
+        except Exception:
+            excess = None
         out.append({
             "Representative": rep,
             "BioGuideID": str(row.get("BioGuideID", "") or ""),
@@ -109,6 +113,7 @@ def normalize(rows: list[dict]) -> list[dict]:
             "Transaction": txn_clean,
             "Range": str(row.get("Range", "") or ""),
             "Amount": size,
+            "excess": excess,        # market-adjusted return %, for win-rate / avg-return stats
             "last_modified": str(row.get("Filed", "") or row.get("ReportDate", "") or "")[:10],
             "Chamber": chamber,
             "Party": party_abbr(row.get("Party", "")),
@@ -129,10 +134,29 @@ def _days_between(later: str, earlier: str) -> int | None:
         return None
 
 
+def _norm_name(s: str) -> str:
+    """Normalize a member name so variants (Nancy Pelosi vs Ms. Nancy Pelosi) merge."""
+    s = re.sub(r"^(mr|mrs|ms|dr|rep|sen|senator|representative)\.?\s+", "", str(s or "").strip(), flags=re.I)
+    s = re.sub(r"\b(jr|sr|ii|iii|iv|dr)\b\.?", "", s, flags=re.I)
+    return re.sub(r"\s+", " ", re.sub(r"[^a-z ]", "", s.lower())).strip()
+
+
+def _parse_amount(s: str) -> float:
+    """Disclosed amount range or value to a rough USD number (range midpoint)."""
+    nums = re.findall(r"[\d.]+", str(s or "").replace(",", ""))
+    vals = [float(x) for x in nums if x]
+    if not vals:
+        return 0.0
+    return (vals[0] + vals[1]) / 2 if len(vals) >= 2 else vals[0]
+
+
 def compute_counts(trades: list[dict], today: str) -> dict:
-    """Per-politician all-time + past-30-day trade counts and average disclosure
-    lag (days from transaction to disclosure) from the FULL history. These drive
-    accurate trade counts and the transparency/integrity scores downstream."""
+    """Per-politician stats from the FULL history, keyed by NORMALIZED name so
+    name variants merge (this is why Pelosi was undercounting at 174 vs the full
+    185). Computes: all-time + past-30-day counts, total volume, avg trade size,
+    win rate and avg market-adjusted return (from excess_return), last trade date,
+    and average disclosure lag."""
+    import statistics
     cutoff = ""
     try:
         cutoff = (datetime.strptime(today, "%Y-%m-%d") - timedelta(days=30)).strftime("%Y-%m-%d")
@@ -140,19 +164,44 @@ def compute_counts(trades: list[dict], today: str) -> dict:
         cutoff = ""
     agg: dict[str, dict] = {}
     for t in trades:
-        nm = t["Representative"]
-        a = agg.setdefault(nm, {"all_time": 0, "past_month": 0, "_lags": [], "bioguide": t.get("BioGuideID", ""), "party": t.get("Party", "")})
+        key = _norm_name(t["Representative"])
+        a = agg.setdefault(key, {"all_time": 0, "past_month": 0, "_lags": [], "_vol": 0.0,
+                                 "_wins": 0, "_losses": 0, "_excess": [], "last_trade": "",
+                                 "_tickers": set(),
+                                 "display_name": t["Representative"], "bioguide": t.get("BioGuideID", ""),
+                                 "party": t.get("Party", "")})
         a["all_time"] += 1
-        if cutoff and (t.get("Date") or "") >= cutoff:
+        if t.get("Ticker"):
+            a["_tickers"].add(t["Ticker"])
+        d = t.get("Date") or ""
+        if cutoff and d >= cutoff:
             a["past_month"] += 1
+        if d > a["last_trade"]:
+            a["last_trade"] = d
+        a["_vol"] += _parse_amount(t.get("Amount", ""))
+        ex = t.get("excess")
+        if isinstance(ex, (int, float)):
+            ex = max(-100.0, min(100.0, ex))   # winsorize
+            a["_excess"].append(ex)
+            if ex > 0:
+                a["_wins"] += 1
+            elif ex < 0:
+                a["_losses"] += 1
         lag = _days_between(t.get("last_modified", ""), t.get("Date", ""))
         if lag is not None:
             a["_lags"].append(lag)
     out = {}
-    for nm, a in agg.items():
-        lags = a.pop("_lags")
+    for key, a in agg.items():
+        lags = a.pop("_lags"); vol = a.pop("_vol"); ex = a.pop("_excess")
+        wins = a.pop("_wins"); losses = a.pop("_losses")
+        a["traded_tickers"] = sorted(a.pop("_tickers"))   # full set of tickers this member traded
+        n = a["all_time"]
+        a["total_volume"] = round(vol)
+        a["avg_trade_size"] = round(vol / n) if n else 0
+        a["win_rate"] = round(100 * wins / (wins + losses)) if (wins + losses) else None
+        a["avg_return_pct"] = round(statistics.mean(ex), 1) if ex else None
         a["avg_disclosure_lag_days"] = round(sum(lags) / len(lags), 1) if lags else None
-        out[nm] = a
+        out[key] = a
     return out
 
 

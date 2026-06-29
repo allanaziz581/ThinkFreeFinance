@@ -216,7 +216,10 @@ def main() -> int:
     items += fetch_fr("memorandum", "memo", 20)
     items += fetch_tariffs(20)
     items += fetch_laws(20)
-    items += fetch_news(15)
+    # RSS news layer intentionally dropped: it pulled in irrelevant "president"
+    # items (foreign presidents, church news, op-eds). The official Federal
+    # Register documents and signed laws above are the accurate US-executive feed.
+    # items += fetch_news(15)
 
     seen, deduped = set(), []
     for it in items:

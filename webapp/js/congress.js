@@ -178,7 +178,8 @@
     const isHouse = kind === "house";
     let people = (D.politicians || []).filter((p) => {
       const c = (p.chamber || "").toLowerCase();
-      return isHouse ? c.startsWith("h") : c.startsWith("s");
+      // House matches "house"/"rep"/"representative"; Senate matches "senate"/"sen".
+      return isHouse ? (c.startsWith("h") || c.startsWith("rep")) : (c.startsWith("s"));
     });
     if (!people.length) people = (D.politicians || []); // fallback: show all tracked
     // Scatter dots organically inside a circle using the golden-angle spiral.
@@ -385,7 +386,7 @@
       <div class="cd-hc-name">${E(s.name || st)}</div>
       <div class="cd-hc-meta">Governor: ${E(g[0])} · ${E(PARTY_NAME(g[1]))}</div>
       <div class="cd-hc-grid">
-        <div><span>Cost of Living</span><b>${m0(s.cost_of_living)}</b></div>
+        <div><span>Cost of Living</span><b style="color:${(s.cost_of_living||0)>110?"var(--danger)":(s.cost_of_living||0)>100?"var(--warning)":(s.cost_of_living||0)>90?"var(--info)":"var(--success)"}">${m0(Math.min(100, Math.round(s.cost_of_living||0)))}</b></div>
         <div><span>Median Income</span><b>${s.median_household_income ? "$" + Math.round(s.median_household_income).toLocaleString() : "n/a"}</b></div>
         <div><span>Poverty</span><b>${m0(s.poverty_rate, "%")}</b></div>
         <div><span>Unemployment</span><b>${m0(s.unemployment, "%")}</b></div>
@@ -475,7 +476,7 @@
         <div class="cd-card">
           <div class="iw-eyebrow">State Economy</div>
           <div class="cd-hc-grid">
-            <div><span>Cost of Living</span><b>${m0(s.cost_of_living)}</b></div>
+            <div><span>Cost of Living</span><b style="color:${(s.cost_of_living||0)>110?"var(--danger)":(s.cost_of_living||0)>100?"var(--warning)":(s.cost_of_living||0)>90?"var(--info)":"var(--success)"}">${m0(Math.min(100, Math.round(s.cost_of_living||0)))}</b></div>
             <div><span>Median Income</span><b>${inc}</b></div>
             <div><span>Poverty</span><b>${m0(s.poverty_rate, "%")}</b></div>
             <div><span>Unemployment</span><b>${m0(s.unemployment, "%")}</b></div>

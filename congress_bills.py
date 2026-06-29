@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-ThinkFree Finance — Congress.gov Bills Intelligence
+ThinkFree Finance , Congress.gov Bills Intelligence
 Phase 6.5 supplement: fetches recently enacted laws and pending bills, then
 correlates them with congressional stock trades by keyword matching
 company names, sectors, and policy topics within a 6-month window.
 
 TROUBLESHOOTING MARKERS:
-    [FETCH_LAWS]    — pulling enacted laws from /v3/law/119
-    [FETCH_BILLS]   — pulling recent pending bills from /v3/bill/119
-    [CORRELATE]     — matching bills to trader tickers via keyword map
-    [SAVE]          — writing congress_bills.json
+    [FETCH_LAWS]    , pulling enacted laws from /v3/law/119
+    [FETCH_BILLS]   , pulling recent pending bills from /v3/bill/119
+    [CORRELATE]     , matching bills to trader tickers via keyword map
+    [SAVE]          , writing congress_bills.json
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ BASE_DIR     = Path(__file__).parent
 OUTPUT_FILE  = BASE_DIR / "congress_bills.json"
 
 CONGRESS_API_KEY = os.getenv("CONGRESS_API_KEY", "")
-CURRENT_CONGRESS = 119   # 119th Congress: Jan 2025 – Jan 2027
+CURRENT_CONGRESS = 119   # 119th Congress: Jan 2025 - Jan 2027
 LOOKBACK_DAYS    = 180
 BASE_URL         = "https://api.congress.gov/v3"
 
@@ -138,7 +138,7 @@ TICKER_KEYWORDS: dict[str, list[str]] = {
     "COST":  ["costco", "retail", "membership", "wholesale"],
 }
 
-# Sector-level keywords — catches bills affecting a whole sector
+# Sector-level keywords , catches bills affecting a whole sector
 SECTOR_KEYWORDS: dict[str, list[str]] = {
     "Technology":             ["artificial intelligence", "AI", "semiconductor", "chip", "CHIPS", "tech", "cybersecurity", "data privacy", "broadband"],
     "Health Care":            ["drug pricing", "pharmaceutical", "medicare", "medicaid", "ACA", "Affordable Care", "prescription", "health insurance", "FDA"],
@@ -356,7 +356,7 @@ def main():
         trades = intel.get("housing_trades", [])
         print(f"[CORRELATE] Loaded {len(trades)} congressional trades for correlation.")
     else:
-        print("[CORRELATE] intelligence_output.json not found — correlating bills only.")
+        print("[CORRELATE] intelligence_output.json not found , correlating bills only.")
 
     correlations = correlate_bills_to_tickers(all_bills, trades)
 
@@ -394,8 +394,8 @@ def main():
     if correlations:
         print("\nTop correlated bills:")
         for c in correlations[:5]:
-            tickers = ", ".join(c["matched_tickers"]) or "—"
-            sectors = ", ".join(c["matched_sectors"]) or "—"
+            tickers = ", ".join(c["matched_tickers"]) or ","
+            sectors = ", ".join(c["matched_sectors"]) or ","
             print(f"  [{c['action_date']}] {c['title'][:80]}")
             print(f"    Tickers: {tickers}  |  Sectors: {sectors}")
             for tr in c["correlated_trades"][:3]:

@@ -83,7 +83,7 @@
     const lev = SUM.leverage_ratio_largest;
     const sevCls = (SUM.leverage_qoq_pct || 0) > 2 ? "down" : (SUM.leverage_qoq_pct || 0) < -2 ? "up" : "warn";
     return `<div class="card pad-lg">
-      <div class="card-head"><div class="card-title"><span class="dot"></span>Systemic Risk — Hedge Fund Positioning</div>
+      <div class="card-head"><div class="card-title"><span class="dot"></span>Systemic Risk , Hedge Fund Positioning</div>
         <div class="card-action" data-goto="hedgefund">Hedge Funds →</div></div>
       <div class="hf-snap">
         <div class="hf-stat"><div class="hf-stat-v">${esc(usd(SUM.gross_asset_value))}</div><div class="hf-stat-l">Gross assets</div></div>
@@ -91,7 +91,7 @@
         <div class="hf-stat"><div class="hf-stat-v">${lev == null ? "n/a" : lev.toFixed(1) + "x"} ${trendChip(SUM.leverage_qoq_pct)}</div><div class="hf-stat-l">Leverage (largest funds)</div></div>
       </div>
       <div class="hf-read ${sevCls}">${esc(SUM.systemic_read || "")}</div>
-      <div class="sample-note">Source: U.S. Office of Financial Research — Hedge Fund Monitor (Form PF), as of ${esc(SUM.as_of || HF.as_of || "n/a")}. Aggregate positioning only; not fund-specific.</div>
+      <div class="sample-note">Source: U.S. Office of Financial Research , Hedge Fund Monitor (Form PF), as of ${esc(SUM.as_of || HF.as_of || "n/a")}. Aggregate positioning only; not fund-specific.</div>
     </div>`;
   };
 
@@ -112,7 +112,7 @@
 
     return `
       <div class="page-head"><h2>Hedge Fund Positioning</h2>
-        <p>What hedge funds are doing in aggregate — size, leverage, and where their risk sits — from regulatory Form PF filings. A real systemic-risk read: crowded, highly-levered positioning is a classic stress signal.</p></div>
+        <p>What hedge funds are doing in aggregate , size, leverage, and where their risk sits , from regulatory Form PF filings. A real systemic-risk read: crowded, highly-levered positioning is a classic stress signal.</p></div>
 
       <div class="card pad-lg">
         <div class="card-head"><div class="card-title"><span class="dot"></span>Industry Size &amp; Leverage</div>
@@ -146,7 +146,7 @@
         </div>
         <div class="tf-methodology">
           <div class="tf-meth-title">Source &amp; method</div>
-          <p>Data: <a href="${esc(HF.source_url || "https://www.financialresearch.gov/hedge-fund-monitor/")}" target="_blank" rel="noopener">U.S. Office of Financial Research — Hedge Fund Monitor</a>, derived from SEC/CFTC Form PF filings. Free, public, no API key. ${esc(HF.count || 0)} series tracked; updated quarterly as filings are processed.</p>
+          <p>Data: <a href="${esc(HF.source_url || "https://www.financialresearch.gov/hedge-fund-monitor/")}" target="_blank" rel="noopener">U.S. Office of Financial Research , Hedge Fund Monitor</a>, derived from SEC/CFTC Form PF filings. Free, public, no API key. ${esc(HF.count || 0)} series tracked; updated quarterly as filings are processed.</p>
           <p class="faint">Informational. Describes aggregate hedge-fund positioning to illustrate systemic risk. It does not identify any individual fund or allege wrongdoing of any kind.</p>
         </div>
       </div>`;

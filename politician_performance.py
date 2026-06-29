@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ThinkFree Finance — Politician Trading Performance Calculator
+ThinkFree Finance , Politician Trading Performance Calculator
 Pre-computes estimated P&L for each congressional trade based on:
   - Disclosed dollar range midpoint (e.g. "$15,001 - $50,000" → ~$32,500)
   - Price on trade date vs current price (yfinance)
@@ -13,11 +13,11 @@ NOTE: Net worth data is not available via free public APIs.
       Actual amounts may differ significantly.
 
 TROUBLESHOOTING MARKERS:
-    [LOAD_TRADES]   — reading intelligence_output.json
-    [PRICE_FETCH]   — fetching historical prices via yfinance
-    [COMPUTE]       — calculating P&L per trade
-    [AGGREGATE]     — rolling up by politician
-    [SAVE]          — writing politician_performance.json
+    [LOAD_TRADES]   , reading intelligence_output.json
+    [PRICE_FETCH]   , fetching historical prices via yfinance
+    [COMPUTE]       , calculating P&L per trade
+    [AGGREGATE]     , rolling up by politician
+    [SAVE]          , writing politician_performance.json
 """
 
 from __future__ import annotations
@@ -72,7 +72,7 @@ def _build_ticker_history(tickers: list[str]) -> dict[str, "Any"]:
     """
     Download up to 5-year history for all tickers in ONE batch call per ticker.
     Returns dict: ticker → pd.Series (date index, close prices).
-    One API call per ticker — eliminates per-trade-date calls that cause rate limits.
+    One API call per ticker , eliminates per-trade-date calls that cause rate limits.
     """
     import pandas as pd  # noqa: PLC0415
     import yfinance as yf  # noqa: PLC0415
@@ -150,13 +150,13 @@ def main():
         if t.get("Ticker", t.get("ticker", ""))
     })
     print(f"[PRICE_FETCH] Downloading 5-year history for {len(unique_tickers)} tickers "
-          f"(one call per ticker — no rate limit issues)…")
+          f"(one call per ticker , no rate limit issues)…")
 
-    # ONE batch download per ticker — prices for all dates resolved in memory
+    # ONE batch download per ticker , prices for all dates resolved in memory
     ticker_history = _build_ticker_history(unique_tickers)
     print(f"[PRICE_FETCH] Done. {sum(1 for s in ticker_history.values() if not s.empty)} tickers with data.")
 
-    # [COMPUTE] Per-trade P&L — all lookups are in-memory now
+    # [COMPUTE] Per-trade P&L , all lookups are in-memory now
     trade_records: list[dict] = []
     for t in recent_trades:
         ticker    = t.get("Ticker", t.get("ticker", "")).upper()
@@ -282,7 +282,7 @@ def main():
     for r in summary_rows[:5]:
         pnl_str = f"${r['Est. P&L ($)']:+,.0f}" if r['Est. P&L ($)'] else "N/A"
         pct_str = f"{r['Est. Return (%)']:+.1f}%" if r['Est. Return (%)'] is not None else "N/A"
-        print(f"  {r['Politician']} ({r['Party']}, {r['State']}) — "
+        print(f"  {r['Politician']} ({r['Party']}, {r['State']}) , "
               f"{r['Trades (6mo)']} trades | Est. P&L: {pnl_str} | Return: {pct_str}")
 
 
