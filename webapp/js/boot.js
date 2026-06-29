@@ -61,9 +61,24 @@
     });
   }
 
-  // loadInOrder -- inject scripts one at a time so eval order is deterministic.
-  async function loadInOrder(list) {
-    for (var i = 0; i < list.length; i++) await injectScript(list[i]);
+  // loadInOrder -- inject ALL scripts at once with async=false. The browser then
+  // downloads them in PARALLEL but executes them in DOM (insertion) order, so the
+  // deterministic eval order the logic scripts rely on is preserved while the
+  // round-trips overlap. On mobile this turns ~12 sequential fetches into one
+  // parallel batch, a large first-paint win. Resolves once the last one runs.
+  function loadInOrder(list) {
+    return new Promise(function (resolve, reject) {
+      var remaining = list.length;
+      if (!remaining) return resolve();
+      list.forEach(function (src) {
+        var s = document.createElement("script");
+        s.src = src;
+        s.async = false;   // parallel download, in-order execution
+        s.onload = function () { if (--remaining === 0) resolve(); };
+        s.onerror = function () { reject(new Error("failed to load " + src)); };
+        document.body.appendChild(s);
+      });
+    });
   }
 
   // api -- thin JSON fetch helper. Always sends the session cookie (same-origin).
@@ -126,10 +141,13 @@
   // restores exactly the globals the data <script> tags used to define.
   async function populateData(mode) {
     if (mode === "server") {
-      var bundle = await api("/api/data/bundle");
+      // Fetch the core bundle and the live (prices + news) data in PARALLEL
+      // instead of one after the other, so first paint is not delayed by an
+      // extra serial round-trip.
+      var results = await Promise.all([api("/api/data/bundle"), api("/api/data/live")]);
+      var bundle = results[0], live = results[1];
       if (bundle.ok && bundle.data) Object.assign(window, bundle.data);
-      // Prices + news for the initial render. Honors server-side market-hours pause.
-      var live = await api("/api/data/live");
+      // Honors server-side market-hours pause.
       if (live.ok && live.data && !live.data.paused) Object.assign(window, live.data);
     } else {
       await loadInOrder(DATA_SCRIPTS); // each tag sets its window.* global

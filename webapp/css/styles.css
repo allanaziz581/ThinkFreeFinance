@@ -1566,14 +1566,22 @@ body.tf-tp-open .tf-theme-panel { transform: translateX(0); }
   :root { --page-pad: 14px; }
 
   /* ---- hard containment: nothing exceeds the viewport width ---- */
-  html, body { max-width: 100%; overflow-x: hidden; }
+  /* Lock the page itself: only the inner .viewport scrolls. This prevents the
+     classic mobile-browser bug where a non-sticky header is scrolled off the top
+     when 100vh exceeds the visible area (dynamic toolbar). The header then
+     becomes unreachable, trapping the user (seen on the Money Trail screen).
+     Using 100dvh sizes the shell to the ACTUAL visible height on phones. */
+  html, body { max-width: 100%; overflow-x: hidden; overflow-y: hidden; height: 100%; }
   .app {
     grid-template-columns: 1fr;
     grid-template-rows: 100vh;
-    width: 100%; max-width: 100%; overflow-x: hidden;
+    grid-template-rows: 100dvh;
+    height: 100vh; height: 100dvh;
+    width: 100%; max-width: 100%; overflow: hidden;
   }
-  .main { width: 100%; max-width: 100%; min-width: 0; overflow-x: hidden; }
-  .viewport { padding: 14px; max-width: 100%; overflow-x: hidden; }
+  .main { width: 100%; max-width: 100%; min-width: 0; height: 100vh; height: 100dvh; overflow: hidden; }
+  /* the only scroll container on mobile, so the header above it stays put */
+  .viewport { padding: 14px; max-width: 100%; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .page { max-width: 100%; overflow-x: hidden; }
   /* let flex / grid children shrink instead of forcing the row wider */
   .viewport .card, .viewport [class*="-row"], .viewport [class*="-head"],
@@ -1669,3 +1677,45 @@ body.tf-tp-open .tf-theme-panel { transform: translateX(0); }
   }
   .econ-cards { grid-template-columns: repeat(2, 1fr) !important; }
 }
+
+/* ============================================================
+   SCROLL PERFORMANCE  (issue: janky chunked scroll on mobile)
+   content-visibility lets the browser skip layout/paint for the
+   offscreen repeating rows/cards, so long lists scroll smoothly.
+   contain-intrinsic-size reserves an estimated height so the
+   scrollbar does not jump. Offscreen-only, so desktop is unaffected.
+   ============================================================ */
+.susp-row { content-visibility: auto; contain-intrinsic-size: auto 64px; }
+.feed-item { content-visibility: auto; contain-intrinsic-size: auto 96px; }
+.econ-card { content-visibility: auto; contain-intrinsic-size: auto 150px; }
+.evb-card { content-visibility: auto; contain-intrinsic-size: auto 130px; }
+.tf tbody tr { content-visibility: auto; contain-intrinsic-size: auto 44px; }
+/* politician/legislator images keep fixed dimensions so they never reflow the
+   list as they load (set in their own rules); reserve space for late loads. */
+.pf-photo, .leg-av img, .leg-ini { background: var(--bg-inner); }
+
+@media (max-width: 768px) {
+  /* reels fit the dynamic viewport so the header is never pushed off */
+  .pres-reels { height: calc(100dvh - 210px); min-height: 360px; }
+}
+
+/* ============================================================
+   INITIAL LOAD INDICATOR  (shown during the data/bundle fetch)
+   Themed dark overlay + spinner so a slow first load (cold server)
+   never looks like a frozen blank screen.
+   ============================================================ */
+.tf-loading {
+  position: fixed; inset: 0; z-index: 300;
+  display: grid; place-items: center;
+  background: var(--bg-primary);
+}
+.tf-loading-box { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.tf-spinner {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 3px solid var(--border-soft);
+  border-top-color: var(--info);
+  animation: tf-spin .8s linear infinite;
+}
+.tf-loading-msg { color: var(--text-secondary); font-size: 13.5px; letter-spacing: .01em; }
+@keyframes tf-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .tf-spinner { animation-duration: 2s; } }

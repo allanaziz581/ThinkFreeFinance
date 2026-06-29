@@ -21,14 +21,22 @@ const initials = (name) => String(name || "?").split(" ").map((w) => w[0]).slice
 const colorFor = (v) => (v > 0 ? "up" : v < 0 ? "down" : "");
 const pct = (v) => `${v > 0 ? "+" : ""}${Number(v).toFixed(2)}%`;
 
-/* Local headshot path; falls back to initials placeholder if file missing.
-   Photos extracted/downloaded by webapp/fetch_politician_photos.py -> assets/politicians/{bioguide}.jpg */
+/* Politician headshot. Tries the committed local photo first, then the public
+   unitedstates.github.io congress photo, then a clean initials avatar. The
+   fallback chain is driven by the delegated `error` handler in init() (data-src2
+   / data-ini); we do NOT use an inline onerror because the server CSP is
+   `script-src 'self'` and would block inline handlers, which is exactly why
+   broken-image icons were showing. img-src allows https:, so the remote works. */
 function photoEl(name, bioguide, cls = "pf-photo") {
+  const ini = esc(initials(name));
   if (bioguide) {
-    return `<img class="${cls}" src="assets/politicians/${esc(bioguide)}.jpg" alt="${esc(name)}"
-      onerror="this.outerHTML='<div class=\\'${cls} placeholder\\'>${esc(initials(name))}</div>'" />`;
+    const bg = esc(bioguide);
+    return `<img class="${cls} pol-img" alt="${esc(name)}" loading="lazy"
+      src="assets/politicians/${bg}.jpg"
+      data-src2="https://unitedstates.github.io/images/congress/225x275/${bg}.jpg"
+      data-ini="${ini}" data-phcls="${esc(cls)} placeholder" />`;
   }
-  return `<div class="${cls} placeholder">${esc(initials(name))}</div>`;
+  return `<div class="${cls} placeholder">${ini}</div>`;
 }
 
 /* SVG radial gauge. value 0..max */
@@ -1896,7 +1904,9 @@ function renderLegDetail(ab) {
   };
   const rosterChip = (p) => {
     const ph = photos[osKey(p.name)];
-    const av = ph && ph.image ? `<img src="${esc(ph.image)}" alt="Photo of ${esc(p.name)}" loading="lazy" onerror="this.style.display='none'">` : `<span class="leg-ini" style="background:${partyColor(p.party)}">${esc(initials(p.name))}</span>`;
+    const av = ph && ph.image
+      ? `<img class="pol-img" src="${esc(ph.image)}" alt="Photo of ${esc(p.name)}" loading="lazy" data-ini="${esc(initials(p.name))}" data-phcls="leg-ini" data-phstyle="background:${esc(partyColor(p.party))}">`
+      : `<span class="leg-ini" style="background:${esc(partyColor(p.party))}">${esc(initials(p.name))}</span>`;
     const nm = ph && ph.url ? `<a href="${esc(ph.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name);
     return `<div class="leg-chip"><div class="leg-av">${av}</div><div class="leg-chip-main"><div class="leg-chip-name">${nm}</div><div class="faint">${esc(p.party)} · ${esc(p.chamber)} ${esc(p.district || "")}</div></div></div>`;
   };
@@ -2189,6 +2199,22 @@ function init() {
   if (navToggle) navToggle.addEventListener("click", () => setNav(!document.body.classList.contains("nav-open")));
   if (navBackdrop) navBackdrop.addEventListener("click", () => setNav(false));
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") setNav(false); });
+
+  // Photo fallback. The server CSP is `script-src 'self'`, which blocks inline
+  // onerror handlers, so a failed politician/legislator headshot would otherwise
+  // show a broken-image icon. Handle the error here (capture phase, since error
+  // events do not bubble): try the remote unitedstates.github.io photo once, then
+  // swap in a clean initials avatar styled in the dark theme.
+  document.addEventListener("error", (e) => {
+    const img = e.target;
+    if (!(img instanceof HTMLImageElement) || img.dataset.ini == null) return;
+    if (img.dataset.src2) { const next = img.dataset.src2; delete img.dataset.src2; img.src = next; return; }
+    const ph = document.createElement(img.dataset.phcls === "leg-ini" ? "span" : "div");
+    ph.className = img.dataset.phcls || ((img.className || "").replace("pol-img", "").trim() + " placeholder");
+    if (img.dataset.phstyle) ph.setAttribute("style", img.dataset.phstyle);
+    ph.textContent = img.dataset.ini;
+    if (img.parentNode) img.parentNode.replaceChild(ph, img);
+  }, true);
 
   // nav clicks
   document.getElementById("nav").addEventListener("click", (e) => {

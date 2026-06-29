@@ -278,17 +278,33 @@
   async function unlock(animated) {
     unlocked = true;                                   // stops the tamper-guard from re-locking
     killSplash();
+    // Loading feedback. On a fresh (animated) login the gate shows the welcome
+    // card while the data loads. For a returning session there is no gate, so
+    // without this the user stared at a blank screen for the whole data load
+    // (which can be many seconds on a cold server). Show a themed spinner so it
+    // never looks frozen.
+    let loadingOv = null;
     if (animated && gate) {
       gate.innerHTML = `<div class="auth-unlocked"><div class="auth-check">&#10003;</div>
         <div class="auth-welcome">Welcome${currentUser && currentUser.name ? ", " + E(currentUser.name) : ""}</div>
         <div class="auth-welcome-sub">Unlocking your dashboard</div></div>`;
+    } else {
+      loadingOv = document.createElement("div");
+      loadingOv.className = "tf-loading";
+      loadingOv.setAttribute("role", "status");
+      loadingOv.setAttribute("aria-live", "polite");
+      loadingOv.innerHTML = `<div class="tf-loading-box"><div class="tf-spinner" aria-hidden="true"></div>`
+        + `<div class="tf-loading-msg">Loading your intelligence briefing</div></div>`;
+      document.body.appendChild(loadingOv);
     }
     try {
       if (window.TFBoot && window.TFBoot.ensureAppLoaded) await window.TFBoot.ensureAppLoaded();
     } catch (e) {
+      if (loadingOv) loadingOv.remove();
       err && err("Could not load your dashboard. Please refresh and try again.");
       return;
     }
+    if (loadingOv) loadingOv.remove();
     applyA11y(currentUser && currentUser.a11y);        // honor the user's accessibility preference
     if (window.TF && window.TF.init) window.TF.init(); // build/render the app (guarded; no-op after first login)
     if (window.TF && window.TF.onRefresh) window.TF.onRefresh(); // refresh greeting/views for this account
