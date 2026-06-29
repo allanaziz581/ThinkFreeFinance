@@ -1,0 +1,85 @@
+# ThinkFree Finance - Render Blueprint.
+#
+# Provisions the FastAPI backend, which serves the static app shell and the
+# pre-built datasets in private_data/ (rebuilt from the committed webapp/js/*_data.js
+# snapshots during the build). No data-pipeline work runs in the web service.
+#
+# Secrets are declared with `sync: false` so they are NEVER stored in this file or
+# in git: set them in the Render dashboard, or via the Render API. Only the two
+# non-secret toggles below carry literal values.
+#
+# How to deploy from this blueprint:
+#   Render dashboard -> New -> Blueprint -> connect the ThinkFreeFinance repo
+#   (branch main). Render reads this file and provisions the service, then prompts
+#   for the `sync: false` env var values.
+
+services:
+  - type: web
+    name: thinkfree
+    runtime: python
+    plan: starter            # 512MB is plenty: it serves pre-built JSON, runs no pipeline
+    region: oregon
+    branch: main
+    autoDeploy: true
+    # Reinstall server deps and rebuild private_data/ from the committed *_data.js
+    # snapshots so the gated /api/data/* endpoints have data to serve.
+    buildCommand: "pip install -r server/requirements.txt && python scripts/extract_data_to_json.py"
+    # main.py uses bare imports (import config, import db, ...), so the app dir is
+    # server/ and the module is main:app.
+    startCommand: "uvicorn main:app --app-dir server --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /healthz
+    envVars:
+      # --- non-secret toggles (safe to commit) ---
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: TF_PRODUCTION
+        value: "1"           # Secure cookies + HSTS + HTTPS redirect
+      # --- secrets / per-deploy values: set in the dashboard or via the API ---
+      - key: TF_SECRET_KEY          # session signing key; the app refuses to boot without a real one
+        sync: false
+      - key: TF_BETA_KEY            # closed-beta invite key
+        sync: false
+      - key: TF_ALLOWED_ORIGINS     # set to the live Render URL, e.g. https://thinkfree.onrender.com
+        sync: false
+      # API keys (used by the data builders / future refresh worker; not required to serve)
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: FINNHUB_API_KEY
+        sync: false
+      - key: QUIVERQUANT_API_KEY
+        sync: false
+      - key: CONGRESS_API_KEY
+        sync: false
+      - key: FRED_API_KEY
+        sync: false
+      - key: FEC_API_KEY
+        sync: false
+      - key: CENSUS_API_KEY
+        sync: false
+      - key: LEGISCAN_API_KEY
+        sync: false
+      - key: OPENSTATES_API_KEY
+        sync: false
+      - key: EIA_API_KEY
+        sync: false
+      - key: BEA_API_KEY
+        sync: false
+      - key: BLS_API_KEY
+        sync: false
+      - key: SECAPI_IO_KEY
+        sync: false
+      # Stripe billing seam (stubbed; leave unset to keep billing inert)
+      - key: TF_STRIPE_SECRET_KEY
+        sync: false
+      - key: TF_STRIPE_WEBHOOK_SECRET
+        sync: false
+
+# NOTE on automated data refresh (the scheduler):
+#   A Render Cron Job is intentionally NOT defined here. The refresh builders write
+#   webapp/js/*_data.js + private_data/, but a Render cron runs on an ephemeral,
+#   separate filesystem and cannot persist that output back to the web service
+#   without a shared persistent disk, and some builders pull heavier deps. The
+#   clean paths are: (a) run the scheduler on a worker that shares a Render Disk
+#   mounted into the web service, or (b) refresh locally and commit the updated
+#   *_data.js snapshots, which auto-deploys. Pick one before relying on live
+#   refresh in production.

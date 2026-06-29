@@ -137,6 +137,13 @@ def healthz():
     return {"ok": True}
 
 
+@app.get("/api/healthz")
+def api_healthz():
+    """Same liveness check under /api. The front-end's boot.js probes this exact
+    path to decide server vs static mode, so it must answer ok in server mode."""
+    return {"ok": True}
+
+
 @app.get("/")
 def index():
     """Serve the app shell. The shell contains no data and no secrets; it fetches
