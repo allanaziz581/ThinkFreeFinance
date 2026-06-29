@@ -51,6 +51,22 @@ git config user.name  "ThinkFree Refresh Bot"
 git fetch origin main -q 2>/dev/null
 git checkout -B main origin/main 2>/dev/null || git checkout main 2>/dev/null
 
+# ---- 0.5) synthesize .env from the injected env vars -------------------------
+# The data builders read API keys from a .env FILE (some have no os.environ
+# fallback, and build_prices even errors if the file is missing). On Render the
+# keys arrive as environment variables and there is no .env file, so write one
+# from them. .env is gitignored and the commit step below only stages *_data.js,
+# so this never reaches git. OPENAI_API_KEY and GITHUB_TOKEN are deliberately
+# NOT written here (no OpenAI builder runs; the token is used only for git auth).
+: > .env
+for k in FINNHUB_API_KEY QUIVERQUANT_API_KEY CONGRESS_API_KEY FRED_API_KEY FEC_API_KEY \
+         CENSUS_API_KEY LEGISCAN_API_KEY OPENSTATES_API_KEY EIA_API_KEY BEA_API_KEY \
+         BLS_API_KEY SECAPI_IO_KEY; do
+  v="$(printenv "$k" 2>/dev/null || true)"
+  [ -n "$v" ] && printf '%s=%s\n' "$k" "$v" >> .env
+done
+log "synthesized .env with $(wc -l < .env | tr -d ' ') data-source keys"
+
 # ---- 1) FREE / CHEAP builders (order matters for the aggregators) ------------
 run "prices (Finnhub)"            webapp/build_prices.py
 run "congress bills + laws"       congress_bills.py
