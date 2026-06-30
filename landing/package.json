@@ -1,0 +1,25 @@
+{
+  "name": "thinkfree-landing",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ThinkFree public marketing landing (React + Vite + Tailwind + Framer Motion). Built to webapp/landing-dist and served at / by FastAPI. Fully isolated from the app.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource/inter": "5.0.18",
+    "framer-motion": "11.3.8",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "4.3.1",
+    "autoprefixer": "10.4.19",
+    "postcss": "8.4.39",
+    "tailwindcss": "3.4.7",
+    "vite": "5.4.0"
+  }
+}

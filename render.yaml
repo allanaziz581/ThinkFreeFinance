@@ -21,9 +21,12 @@ services:
     region: oregon
     branch: main
     autoDeploy: true
-    # Reinstall server deps and rebuild private_data/ from the committed *_data.js
-    # snapshots so the gated /api/data/* endpoints have data to serve.
-    buildCommand: "pip install -r server/requirements.txt && python scripts/extract_data_to_json.py"
+    # Reinstall server deps, rebuild private_data/ from the committed *_data.js
+    # snapshots so the gated /api/data/* endpoints have data to serve, then compile
+    # the public landing (React/Vite) into webapp/landing-dist/. The landing build
+    # is best-effort (the compiled bundle is also committed) so it can never fail
+    # the deploy; see scripts/build_landing.sh.
+    buildCommand: "pip install -r server/requirements.txt && python scripts/extract_data_to_json.py && bash scripts/build_landing.sh"
     # main.py uses bare imports (import config, import db, ...), so the app dir is
     # server/ and the module is main:app.
     startCommand: "uvicorn main:app --app-dir server --host 0.0.0.0 --port $PORT"

@@ -118,6 +118,37 @@ app.add_middleware(
 # the data is only reachable through the authenticated /api/data/* endpoints.
 _BLOCKED_SUFFIXES = ("_data.js", "news_intel.js", "member_bills.js")
 
+# ---------------------------------------------------------------------------
+# Content-Security-Policy: two scoped policies, never one relaxed global one.
+# ---------------------------------------------------------------------------
+# _APP_CSP is the application's policy and is applied to EVERY route except the
+# public landing ("/" and "/landing/*"). It is intentionally byte-for-byte the
+# same string the app has always shipped, so the app/API security posture is
+# unchanged by adding the landing.
+#
+# _LANDING_CSP applies ONLY to the React/Vite landing. It is equal-or-stricter
+# than the app policy: scripts and styles stay 'self' (the production bundle has
+# no inline scripts; Framer only sets inline style attributes, already covered by
+# style-src 'unsafe-inline'), it self-hosts fonts (font-src 'self' data:), and it
+# does NOT include the app's dns.google connect-src exception. It relaxes nothing
+# the app relies on and is scoped so it can never reach an app or /api route.
+_APP_CSP = (
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+    "img-src 'self' data: https:; connect-src 'self' https://dns.google; "
+    "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+)
+_LANDING_CSP = (
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+    "img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; "
+    "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+)
+
+
+def _is_landing_path(path: str) -> bool:
+    """True only for the public marketing landing routes (the static React app).
+    Everything else - /app, /css, /js, /api/*, health checks - is the app."""
+    return path == "/" or path.startswith("/landing/")
+
 # Coarse global per-IP request throttle: a baseline against floods, scraping, and
 # credential-stuffing bursts that sit underneath the precise per-endpoint limits
 # in auth.py. In-memory and per-process (single-worker beta); a multi-worker or
@@ -174,11 +205,8 @@ async def security_and_blocklist(request: Request, call_next):
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
     # Scripts only from our own origin; inline styles are allowed because the UI
     # uses many style="" attributes. Images may come from data: URIs and https.
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data: https:; connect-src 'self' https://dns.google; "
-        "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
-    )
+    # The landing gets its own scoped policy; the app keeps its exact policy.
+    response.headers["Content-Security-Policy"] = _LANDING_CSP if _is_landing_path(path) else _APP_CSP
     if config.PRODUCTION:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     return response
@@ -187,6 +215,15 @@ async def security_and_blocklist(request: Request, call_next):
 # Static assets: the UI's CSS and logic JS (the data files are blocked above).
 app.mount("/css", StaticFiles(directory=config.WEBAPP_DIR / "css"), name="css")
 app.mount("/js", StaticFiles(directory=config.WEBAPP_DIR / "js"), name="js")
+
+# The public landing is a self-contained React/Vite bundle built to
+# webapp/landing-dist/ (its hashed assets live under /landing/assets/*). It shares
+# no code, data, or auth with the app. Mounted only when the build is present so
+# a missing bundle degrades to the legacy static landing instead of failing boot.
+_LANDING_DIST = config.WEBAPP_DIR / "landing-dist"
+_LANDING_INDEX = _LANDING_DIST / "index.html"
+if _LANDING_DIST.is_dir():
+    app.mount("/landing", StaticFiles(directory=_LANDING_DIST), name="landing")
 
 
 @app.get("/healthz")
@@ -204,8 +241,12 @@ def api_healthz():
 
 @app.get("/")
 def landing():
-    """Public marketing landing page (no auth, no data, no secrets). Its Log in /
-    Get started buttons point at /app, which is the existing application shell."""
+    """Public marketing landing page (no auth, no data, no secrets). Served as the
+    compiled React/Vite bundle when present, falling back to the legacy static
+    landing otherwise. Its Log in / Get started buttons point at /app, the app
+    shell. This route is covered by the scoped _LANDING_CSP, not the app CSP."""
+    if _LANDING_INDEX.is_file():
+        return FileResponse(_LANDING_INDEX)
     return FileResponse(config.WEBAPP_DIR / "landing.html")
 
 

@@ -13,6 +13,12 @@ venv_qlib/
 .venv/
 env/
 
+# ── Landing (React/Vite) build tooling ──
+# node_modules is never deployed; the COMPILED bundle in webapp/landing-dist/ IS
+# committed and served by FastAPI at /. Do not ignore landing-dist.
+landing/node_modules/
+landing/.vite/
+
 # ── Python caches / build ──
 __pycache__/
 *.pyc
