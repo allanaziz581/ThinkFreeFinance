@@ -1647,11 +1647,16 @@ body.tf-tp-open .tf-theme-panel { transform: translateX(0); }
   /* ---- every multi-column grid collapses to one column on phones ---- */
   .cols-2, .cols-3, .cols-4, .qa-grid, .sector-sum, .gimp-dim-grid,
   .law-grid, .evb-grid, .hf-snap, .hf-snap.wide, .profile-stats,
-  .econ-modal-stats, .grid, .dc-kpis, .dc-weights {
+  .econ-modal-stats, .grid, .dc-kpis, .dc-weights, .two-col {
     grid-template-columns: 1fr !important;
   }
   .econ-cards { grid-template-columns: 1fr !important; }
   .gi-row, .hf-bar-row, .cd-gen-mini { gap: 8px; }
+  /* grid/flex cells must be allowed to shrink below their content's min-content,
+     otherwise a wide child (a min-width table) blows the row out and pushes the
+     page sideways. The .two-col cells hold the Top Donors / Outside Spending
+     tables; without this they refuse to narrow and cause page-level scroll. */
+  .two-col > * { min-width: 0; }
 
   /* ---- wide media scrolls within its own box, never the page ---- */
   img, svg, video, canvas, iframe { max-width: 100%; }
@@ -1675,9 +1680,13 @@ body.tf-tp-open .tf-theme-panel { transform: translateX(0); }
   .page-head p { font-size: 12.5px; }
 
   /* ---- modal near full width on phones ---- */
-  .modal-overlay { padding: 12px; align-items: flex-start; }
-  .modal { max-width: 100%; }
-  .modal-content { padding: 18px 16px; }
+  .modal-overlay { padding: 12px; align-items: flex-start; overflow-x: hidden; }
+  /* Hard containment: nothing inside any modal (bill detail, stock detail,
+     politician profile, historical event, case file) may push page-level
+     horizontal scroll. Wide tables still scroll inside their own .tbl-scroll box. */
+  .modal { max-width: 100%; min-width: 0; overflow-x: hidden; }
+  .modal-content { padding: 18px 16px; max-width: 100%; min-width: 0; overflow-x: hidden; }
+  .modal-content > * { min-width: 0; max-width: 100%; }
 
   /* ---- InfluenceWeb graph: contain it; pull the absolutely-placed UI in ---- */
   .iw-breadcrumb { left: 12px; right: 12px; top: 10px; }
