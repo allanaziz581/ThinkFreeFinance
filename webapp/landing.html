@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThinkFree Finance, Map the influence. See the math.</title>
+  <meta name="description" content="ThinkFree maps how Congress, companies, congressional trades, government contracts, and lobbying connect, then runs transparent quantitative analysis and translates it into plain English." />
+  <style>
+    :root {
+      --bg: #121016; --bg-2: #15121C; --card: #13111A; --card-2: #100E16;
+      --text: #F1F5F9; --text-2: #94A3B8; --text-3: #64748B;
+      --accent: #38BDF8; --accent-2: #2A93C9; --accent-dim: rgba(56,189,248,0.14);
+      --good: #00C46A; --warn: #F59E0B; --danger: #EF4444;
+      --border: rgba(148,163,184,0.16); --border-2: rgba(148,163,184,0.28);
+      --maxw: 1080px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { max-width: 100%; overflow-x: hidden; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      line-height: 1.5; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+    }
+    a { color: inherit; text-decoration: none; }
+    .wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 22px; }
+
+    /* ---- nav ---- */
+    .lp-nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(10px); background: rgba(18,16,22,0.72);
+      border-bottom: 1px solid var(--border);
+    }
+    .lp-nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+    .lp-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .lp-logo {
+      width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid; place-items: center; font-weight: 900; font-size: 14px; color: #04121f;
+    }
+    .lp-brand-name { font-weight: 800; font-size: 16px; letter-spacing: -0.01em; white-space: nowrap; }
+    .lp-brand-name span { color: var(--accent); }
+    .lp-nav-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      font-weight: 600; font-size: 14px; white-space: nowrap; cursor: pointer;
+      border-radius: 999px; padding: 9px 18px; border: 1px solid transparent;
+      transition: transform .12s ease, background .15s, border-color .15s, color .15s;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #04121f; }
+    .btn-primary:hover { filter: brightness(1.06); }
+    .btn-ghost { background: transparent; border-color: var(--border-2); color: var(--text); }
+    .btn-ghost:hover { background: rgba(148,163,184,0.08); }
+    .btn-lg { padding: 13px 26px; font-size: 15.5px; }
+
+    /* ---- hero ---- */
+    .lp-hero { position: relative; overflow: hidden; isolation: isolate; }
+    #lp-net { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; display: block; }
+    .lp-hero::after {
+      content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      background: radial-gradient(1100px 520px at 50% -10%, rgba(56,189,248,0.16), transparent 60%),
+                  linear-gradient(180deg, rgba(18,16,22,0.10), var(--bg) 92%);
+    }
+    .lp-hero-inner { padding: 92px 0 104px; text-align: center; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase;
+      color: var(--accent); background: var(--accent-dim);
+      border: 1px solid rgba(56,189,248,0.3); border-radius: 999px; padding: 6px 14px; margin-bottom: 22px;
+    }
+    h1.lp-h1 {
+      font-size: clamp(34px, 8.5vw, 66px); font-weight: 850; letter-spacing: -0.03em; line-height: 1.04;
+    }
+    h1.lp-h1 .grad {
+      background: linear-gradient(120deg, var(--accent), #7DD3FC 55%, var(--accent-2));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .lp-sub { max-width: 640px; margin: 22px auto 0; color: var(--text-2); font-size: clamp(15px, 4.2vw, 19px); }
+    .lp-hero-cta { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 34px; }
+    .lp-trust { margin-top: 26px; color: var(--text-3); font-size: 12.5px; }
+
+    /* ---- generic section ---- */
+    section.block { padding: 72px 0; border-top: 1px solid var(--border); position: relative; }
+    .kicker { color: var(--accent); font-weight: 700; font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; }
+    h2.lp-h2 { font-size: clamp(26px, 6.4vw, 42px); font-weight: 820; letter-spacing: -0.02em; line-height: 1.08; margin-top: 12px; }
+    .lead { color: var(--text-2); font-size: clamp(15px, 4vw, 18px); margin-top: 16px; max-width: 620px; }
+
+    /* reveal on scroll */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); will-change: opacity, transform; }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* pillar 1: influence map */
+    .pillar-grid { display: grid; grid-template-columns: 1fr; gap: 28px; align-items: center; }
+    .imap-visual {
+      position: relative; border: 1px solid var(--border); border-radius: 18px; overflow: hidden;
+      background: radial-gradient(420px 280px at 50% 30%, rgba(56,189,248,0.10), var(--card-2));
+      aspect-ratio: 16 / 11; max-width: 100%;
+    }
+    #lp-map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .imap-tag { position: absolute; bottom: 12px; left: 12px; right: 12px; font-size: 11.5px; color: var(--text-3); }
+    .chain { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+    .chain-step {
+      font-size: 12.5px; font-weight: 600; color: var(--text-2); white-space: nowrap; flex-shrink: 0;
+      background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 6px 13px;
+    }
+    .chain-step b { color: var(--accent); }
+
+    /* pillar 2: quant */
+    .quant-lead { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+    .quant-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 30px; }
+    .qcard { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; min-width: 0; }
+    .qcard h3 { font-size: 16.5px; font-weight: 750; letter-spacing: -0.01em; }
+    .qcard p { color: var(--text-2); font-size: 13.5px; margin-top: 7px; }
+    .qmetrics { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    .qmetric { font-size: 11.5px; font-weight: 600; white-space: nowrap; flex-shrink: 0; color: var(--accent); background: var(--accent-dim); border: 1px solid rgba(56,189,248,0.25); border-radius: 7px; padding: 3px 9px; font-variant-numeric: tabular-nums; }
+    .qnote { margin-top: 22px; color: var(--text-3); font-size: 13px; max-width: 640px; }
+
+    /* supporting cards */
+    .support-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 30px; }
+    .scard { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 22px; min-width: 0; }
+    .scard .sico { width: 40px; height: 40px; border-radius: 11px; background: var(--accent-dim); color: var(--accent); display: grid; place-items: center; margin-bottom: 14px; }
+    .scard .sico svg { width: 22px; height: 22px; }
+    .scard h3 { font-size: 17px; font-weight: 750; }
+    .scard p { color: var(--text-2); font-size: 13.5px; margin-top: 7px; }
+
+    /* final cta */
+    .lp-cta-box {
+      text-align: center; border: 1px solid var(--border-2); border-radius: 22px; padding: 56px 26px;
+      background: radial-gradient(700px 340px at 50% 0%, rgba(56,189,248,0.12), var(--card-2));
+    }
+    .lp-cta-box h2 { font-size: clamp(26px, 6.6vw, 40px); font-weight: 820; letter-spacing: -0.02em; }
+    .lp-cta-box p { color: var(--text-2); margin: 14px auto 0; max-width: 520px; font-size: 16px; }
+    .lp-cta-box .lp-hero-cta { margin-top: 28px; }
+
+    /* footer */
+    .lp-foot { border-top: 1px solid var(--border); padding: 40px 0 56px; color: var(--text-3); font-size: 12.5px; }
+    .lp-foot .disc { max-width: 720px; line-height: 1.6; }
+    .lp-foot .row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+
+    @media (min-width: 760px) {
+      .pillar-grid { grid-template-columns: 1fr 1fr; gap: 44px; }
+      .quant-grid { grid-template-columns: 1fr 1fr; }
+      .support-grid { grid-template-columns: repeat(3, 1fr); }
+      .lp-hero-inner { padding: 120px 0 130px; }
+    }
+    @media (min-width: 980px) {
+      .quant-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal { transition: none; opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="lp-nav">
+    <div class="wrap lp-nav-inner">
+      <a class="lp-brand" href="/" aria-label="ThinkFree home">
+        <span class="lp-logo">TF</span>
+        <span class="lp-brand-name">Think<span>Free</span></span>
+      </a>
+      <div class="lp-nav-actions">
+        <a class="btn btn-ghost" href="/app">Log in</a>
+        <a class="btn btn-primary" href="/app">Get started</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section class="lp-hero">
+    <canvas id="lp-net" aria-hidden="true"></canvas>
+    <div class="wrap lp-hero-inner">
+      <span class="eyebrow">Influence, decoded</span>
+      <h1 class="lp-h1">Map the influence.<br /><span class="grad">See the math.</span></h1>
+      <p class="lp-sub">ThinkFree maps how Congress, companies, congressional trades, government contracts, and lobbying connect, then runs transparent quantitative analysis and translates it into plain English.</p>
+      <div class="lp-hero-cta">
+        <a class="btn btn-primary btn-lg" href="/app">Open the app</a>
+        <a class="btn btn-ghost btn-lg" href="#influence">See how it works</a>
+      </div>
+      <div class="lp-trust">Informational research, not financial advice. Built on public records.</div>
+    </div>
+  </section>
+
+  <!-- ============ PILLAR 1: THE INFLUENCE MAP ============ -->
+  <section class="block" id="influence">
+    <div class="wrap">
+      <div class="pillar-grid">
+        <div class="reveal">
+          <div class="kicker">The signature view</div>
+          <h2 class="lp-h2">The Influence Map</h2>
+          <p class="lead">A living map of the connections between Congress, companies, congressional trades, government contracts, and lobbying. Tap a sector and its companies branch out across the graph. Follow the money from a law to who it pays, who knew, and who traded.</p>
+          <div class="chain" aria-label="The chain of evidence">
+            <span class="chain-step"><b>1</b> The law</span>
+            <span class="chain-step"><b>2</b> Who it pays</span>
+            <span class="chain-step"><b>3</b> Who knew</span>
+            <span class="chain-step"><b>4</b> Who traded</span>
+            <span class="chain-step"><b>5</b> The payoff</span>
+            <span class="chain-step"><b>6</b> The pattern</span>
+          </div>
+        </div>
+        <div class="reveal imap-visual">
+          <canvas id="lp-map" aria-hidden="true"></canvas>
+          <div class="imap-tag">A live network of sectors, companies, and Congress. Connections trace back to public disclosures.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PILLAR 2: PREDICTIVE MODELING / QUANT ============ -->
+  <section class="block" id="quant">
+    <div class="wrap">
+      <div class="reveal">
+        <div class="kicker">The substance</div>
+        <div class="quant-lead">
+          <h2 class="lp-h2">Predictive modeling, powered by quant and math</h2>
+        </div>
+        <p class="lead">The quant library calculates everything. Not opinions, real math, shown transparently. Every score shows its inputs and weights, so you can see exactly how a number was reached.</p>
+      </div>
+
+      <div class="quant-grid">
+        <div class="reveal qcard">
+          <h3>Risk and return metrics</h3>
+          <p>The quant library computes the core numbers behind every opportunity, so risk is measured, not guessed.</p>
+          <div class="qmetrics">
+            <span class="qmetric">Value at Risk</span>
+            <span class="qmetric">Kelly sizing</span>
+            <span class="qmetric">Sharpe ratio</span>
+            <span class="qmetric">Probability of profit</span>
+          </div>
+        </div>
+        <div class="reveal qcard">
+          <h3>Event-study analysis</h3>
+          <p>Abnormal-return analysis measures how a stock actually moved around an event, against its own baseline, market adjusted.</p>
+          <div class="qmetrics"><span class="qmetric">Abnormal return</span><span class="qmetric">Market adjusted</span></div>
+        </div>
+        <div class="reveal qcard">
+          <h3>Money Trail suspicion scoring</h3>
+          <p>A transparent chain-of-evidence model scores each law on six links: the law, who it pays, who knew, who traded, the payoff, and the pattern.</p>
+          <div class="qmetrics"><span class="qmetric">Chain of evidence</span><span class="qmetric">Every weight visible</span></div>
+        </div>
+        <div class="reveal qcard">
+          <h3>Opportunity scores</h3>
+          <p>Signals are scored on expected return, risk, and confidence, then ranked, so the strongest setups rise to the top.</p>
+          <div class="qmetrics"><span class="qmetric">Expected return</span><span class="qmetric">Confidence</span></div>
+        </div>
+        <div class="reveal qcard">
+          <h3>Recession signals</h3>
+          <p>Macro, market, and behavioral indicators roll up into a single recession-risk read you can track day to day.</p>
+          <div class="qmetrics"><span class="qmetric">Yield curve</span><span class="qmetric">Risk score</span></div>
+        </div>
+        <div class="reveal qcard">
+          <h3>Transparent by design</h3>
+          <p>This is analysis, not advice and not a guarantee. The math is shown so you can judge it yourself, then decide.</p>
+          <div class="qmetrics"><span class="qmetric">Inputs shown</span><span class="qmetric">No black box</span></div>
+        </div>
+      </div>
+      <p class="qnote">ThinkFree is an AI-powered research analyst and economic translator. The numbers above are transparent, math-based analysis of public data. They are informational, not investment advice, and not a promise of future results.</p>
+    </div>
+  </section>
+
+  <!-- ============ SUPPORTING ============ -->
+  <section class="block">
+    <div class="wrap">
+      <div class="reveal">
+        <div class="kicker">Also inside</div>
+        <h2 class="lp-h2">Everything in one place, in plain English</h2>
+      </div>
+      <div class="support-grid">
+        <div class="reveal scard">
+          <div class="sico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18"/><path d="M4 10h16"/><path d="M5 10v8M19 10v8M9 10v8M15 10v8"/><path d="M12 3 4 7h16Z"/></svg></div>
+          <h3>Congressional-trade tracking</h3>
+          <p>Every disclosed trade by members of Congress, with volume, win rate, and timing against related legislation.</p>
+        </div>
+        <div class="reveal scard">
+          <div class="sico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
+          <h3>Cost-of-living tracker</h3>
+          <p>Groceries, rent, gas, mortgages, jobs, and more, measured against a fixed baseline so you see what really changed.</p>
+        </div>
+        <div class="reveal scard">
+          <div class="sico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="13" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg></div>
+          <h3>News in plain English</h3>
+          <p>Financial news translated into what it means for rent, groceries, jobs, and your money, not Wall Street jargon.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FINAL CTA ============ -->
+  <section class="block">
+    <div class="wrap">
+      <div class="reveal lp-cta-box">
+        <h2>See the connections. See the math.</h2>
+        <p>Open ThinkFree and explore the influence map, the quant analysis, and the trackers for yourself.</p>
+        <div class="lp-hero-cta">
+          <a class="btn btn-primary btn-lg" href="/app">Open the app</a>
+          <a class="btn btn-ghost btn-lg" href="/app">Log in</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="lp-foot">
+    <div class="wrap">
+      <div class="row">
+        <a class="lp-brand" href="/">
+          <span class="lp-logo">TF</span>
+          <span class="lp-brand-name">Think<span>Free</span></span>
+        </a>
+        <a class="btn btn-ghost" href="/app">Open the app</a>
+      </div>
+      <p class="disc">ThinkFree is an informational research tool and economic translator. It is not a brokerage, robo-advisor, or financial advisor, and nothing here is investment advice or a guarantee of future results. Political intelligence describes timing relationships between publicly available government disclosures and market events. It does not imply or allege wrongdoing of any kind. Data is compiled from public records.</p>
+    </div>
+  </footer>
+
+  <script src="js/landing.js" defer></script>
+</body>
+</html>

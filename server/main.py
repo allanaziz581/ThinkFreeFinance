@@ -203,7 +203,17 @@ def api_healthz():
 
 
 @app.get("/")
-def index():
-    """Serve the app shell. The shell contains no data and no secrets; it fetches
-    everything from the gated /api/* endpoints after the user logs in."""
+def landing():
+    """Public marketing landing page (no auth, no data, no secrets). Its Log in /
+    Get started buttons point at /app, which is the existing application shell."""
+    return FileResponse(config.WEBAPP_DIR / "landing.html")
+
+
+@app.get("/app")
+def app_shell():
+    """The application shell, moved here so the landing page can own /. Unchanged
+    behavior: it contains no data and no secrets, shows the login gate when no
+    session cookie is present, and fetches everything from the gated /api/*
+    endpoints after the user logs in. All asset refs are root-relative (css/, js/),
+    so they resolve to the existing /css and /js mounts from this path too."""
     return FileResponse(config.WEBAPP_DIR / "index.html")
