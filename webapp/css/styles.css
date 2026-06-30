@@ -1560,6 +1560,54 @@ body.tf-tp-open .tf-theme-panel { transform: translateX(0); }
 .econ-stat-l { font-size: 11px; color: var(--text-tertiary); margin-top: 3px; }
 
 /* ============================================================
+   GLOBAL HORIZONTAL CONTAINMENT  (ALL viewports, systemic safety net)
+   ------------------------------------------------------------
+   The page (documentElement / body) must NEVER scroll horizontally,
+   on any screen or modal, for any current or future component. The
+   guarantee is structural: every scroll-region ancestor clips its
+   horizontal overflow, so a too-wide descendant is clipped (and, if
+   it is a known wide type, scrolls inside its OWN box) rather than
+   pushing the page sideways. This is the safety net beneath the
+   per-component rules (.tbl-scroll etc.), not a replacement for them.
+
+   Only the HORIZONTAL axis is constrained. Vertical scrolling, the
+   position:fixed search dropdown and score tooltips, and the
+   transform-based off-canvas nav drawer are all unaffected.
+   ============================================================ */
+html, body { max-width: 100%; overflow-x: hidden; }
+
+/* The shell, the scroll region, every page, and every modal clamp to
+   the viewport width and clip horizontal bleed. .viewport keeps its
+   vertical scroll (overflow-y:auto), so pairing it with overflow-x:hidden
+   is safe (no axis side effect, because overflow-y is explicit). */
+.app, .main { max-width: 100%; min-width: 0; }
+.viewport { max-width: 100%; overflow-x: hidden; }
+.page { max-width: 100%; }
+.modal-overlay { max-width: 100%; overflow-x: hidden; }
+.modal { max-width: 100%; min-width: 0; }
+.modal-content { max-width: 100%; }
+
+/* Wide content stays inside its own box. Media clamps; tables, code and
+   explicit scroll boxes scroll horizontally within themselves. */
+img, svg, video, canvas, picture, iframe, embed, object, audio { max-width: 100%; }
+img, video, canvas { height: auto; }
+.tbl-scroll, .scroll-x { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+pre, code, kbd, samp { max-width: 100%; }
+pre { overflow-x: auto; }
+
+/* The #1 real cause of page-level overflow: a flex/grid CHILD whose
+   default min-width:auto refuses to shrink below its content, forcing
+   the row wider than the screen. Let content-area layout rows/grids and
+   their children shrink instead (min-width:0 is a no-op for normal block
+   boxes, so this is broad but safe). Long unbroken strings then wrap. */
+.viewport [class*="row"], .viewport [class*="grid"], .viewport [class*="-col"],
+.viewport [class*="list"], .viewport [class*="head"], .viewport .two-col,
+.modal-content [class*="row"], .modal-content [class*="grid"], .modal-content [class*="-col"],
+.modal-content .two-col,
+.two-col > *, .rank-row > *, .grid > *, .card { min-width: 0; }
+.viewport, .modal-content { overflow-wrap: break-word; }
+
+/* ============================================================
    RESPONSIVE / MOBILE CONTAINMENT  (additive; desktop unchanged)
    Breakpoints: tablet <= 768px, phone <= 480px.
    Theme: strict containment. No horizontal scroll, no overlap,
