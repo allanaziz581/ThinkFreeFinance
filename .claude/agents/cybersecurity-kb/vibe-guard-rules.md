@@ -78,7 +78,7 @@ Detects exposed API keys, tokens, and credentials.
 - `ghp_[a-zA-Z0-9]{36}` — GitHub PAT
 - `AIza[0-9A-Za-z_-]{35}` — Google API key
 - `sk_live_[a-zA-Z0-9]{24}` — Stripe live key
-- `-----BEGIN PRIVATE KEY-----`
+- a PEM private-key armor line (five dashes, then BEGIN, then PRIVATE KEY, then five dashes; literal omitted so this reference doc does not itself trip secret scanners)
 - `xox[baprs]-` — Slack token
 
 **Fix:** Move all credentials to environment variables; rotate any exposed secret immediately and purge from git history using `git filter-branch` or BFG Repo Cleaner.
@@ -92,7 +92,7 @@ Detects hardcoded sensitive information in configuration files.
 - `database_url = 'postgres://`
 - `mongodb://user:pass@host`
 - `encryption_key = '` (short literal)
-- `-----BEGIN RSA PRIVATE KEY-----`
+- the RSA variant of the PEM private-key armor line (BEGIN RSA ... PRIVATE KEY; literal omitted for the same reason)
 - `stripe_secret = 'sk_live_`
 
 **Fix:** Move to environment variables (`process.env.*`, `os.environ`); use AWS Secrets Manager, Azure Key Vault, or HashiCorp Vault for production secrets.

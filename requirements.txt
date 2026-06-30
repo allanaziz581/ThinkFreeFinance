@@ -1,7 +1,12 @@
-# ThinkFree Finance — Python dependencies
+# ThinkFree Finance, Python dependencies (DATA-PIPELINE / local env only).
 # Install with: ./tf_env/bin/pip install -r requirements.txt
-# NOTE: numpy<2 and sentence-transformers==2.7.0 must be pinned for
-#       compatibility with torch 2.2.x on macOS (Python 3.10).
+# IMPORTANT: none of these run in the deployed web service. The web service uses
+# server/requirements.txt only (FastAPI + uvicorn + bcrypt + PyJWT), so these
+# heavy ML packages are never imported in production.
+# Security: transformers and sentence-transformers are bumped to patched releases
+# (deserialization / config-injection RCE advisories CVE-2023-6730, CVE-2024-3568,
+# CVE-2026-1839, CVE-2026-4372). transformers >= 5.3.0 needs a recent torch, so the
+# rigid torch==2.2.2 pin is relaxed; recreate this venv on Python 3.11 if reinstalling.
 
 numpy<2
 pandas>=2.0.0
@@ -15,9 +20,9 @@ tiktoken
 backtrader
 yfinance
 scikit-learn
-sentence-transformers==2.7.0
-transformers==4.41.2
-torch==2.2.2
+sentence-transformers>=5.0.0   # patched line; supports transformers 5.x
+transformers>=5.3.0            # patched: CVE-2026-4372 / CVE-2026-1839 / CVE-2024-3568 / CVE-2023-6730
+torch>=2.2.2                   # relaxed from ==2.2.2 (required by transformers 5.x; old pin also failed to build on modern Python)
 tqdm
 vaderSentiment
 ta

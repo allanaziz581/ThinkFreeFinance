@@ -679,8 +679,9 @@ Public key often at: `/jwks.json` or `/.well-known/jwks.json`
 ### Null Signature Attack (CVE-2020-28042)
 
 ```
-# Send a valid header.payload with empty signature segment:
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiJ9.
+# Send a valid header.payload with an EMPTY signature segment (trailing dot).
+# Redacted example, not a real token: header={"alg":"HS256"}, payload={"sub":"admin"}.
+<base64url-header>.<base64url-payload>.
 ```
 
 ```bash
