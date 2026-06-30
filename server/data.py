@@ -56,7 +56,19 @@ def _load(global_name: str) -> str:
 
     Returns the raw JSON string (not parsed) so we can hand it straight to the
     client without a parse/re-serialize round trip.
+
+    Prefers a fresher copy written by the in-process background refresher to the
+    persistent disk (e.g. ECONOMY), so the site serves the latest pull without a
+    redeploy. The refresher clears this cache after each write. global_name is an
+    internal manifest key, never request input, so the path join is not
+    attacker-controllable.
     """
+    fresh = config.DB_PATH.parent / "refresh" / f"{global_name}.json"
+    if fresh.exists():
+        try:
+            return fresh.read_text()
+        except OSError:
+            pass
     path = config.PRIVATE_DATA_DIR / f"{global_name}.json"
     if not path.exists():
         raise HTTPException(status_code=404, detail=f"Unknown dataset: {global_name}")

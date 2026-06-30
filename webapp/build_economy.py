@@ -266,27 +266,25 @@ def build_indicator(meta: tuple) -> dict | None:
     }
 
 
-def main() -> int:
-    if not FRED_KEY:
-        print("[economy] FRED_API_KEY not set; using public CSV fallback (slower, may rate-limit).")
+def build_doc() -> "tuple[dict | None, list[str]]":
+    """Pull every catalog series from FRED and return (window.ECONOMY doc, skipped).
+    Pure compute + network, no file IO, so the FastAPI service's in-process
+    refresher can call it directly to get the freshest economy data without a
+    rebuild or a git commit. Returns (None, skipped) if nothing could be sourced."""
     categories = []
-    sourced, missing = [], []
+    missing = []
     for cat_name, items in CATALOG:
         built = []
         for meta in items:
             ind = build_indicator(meta)
             if ind:
                 built.append(ind)
-                sourced.append(f"{ind['name']} [{ind['source']}]")
             else:
                 missing.append(f"{meta[1]} ({meta[0]})")
         if built:
             categories.append({"name": cat_name, "indicators": built})
-
     if not categories:
-        print("[economy] no indicators sourced; leaving existing data unchanged.")
-        return 1
-
+        return None, missing
     doc = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "baseline_label": "Jan 2025",
@@ -297,6 +295,17 @@ def main() -> int:
                         "Changes are measured against a fixed January 2025 baseline."),
         "categories": categories,
     }
+    return doc, missing
+
+
+def main() -> int:
+    if not FRED_KEY:
+        print("[economy] FRED_API_KEY not set; using public CSV fallback (slower, may rate-limit).")
+    doc, missing = build_doc()
+    if doc is None:
+        print("[economy] no indicators sourced; leaving existing data unchanged.")
+        return 1
+    categories = doc["categories"]
     OUT.parent.mkdir(parents=True, exist_ok=True)
     tmp = OUT.with_suffix(".js.tmp")
     with open(tmp, "w", encoding="utf-8") as f:

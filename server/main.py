@@ -93,6 +93,13 @@ app.include_router(data.router)
 import billing  # noqa: E402  (subscription/billing seam, stubbed, no live payments)
 app.include_router(billing.router)
 
+# In-process background data refresher (daemon thread): keeps the served ECONOMY
+# data fresh by re-pulling FRED on a timer and writing to the persistent disk, so
+# the site updates without a redeploy or the (blocked) git-commit cron. Never
+# blocks request handling. See server/refresher.py.
+import refresher  # noqa: E402
+refresher.start()
+
 # CORS. With the recommended single-server setup the front-end and API share one
 # origin, so the browser never makes a cross-origin call and this is inert (belt
 # and suspenders). If you ever serve the front-end from a different domain, set
