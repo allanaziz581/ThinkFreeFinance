@@ -18,6 +18,7 @@ import datetime as dt
 import hmac
 import json
 import re
+import sqlite3
 import time
 from collections import deque
 
@@ -276,10 +277,18 @@ def signup(body: SignupBody, request: Request, response: Response):
     # Throttle signups per IP so the closed-beta invite key cannot be brute-forced.
     sk = f"signup:{_client_ip(request)}"
     _check_locked(sk, _SIGNUP_MAX_FAILS, _SIGNUP_WINDOW)
-    # Constant-time compare so the beta key cannot be guessed by timing.
-    if not hmac.compare_digest(body.beta_key.strip(), config.BETA_KEY):
+    # Single-use invite code. The signup form still calls this field `beta_key`,
+    # but it is now matched against the invite_codes table (one account per code)
+    # instead of a single shared key. The code is atomically consumed below, after
+    # the remaining checks pass.
+    code = (body.beta_key or "").strip()
+    inv = db.get_invite_code(code)
+    if not inv:
         _record_fail(sk)
-        raise HTTPException(status_code=403, detail="Invalid beta invite key")
+        raise HTTPException(status_code=403, detail="Invalid invite code")
+    if inv.get("used"):
+        _record_fail(sk)
+        raise HTTPException(status_code=403, detail="That invite code has already been used")
     if not body.consent:
         raise HTTPException(status_code=400, detail="You must confirm you meet the age requirement")
     email = body.email.strip().lower()
@@ -287,13 +296,32 @@ def signup(body: SignupBody, request: Request, response: Response):
         raise HTTPException(status_code=400, detail="Enter a valid email")
     if db.get_user(email):
         raise HTTPException(status_code=409, detail="An account with that email already exists")
+    # Atomically claim the code (single-use, race-safe). If a concurrent request
+    # claimed it first, reject this one.
+    if not db.consume_invite_code(code, email):
+        _record_fail(sk)
+        raise HTTPException(status_code=403, detail="That invite code has already been used")
     created = dt.date.today().isoformat()
-    db.create_user(email, body.name.strip(), hash_password(body.password), config.DEFAULT_TIER, created)
+    # An invite code is a closed-beta invitation, so the new account gets the beta
+    # tier (full access) rather than the limited self-serve free tier.
+    invite_tier = "beta"
+    try:
+        db.create_user(email, body.name.strip(), hash_password(body.password), invite_tier, created)
+    except sqlite3.IntegrityError:
+        # Email taken in the race between the check above and this insert: free the
+        # code so it can be retried, and report the real cause.
+        db.release_invite_code(code)
+        raise HTTPException(status_code=409, detail="An account with that email already exists")
+    except Exception:
+        # Any other creation failure (e.g. a transient DB error) must also free the
+        # code, but should not be mislabeled as a duplicate email.
+        db.release_invite_code(code)
+        raise HTTPException(status_code=500, detail="Could not create account. Please try again.")
     sid = security.new_session_id()
     db.create_session(sid, email, _device_of(request), _client_ip(request), int(time.time()))
-    _set_session_cookie(response, _make_token(email, config.DEFAULT_TIER, sid))
+    _set_session_cookie(response, _make_token(email, invite_tier, sid))
     _set_csrf_cookie(response)
-    _audit(request, email, "signup", "account created")
+    _audit(request, email, "signup", f"account created via invite {code.upper()}")
     return {"user": _public_user(db.get_user(email))}
 
 

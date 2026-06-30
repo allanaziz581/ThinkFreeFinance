@@ -92,7 +92,79 @@ def init_db() -> None:
             )
             """
         )
+        # Single-use invite codes for closed-beta signup. One row per code; `used`
+        # flips to 1 (and used_by_email is set) the first time a code is redeemed,
+        # so a code can never create more than one account.
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS invite_codes (
+                code          TEXT PRIMARY KEY,
+                assigned_name TEXT,
+                used          INTEGER NOT NULL DEFAULT 0,
+                used_by_email TEXT,
+                created_at    TEXT NOT NULL
+            )
+            """
+        )
         conn.commit()
+
+
+# ----- single-use invite codes -----
+
+def _norm_code(code: str) -> str:
+    """Normalize a code for storage/lookup: trimmed, uppercased (so the field is
+    case-insensitive to whatever the user types)."""
+    return (code or "").strip().upper()
+
+
+def seed_invite_code(code: str, assigned_name: str, created_at: str) -> None:
+    """Idempotently insert an invite code. INSERT OR IGNORE means re-seeding on
+    every boot never resets a code that has already been used."""
+    with _connect() as conn:
+        conn.execute(
+            "INSERT OR IGNORE INTO invite_codes (code, assigned_name, used, used_by_email, created_at) "
+            "VALUES (?, ?, 0, NULL, ?)",
+            (_norm_code(code), assigned_name, created_at),
+        )
+        conn.commit()
+
+
+def get_invite_code(code: str) -> Optional[dict]:
+    with _connect() as conn:
+        row = conn.execute("SELECT * FROM invite_codes WHERE code = ?", (_norm_code(code),)).fetchone()
+    return dict(row) if row else None
+
+
+def consume_invite_code(code: str, email: str) -> bool:
+    """Atomically mark an UNUSED code as used. Returns True only if this call is
+    the one that consumed it (rowcount == 1); a code already used returns False.
+    The `used = 0` guard in the UPDATE makes redemption race-safe."""
+    with _connect() as conn:
+        cur = conn.execute(
+            "UPDATE invite_codes SET used = 1, used_by_email = ? WHERE code = ? AND used = 0",
+            (email.lower(), _norm_code(code)),
+        )
+        conn.commit()
+        return cur.rowcount > 0
+
+
+def release_invite_code(code: str) -> None:
+    """Roll a code back to unused. Only used to undo a consume when the account
+    creation that followed it failed (e.g. an email-already-exists race)."""
+    with _connect() as conn:
+        conn.execute(
+            "UPDATE invite_codes SET used = 0, used_by_email = NULL WHERE code = ?",
+            (_norm_code(code),),
+        )
+        conn.commit()
+
+
+def list_invite_codes() -> list:
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT code, assigned_name, used, used_by_email, created_at FROM invite_codes ORDER BY created_at, code"
+        ).fetchall()
+    return [dict(r) for r in rows]
 
 
 def get_user(email: str) -> Optional[dict]:
@@ -140,7 +212,7 @@ def update_a11y(email: str, a11y: bool) -> None:
 
 def update_token_valid_after(email: str, ts: int) -> None:
     """Set the account's token-validity epoch (unix seconds). Any session token
-    issued before `ts` is then rejected by current_user — used on logout to
+    issued before `ts` is then rejected by current_user, used on logout to
     revoke outstanding cookies immediately rather than waiting for expiry."""
     with _connect() as conn:
         conn.execute(
@@ -165,7 +237,7 @@ def set_tier(email: str, tier: str) -> None:
 
     The only legitimate callers are (a) an admin tool and (b) the billing webhook
     after a verified payment event. There is deliberately NO request path that
-    lets the browser set its own tier — entitlement can never be self-escalated.
+    lets the browser set its own tier; entitlement can never be self-escalated.
     """
     with _connect() as conn:
         conn.execute("UPDATE users SET tier = ? WHERE email = ?", (tier, email.lower()))

@@ -58,9 +58,39 @@ def _seed_admin() -> None:
 
 
 _seed_admin()
+
+
+# Closed-beta invite codes (single-use). These are NOT secrets: each code lets one
+# person create one account, then is consumed. Seeded idempotently on boot, so they
+# persist on the /var/data disk and survive redeploys; INSERT OR IGNORE means a code
+# already redeemed is never reset back to unused.
+_INVITE_SEED = [
+    ("THINKFREE-ETHAN-KL7S", "ethan"),
+    ("THINKFREE-GABE-XRNH", "gabe"),
+    ("THINKFREE-MORRIGAN-ZNKN", "morrigan"),
+    ("THINKFREE-NICOLE-9KLN", "nicole"),
+    ("THINKFREE-LENA-XAF6", "lena"),
+    ("THINKFREE-ELI-FVN9", "eli"),
+    # A dedicated verification code so the signup flow can be tested end to end on
+    # the live service without burning one of the six real invitee codes.
+    ("THINKFREE-VERIFY-9AGH", "verify"),
+]
+
+
+def _seed_invites() -> None:
+    import datetime
+    today = datetime.date.today().isoformat()
+    for code, name in _INVITE_SEED:
+        try:
+            db.seed_invite_code(code, name, today)
+        except Exception:
+            print("[seed] invite-code seed failed for one code; continuing")
+
+
+_seed_invites()
 app.include_router(auth.router)
 app.include_router(data.router)
-import billing  # noqa: E402  (subscription/billing seam — stubbed, no live payments)
+import billing  # noqa: E402  (subscription/billing seam, stubbed, no live payments)
 app.include_router(billing.router)
 
 # CORS. With the recommended single-server setup the front-end and API share one
