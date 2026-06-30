@@ -40,6 +40,31 @@
     ).join("");
   }
 
+  // One county row. Extracted so pagination can render the first page now and the
+  // rest on demand (the full list is ~264 rows, far too long to render up front
+  // on a phone).
+  const DC_PAGE = 30;
+  function rowFor(r) {
+    return `
+      <tr>
+        <td><div class="dc-county">${esc(r.county)}, ${esc(r.state)}</div><div class="faint dc-hub">${esc(r.hub || "")}</div></td>
+        <td>${riskBar(r.buildout_risk)}<div class="dc-inputs">${inputBars(r.inputs || {})}</div></td>
+        <td class="num">${esc(r.dc_count)}</td>
+        <td class="num">${r.electricity_cents_kwh == null ? "n/a" : esc(r.electricity_cents_kwh) + "¢"}</td>
+        <td class="num">${esc(dollars(r.median_rent))}</td>
+        <td class="num">${r.rent_burden_pct == null ? "n/a" : `<span class="pill mini ${r.rent_burden_pct >= 30 ? "down" : "warn"}">${esc(r.rent_burden_pct)}%</span>`}</td>
+      </tr>`;
+  }
+  // "Show all" reveals the remaining counties on demand. Registered once.
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-dc-showall]");
+    if (!btn) return;
+    const tb = document.getElementById("dc-tbody");
+    if (tb) tb.innerHTML = REGIONS.map(rowFor).join("");
+    const wrap = btn.closest(".dc-more-wrap");
+    if (wrap) wrap.remove();
+  });
+
   window.renderDataCenters = function () {
     if (!REGIONS.length) {
       return `<div class="page-head"><h2>Data Centers</h2><p>Data Centers dataset not loaded.</p></div>`;
@@ -47,15 +72,11 @@
     const w = M.weights || {};
     const topRent = [...REGIONS].filter((r) => r.rent_burden_pct).sort((a, b) => b.rent_burden_pct - a.rent_burden_pct)[0];
 
-    const rows = REGIONS.map((r) => `
-      <tr>
-        <td><div style="font-weight:700;">${esc(r.county)}, ${esc(r.state)}</div><div class="faint">${esc(r.hub || "")}</div></td>
-        <td>${riskBar(r.buildout_risk)}<div class="dc-inputs">${inputBars(r.inputs || {})}</div></td>
-        <td class="num">${esc(r.dc_count)}</td>
-        <td class="num">${r.electricity_cents_kwh == null ? "n/a" : esc(r.electricity_cents_kwh) + "¢"}</td>
-        <td class="num">${esc(dollars(r.median_rent))}</td>
-        <td class="num">${r.rent_burden_pct == null ? "n/a" : `<span class="pill mini ${r.rent_burden_pct >= 30 ? "down" : "warn"}">${esc(r.rent_burden_pct)}%</span>`}</td>
-      </tr>`).join("");
+    const rows = REGIONS.slice(0, DC_PAGE).map(rowFor).join("");
+    const moreCount = Math.max(0, REGIONS.length - DC_PAGE);
+    const showMore = moreCount > 0
+      ? `<div class="dc-more-wrap"><button type="button" class="dc-showmore" data-dc-showall>Show all ${REGIONS.length} counties (${moreCount} more)</button></div>`
+      : "";
 
     const inputDocs = Object.entries(M.inputs || {}).map(([k, v]) =>
       `<li><b>${esc(k.replace(/_/g, " "))}</b> , ${esc(v)}</li>`).join("");
@@ -82,7 +103,8 @@
         <table class="tf"><thead><tr>
           <th>County</th><th>Buildout risk &amp; inputs</th><th class="num">Data centers</th>
           <th class="num">Electricity</th><th class="num">Median rent</th><th class="num">Rent burden</th>
-        </tr></thead><tbody>${rows}</tbody></table>
+        </tr></thead><tbody id="dc-tbody">${rows}</tbody></table>
+        ${showMore}
         <div class="sample-note">Rent burden = annualized median rent ÷ median household income (Census ACS). Electricity = residential ¢/kWh (EIA). Buildout risk is an estimate; see methodology below.</div>
       </div>
 

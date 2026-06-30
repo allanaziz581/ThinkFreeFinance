@@ -1382,10 +1382,10 @@ function suspicionScore(law) {
   return { score, before: B, total: T, maxLead: L, profit, ratio, parts };
 }
 function suspicionTier(score) {
-  if (score >= 70) return { label: "High", cls: "down" };       // --danger
-  if (score >= 45) return { label: "Elevated", cls: "warn" };   // --warning
-  if (score >= 20) return { label: "Moderate", cls: "info" };   // --info
-  return { label: "Clean", cls: "up" };                          // --success
+  if (score >= 70) return { label: "High", cls: "down", color: "var(--danger)" };
+  if (score >= 45) return { label: "Elevated", cls: "warn", color: "var(--sev-orange)" };
+  if (score >= 20) return { label: "Moderate", cls: "warn", color: "var(--sev-yellow)" };
+  return { label: "Clean", cls: "up", color: "var(--success)" };
 }
 
 // ---- The Money Trail Detective Engine (front end) --------------------------
@@ -1401,11 +1401,14 @@ function mtCaseFor(billId) {
   }
   return _mtByBill[billId] || null;
 }
+// Case-strength tiers on a 1-100 severity scale: higher = more suspicious.
+// Color runs red (Strong) -> orange (Notable) -> yellow (Emerging) -> green (Thin),
+// so the score bar and number are color-coded by severity, not a uniform blue.
 function caseTier(score) {
-  if (score >= 70) return { label: "Strong case", cls: "down" };   // --danger
-  if (score >= 45) return { label: "Notable", cls: "warn" };       // --warning
-  if (score >= 25) return { label: "Emerging", cls: "info" };      // --info
-  return { label: "Thin", cls: "up" };                             // --success
+  if (score >= 70) return { label: "Strong case", cls: "down", color: "var(--danger)" };
+  if (score >= 45) return { label: "Notable", cls: "warn", color: "var(--sev-orange)" };
+  if (score >= 25) return { label: "Emerging", cls: "warn", color: "var(--sev-yellow)" };
+  return { label: "Thin", cls: "up", color: "var(--success)" };
 }
 function lawScore(law) {
   const c = mtCaseFor(law.bill_id);
@@ -1464,8 +1467,8 @@ function lawLeaderboard() {
     return `<div class="susp-row${rank <= 3 ? " susp-top" : ""}" data-case="${esc(law.bill_id)}" role="button" tabindex="0" aria-label="Open the case file for ${esc(law.title || law.bill_id)}">
       <div class="susp-rank">${rank}</div>
       <div class="susp-main">
-        <div class="susp-titlerow"><span class="susp-title">${esc(law.title || law.bill_id)}</span><span class="pill ${tier.cls} susp-tier">${tier.label}</span></div>
-        <div class="susp-meter"><div class="susp-bar"><div class="susp-bar-fill ${tier.cls}" style="width:${s.score}%"></div></div><div class="susp-score">${s.score}</div></div>
+        <div class="susp-titlerow"><span class="susp-title">${esc(law.title || law.bill_id)}</span><span class="pill susp-tier" style="color:${tier.color};border-color:${tier.color};">${tier.label}</span></div>
+        <div class="susp-meter"><div class="susp-bar"><div class="susp-bar-fill" style="width:${s.score}%;background:${tier.color}"></div></div><div class="susp-score" style="color:${tier.color}">${s.score}</div></div>
         <div class="susp-stats">${stats}</div>
       </div>
       <div class="susp-caret" aria-hidden="true">›</div>
@@ -1578,7 +1581,7 @@ function caseFile(billId) {
         <div class="cf-title">${esc(c.title || c.bill_id)}</div>
         <div class="cf-sub"><span class="bill-chip">${esc(c.bill_id)}</span>${c.committees && c.committees.length ? " " + esc(c.committees.slice(0, 2).join(", ")) : ""}</div>
       </div>
-      <div class="cf-scorebox"><div class="cf-score">${c.case_strength}<small>/100</small></div><span class="pill ${tier.cls}">${tier.label}</span></div>
+      <div class="cf-scorebox"><div class="cf-score" style="color:${tier.color}">${c.case_strength}<small>/100</small></div><span class="pill susp-tier" style="color:${tier.color};border-color:${tier.color};">${tier.label}</span></div>
     </div>
     <div class="cf-verdict">${esc(c.verdict || "")}</div>
     ${wl.strength != null && wl.strength < 0.3 ? `<div class="cf-weak">Weakest link: ${esc(wl.name)}. Read this as evidence, not a conclusion.${basisNote ? " " + esc(basisNote) : ""}</div>` : (basisNote ? `<div class="cf-weak">${esc(basisNote)}</div>` : "")}

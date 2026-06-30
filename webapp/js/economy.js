@@ -124,10 +124,22 @@
     series.forEach((p, i) => { const g = Math.abs(Date.parse(p[0] + "T00:00:00Z") - bt); if (g < bgap) { bgap = g; bi = i; } });
     let marker = "";
     if (bi >= 0) {
-      const mx = x(bi).toFixed(1);
-      const anchorEnd = bi > series.length * 0.7;
-      marker = `<line x1="${mx}" y1="${padY}" x2="${mx}" y2="${h - padY}" stroke="var(--warning)" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.9"/>
-        <text x="${anchorEnd ? (mx - 4) : (Number(mx) + 4)}" y="${padY + 11}" fill="var(--warning)" font-size="11" text-anchor="${anchorEnd ? "end" : "start"}">${esc(ECON.baseline_label || "Jan 2025")}</text>`;
+      const mxN = x(bi);
+      const mx = mxN.toFixed(1);
+      // a tidy label pill on whichever side of the marker line has more room, so
+      // it never overlaps the data line. Two clean lines: the date, then a small
+      // caption noting Jan 2025 is the inauguration (no em dash).
+      const rightSide = bi > series.length * 0.55;
+      const pw = 90, ph = 31, gap = 7;
+      const px0 = (rightSide ? (mxN - gap - pw) : (mxN + gap)).toFixed(1);
+      marker = `
+        <line x1="${mx}" y1="${padY}" x2="${mx}" y2="${h - padY}" stroke="var(--warning)" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.85"/>
+        <circle cx="${mx}" cy="${padY + 1}" r="2.6" fill="var(--warning)"/>
+        <g transform="translate(${px0},${padY + 2})">
+          <rect x="0" y="0" width="${pw}" height="${ph}" rx="6" fill="var(--bg-card)" stroke="var(--warning)" stroke-opacity="0.6"/>
+          <text x="${pw / 2}" y="13" text-anchor="middle" fill="var(--warning)" font-size="11" font-weight="700">${esc(ECON.baseline_label || "Jan 2025")}</text>
+          <text x="${pw / 2}" y="24.5" text-anchor="middle" fill="var(--text-secondary)" font-size="9">Inauguration</text>
+        </g>`;
     }
     const first = series[0][0], last = series[series.length - 1][0];
     return `<svg class="econ-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="time series">

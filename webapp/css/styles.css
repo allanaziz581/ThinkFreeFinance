@@ -29,6 +29,8 @@
   --warning-dim: rgba(245,158,11,0.14);
   --danger:  #EF4444;
   --danger-dim: rgba(239,68,68,0.14);
+  --sev-orange: #F97316;                 /* severity scale: red, orange, yellow, green */
+  --sev-yellow: #EAB308;
   --info:    #38BDF8;                    /* default cyan accent (original look) */
   --info-dim: rgba(56,189,248,0.14);
   --purple:  #A855F7;
@@ -1620,14 +1622,15 @@ pre { overflow-x: auto; }
    ------------------------------------------------------------ */
 .pill, .chip, .tag, .tk-chip, .bill-chip, .pres-chip, .pres-tag,
 .econ-chip, .econ-pill, .cf-badge, .reel-tag, .reel-badge, .iw-chip,
-.pf-badge, .tf-summary-badge, .susp-stat, .si-badge, .credit-badge {
+.pf-badge, .tf-summary-badge, .susp-stat, .si-badge, .credit-badge,
+.iw-btn, .iw-zoom button, .iw-crumb, .pres-seg, .susp-tier {
   white-space: nowrap;
   flex-shrink: 0;
   min-width: max-content;
 }
-/* the rows that hold those chips wrap rather than overflow or crush */
+/* the rows that hold those chips/buttons wrap rather than overflow or crush */
 .feed-meta, .chip-row, .law-tags, .reel-tags, .pres-chips, .econ-chips,
-.iw-chips, .tk-row, .susp-stats {
+.iw-chips, .tk-row, .susp-stats, .iw-header-actions {
   flex-wrap: wrap;
 }
 
@@ -1828,4 +1831,28 @@ pre { overflow-x: auto; }
   .rank-row > * { white-space: nowrap; min-width: 0; }
   .rank-row .nm { overflow: hidden; text-overflow: ellipsis; }
   .rank-row .nm small { white-space: nowrap; }
+}
+
+/* ============ Data Centers: Show-more pagination + compact rows ============ */
+.dc-more-wrap { display: flex; justify-content: center; margin: 14px 0 2px; }
+.dc-showmore {
+  background: var(--bg-inner); color: var(--info);
+  border: 1px solid var(--info); border-radius: 999px;
+  padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.dc-showmore:hover { background: var(--info-dim); }
+.dc-county { font-weight: 700; }
+
+@media (max-width: 768px) {
+  /* shorter, more compact county rows so the list is not an endless scroll */
+  #page-datacenters table.tf tbody td { padding: 7px 8px; }
+  #page-datacenters table.tf thead th { padding: 6px 8px; }
+  .dc-inputs { gap: 6px; margin-top: 4px; flex-wrap: nowrap; }
+  .dc-inp { gap: 4px; }
+  .dc-inp-l { width: auto; font-size: 9px; }
+  .dc-inp-track { width: 30px; }
+  .dc-risk-track { max-width: 96px; height: 7px; }
+  .dc-risk-num { font-size: 12px; }
+  .dc-hub { font-size: 10.5px; }
 }
