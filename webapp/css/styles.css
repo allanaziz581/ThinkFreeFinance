@@ -1607,6 +1607,30 @@ pre { overflow-x: auto; }
 .two-col > *, .rank-row > *, .grid > *, .card { min-width: 0; }
 .viewport, .modal-content { overflow-wrap: break-word; }
 
+/* ------------------------------------------------------------
+   Small label chips / pills / tags must NEVER shrink or wrap.
+   Without this, the global containment above (overflow-wrap on
+   .viewport + flex rows that did not wrap) let these flex
+   children crush below their text width, so a badge like
+   "Financials" / "Negative" / "Reliable" stacked one character
+   per line. nowrap stops any in-chip break, flex-shrink:0 stops
+   the squeeze, and min-width keeps them at their content width
+   even though the page-level min-width:0 rule exists. The chip
+   ROW wraps to the next line instead of crushing the chips.
+   ------------------------------------------------------------ */
+.pill, .chip, .tag, .tk-chip, .bill-chip, .pres-chip, .pres-tag,
+.econ-chip, .econ-pill, .cf-badge, .reel-tag, .reel-badge, .iw-chip,
+.pf-badge, .tf-summary-badge, .susp-stat, .si-badge, .credit-badge {
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: max-content;
+}
+/* the rows that hold those chips wrap rather than overflow or crush */
+.feed-meta, .chip-row, .law-tags, .reel-tags, .pres-chips, .econ-chips,
+.iw-chips, .tk-row, .susp-stats {
+  flex-wrap: wrap;
+}
+
 /* ============================================================
    RESPONSIVE / MOBILE CONTAINMENT  (additive; desktop unchanged)
    Breakpoints: tablet <= 768px, phone <= 480px.
