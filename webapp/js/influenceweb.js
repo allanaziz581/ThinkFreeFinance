@@ -237,6 +237,9 @@
   let scene, edgesSvg, canvas, panel, tip, hud, W = 0, H = 0;
   let cam = { x: 0, y: 0, zoom: 1 }, camT = null, preZoomCam = null;
   let drag = null, started = false, active = false, selectedId = null, settle = 0;
+  // Honor reduced-motion: snap the camera and settle the layout fast instead of
+  // gliding/drifting, while still revealing the nodes.
+  const IW_REDUCED_MOTION = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   let leaving = [], sweepTimer = null, showXlinks = true, focusedSector = null;
   const ZOOM_MIN = 0.3, ZOOM_MAX = 3.2;   // hard bounds so the user can't lose the map
   const FIT_MAX = 1.5;                     // never auto-fit closer than this
@@ -646,7 +649,12 @@
     expandNode(n);
     rebuild();
     setBreadcrumb(n);
-    openPanel(n);
+    // Sectors EXPAND their companies onto the graph (explore the network), they do
+    // NOT pop a flat company-list panel. Company and deeper detail nodes open their
+    // detail panel. Re-tapping an expanded sector collapses it (scene handler), and
+    // the breadcrumb walks back out.
+    if (n.type === "sector") closePanel();
+    else openPanel(n);
     // mark focus emphasis
     scene.querySelectorAll(".iw-focus").forEach((el) => el.classList.remove("iw-focus"));
     if (n.el) n.el.classList.add("iw-focus");
@@ -1121,12 +1129,18 @@
     if (nodes.length) {
       const moving = physics();
       syncDOM();
-      if (settle > 0) settle--;
+      // Under prefers-reduced-motion the layout still resolves (so the company
+      // nodes still appear), but it settles fast instead of drifting for ~1.5s.
+      if (settle > 0) settle -= (IW_REDUCED_MOTION ? 8 : 1);
       else if (moving < 0.6) { /* settled, idle */ }
     }
     if (camT) {
-      cam.x += (camT.x - cam.x) * 0.1; cam.y += (camT.y - cam.y) * 0.1; cam.zoom += (camT.zoom - cam.zoom) * 0.1;
-      if (Math.abs(camT.x - cam.x) < 0.5 && Math.abs(camT.zoom - cam.zoom) < 0.004) camT = null;
+      if (IW_REDUCED_MOTION) {            // snap the camera instead of gliding
+        cam.x = camT.x; cam.y = camT.y; cam.zoom = camT.zoom; camT = null;
+      } else {
+        cam.x += (camT.x - cam.x) * 0.1; cam.y += (camT.y - cam.y) * 0.1; cam.zoom += (camT.zoom - cam.zoom) * 0.1;
+        if (Math.abs(camT.x - cam.x) < 0.5 && Math.abs(camT.zoom - cam.zoom) < 0.004) camT = null;
+      }
     }
     applyCam();
   }

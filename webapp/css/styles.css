@@ -1856,3 +1856,9 @@ pre { overflow-x: auto; }
   .dc-risk-num { font-size: 12px; }
   .dc-hub { font-size: 10.5px; }
 }
+
+/* InfluenceWeb: honor reduced-motion (the camera + layout snap is handled in JS;
+   this removes the node opacity glide so nothing fades when motion is reduced). */
+@media (prefers-reduced-motion: reduce) {
+  .iw-node, .iw-scene { transition: none; }
+}
