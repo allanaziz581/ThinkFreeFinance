@@ -16,14 +16,30 @@ export default function Nav({ onSignIn }) {
             Think<span className="text-brand">Free</span>
           </span>
         </a>
-        <nav className="flex flex-shrink-0 items-center gap-2.5">
+        <nav className="hidden items-center gap-7 md:flex">
+          {[
+            ["Influence", "#influence"],
+            ["Quant", "#quant"],
+            ["Pricing", "#pricing"],
+          ].map(([label, href]) => (
+            <a
+              key={label}
+              href={href}
+              className="text-[13px] font-medium text-ash-300 transition-colors hover:text-ash-100"
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
+
+        <div className="flex flex-shrink-0 items-center gap-2.5">
           <button className="lp-btn lp-btn-ghost" type="button" onClick={onSignIn}>
             Log in
           </button>
           <a className="lp-btn lp-btn-primary" href="/app">
             Get started
           </a>
-        </nav>
+        </div>
       </div>
     </header>
   );
