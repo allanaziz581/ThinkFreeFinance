@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 
 export default function FinalCTA({ onSignIn }) {
   return (
-    <section className="relative overflow-hidden border-b border-line py-18 sm:py-22">
+    <section className="relative overflow-hidden border-b border-line py-12 sm:py-20">
       {/* ethereal beams aesthetic behind the closing section */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-70">
         <Beams />

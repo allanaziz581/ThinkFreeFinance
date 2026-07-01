@@ -38,7 +38,7 @@ const TIERS = [
 
 export default function Pricing() {
   return (
-    <section id="pricing" className="border-b border-line py-18 sm:py-22">
+    <section id="pricing" className="border-b border-line py-12 sm:py-20">
       <div className="lp-shell">
         <SectionHead
           label="05 / Pricing"

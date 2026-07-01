@@ -33,7 +33,7 @@ const CARDS = [
 
 export default function QuantSection() {
   return (
-    <section id="quant" className="border-b border-line py-18 sm:py-22">
+    <section id="quant" className="border-b border-line py-12 sm:py-20">
       <div className="lp-shell">
         <Reveal>
           <div className="t-label">03 / Quant and math</div>

@@ -17,7 +17,7 @@ const CELLS = [
 
 export default function InfluencePillar() {
   return (
-    <section id="influence" className="border-b border-line pt-18 sm:pt-22">
+    <section id="influence" className="border-b border-line pt-12 sm:pt-20">
       <div className="lp-shell">
         <Reveal>
           <div className="t-label">02 / Influence network</div>
@@ -31,7 +31,7 @@ export default function InfluencePillar() {
       </div>
 
       {/* prominent full-bleed interactive map that fills the section */}
-      <div className="relative mt-9 h-[min(74vh,660px)] w-full overflow-hidden border-y border-line bg-ink-800/40">
+      <div className="relative mt-7 h-[min(72vh,620px)] w-full overflow-hidden border-y border-line bg-ink-800/40">
         <InfluenceMap />
         {/* soft top/bottom scrims so overlays stay readable */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-40"
@@ -61,7 +61,7 @@ export default function InfluencePillar() {
       </div>
 
       {/* supporting cells so the section reads full and dense */}
-      <div className="lp-shell py-9 sm:py-11">
+      <div className="lp-shell py-8 sm:py-10">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {CELLS.map((c, i) => {
             const Icon = c.icon;

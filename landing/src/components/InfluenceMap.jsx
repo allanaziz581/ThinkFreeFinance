@@ -209,10 +209,13 @@ export default function InfluenceMap() {
     }
 
     let raf = 0, running = true;
-    const loop = () => { if (!running) return; draw(); raf = requestAnimationFrame(loop); };
-    resize(); draw(); if (!reduce) loop();
+    // If the element had no size at first measure (common when it mounts below the
+    // fold), re-measure before drawing so it never renders blank.
+    const safeDraw = () => { if (W === 0 || H === 0) resize(); if (W > 0 && H > 0) draw(); };
+    const loop = () => { if (!running) return; safeDraw(); raf = requestAnimationFrame(loop); };
+    resize(); safeDraw(); if (!reduce) loop();
 
-    const onResize = () => resize();
+    const onResize = () => { resize(); safeDraw(); };
     const onMove = (e) => {
       const rect = wrap.getBoundingClientRect();
       mouse.x = e.clientX - rect.left; mouse.y = e.clientY - rect.top; mouse.on = true;
@@ -232,12 +235,26 @@ export default function InfluenceMap() {
       wrap.addEventListener("pointerleave", onLeave);
     }
 
+    // ResizeObserver catches the moment the element gets its real size (layout,
+    // orientation change, container resize) and redraws even while paused.
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => { resize(); safeDraw(); });
+      ro.observe(wrap);
+    }
+
     const io = new IntersectionObserver((ents) => {
       ents.forEach((en) => {
-        if (en.isIntersecting && !reduce) { if (!running) { running = true; loop(); } }
-        else { running = false; cancelAnimationFrame(raf); }
+        if (en.isIntersecting) {
+          // Re-measure and paint whenever it scrolls into view (fixes a stale/zero
+          // size captured while it was below the fold), then resume animating.
+          resize(); safeDraw();
+          if (!reduce && !running) { running = true; loop(); }
+        } else {
+          running = false; cancelAnimationFrame(raf);
+        }
       });
-    }, { threshold: 0.02 });
+    }, { threshold: 0.01 });
     io.observe(wrap);
 
     return () => {
@@ -245,6 +262,7 @@ export default function InfluenceMap() {
       window.removeEventListener("resize", onResize);
       wrap.removeEventListener("pointermove", onMove);
       wrap.removeEventListener("pointerleave", onLeave);
+      if (ro) ro.disconnect();
       io.disconnect();
     };
   }, []);

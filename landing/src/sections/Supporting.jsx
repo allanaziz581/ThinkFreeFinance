@@ -20,7 +20,7 @@ const COL_ITEMS = ["Groceries", "Rent", "Gas", "Mortgage rates", "Car loans", "J
 
 export default function Supporting() {
   return (
-    <section className="border-b border-line py-18 sm:py-22">
+    <section className="border-b border-line py-12 sm:py-20">
       <div className="lp-shell">
         <SectionHead
           label="04 / In plain English"
