@@ -76,20 +76,20 @@ TIERS = {
         "entitlements": {"after_hours": False, "live_prices": True, "news": True},
     },
     "hourly": {
-        "name": "Pro · Hourly", "refresh_min": 60, "price_usd": 9, "price_display": "$9/mo",
+        "name": "Pro · Hourly", "refresh_min": 60, "price_usd": 5, "price_display": "$5/mo",
         "blurb": "Fresh prices every hour", "order": 1, "public": True,
         "entitlements": {"after_hours": False, "live_prices": True, "news": True},
     },
     "half": {
-        "name": "Pro · 30-min", "refresh_min": 30, "price_usd": 19, "price_display": "$19/mo",
+        "name": "Pro · 30-min", "refresh_min": 30, "price_usd": 15, "price_display": "$15/mo",
         "blurb": "Refreshes every 30 minutes, including after hours", "order": 2, "public": True,
         "entitlements": {"after_hours": True, "live_prices": True, "news": True},
     },
     # NOTE: key kept as "live" (already persisted on existing accounts); cadence
     # retuned from 15→5 min and renamed to the 5-minute product tier.
     "live": {
-        "name": "Pro · 5-min", "refresh_min": 5, "price_usd": 39, "price_display": "$39/mo",
-        "blurb": "Fastest feed — every 5 minutes, including after hours", "order": 3, "public": True,
+        "name": "Pro · 5-min", "refresh_min": 5, "price_usd": 25, "price_display": "$25/mo",
+        "blurb": "Fastest feed, every 5 minutes, including after hours", "order": 3, "public": True,
         "entitlements": {"after_hours": True, "live_prices": True, "news": True},
     },
     # Internal tier granted to closed-beta testers: top speed, never sold.

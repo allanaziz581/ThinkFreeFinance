@@ -1,8 +1,6 @@
 import Reveal from "../components/ui/Reveal.jsx";
-import SectionHead from "../components/ui/SectionHead.jsx";
+import { Code2 } from "lucide-react";
 
-// Headline metric tiles: big tabular figures, framed as transparent analysis of
-// public data (illustrative values, not advice or a forecast).
 const TILES = [
   { k: "Value at Risk", v: "4.2", u: "%", note: "95% 1-day, per position" },
   { k: "Kelly sizing", v: "0.18", u: "x", note: "fraction of bankroll" },
@@ -37,11 +35,24 @@ export default function QuantSection() {
   return (
     <section id="quant" className="border-b border-line py-18 sm:py-22">
       <div className="lp-shell">
-        <SectionHead
-          label="The substance"
-          title="Predictive modeling, powered by quant and math"
-          lead="The quant library calculates everything. Not opinions, real math, shown transparently. Every score shows its inputs and weights, so you can see exactly how a number was reached."
-        />
+        <Reveal>
+          <div className="t-label">The substance</div>
+          <h2 className="t-h2 mt-3 max-w-3xl">
+            Predictive modeling, powered by{" "}
+            <span className="whitespace-nowrap rounded-ctl bg-brand-glow px-2 py-0.5 text-brand">
+              Quant and Math
+            </span>
+          </h2>
+          <p className="t-lead mt-4 max-w-2xl">
+            Every calculation runs in code, through the Quant library, in Python. The math is real,
+            not AI. AI is used only as a translation layer that turns the numbers into plain English,
+            so the average person can understand what they mean.
+          </p>
+          <div className="mt-5 inline-flex items-center gap-2 rounded-ctl border border-line bg-ink-800 px-3 py-1.5">
+            <Code2 className="h-4 w-4 text-brand" />
+            <span className="t-small text-ash-300">Calculated in Python. Translated into plain English.</span>
+          </div>
+        </Reveal>
 
         {/* headline metric tiles */}
         <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -79,9 +90,10 @@ export default function QuantSection() {
         </div>
 
         <p className="t-small mt-6 max-w-2xl">
-          ThinkFree is an AI-powered research analyst and economic translator. The numbers above are
-          transparent, math-based analysis of public data. They are informational, not investment
-          advice, and not a promise of future results.
+          The Quant library computes VaR, Kelly sizing, Sharpe, probability of profit, event-study
+          abnormal returns, Money Trail scores, opportunity scores, and recession signals in code.
+          AI only turns those numbers into plain language. Informational, not investment advice, and
+          not a promise of future results.
         </p>
       </div>
     </section>
