@@ -4,7 +4,7 @@
  * no backdrop blur. Log in / Get started route to /app (the app shell owns the
  * login gate). Sticky so it stays available without drawing attention.
  */
-export default function Nav() {
+export default function Nav({ onSignIn }) {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-ink-900">
       <div className="lp-shell flex h-14 items-center justify-between">
@@ -17,9 +17,9 @@ export default function Nav() {
           </span>
         </a>
         <nav className="flex flex-shrink-0 items-center gap-2.5">
-          <a className="lp-btn lp-btn-ghost" href="/app">
+          <button className="lp-btn lp-btn-ghost" type="button" onClick={onSignIn}>
             Log in
-          </a>
+          </button>
           <a className="lp-btn lp-btn-primary" href="/app">
             Get started
           </a>

@@ -1,9 +1,10 @@
 import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import InfluenceMap from "../components/InfluenceMap.jsx";
 
 const EASE = [0.22, 1, 0.36, 1];
 
-export default function Hero() {
+export default function Hero({ onSignIn }) {
   const reduce = useReducedMotion();
   const rise = (delay) =>
     reduce
@@ -15,7 +16,11 @@ export default function Hero() {
         };
 
   return (
-    <section className="border-b border-line">
+    <section className="relative isolate overflow-hidden border-b border-line">
+      {/* Vercel-style graph-paper backdrop: fine hairline grid, radial-masked.
+          No glow, no colored orb. */}
+      <div aria-hidden="true" className="bg-grid pointer-events-none absolute inset-0 -z-10" />
+
       <div className="lp-shell grid items-center gap-12 py-18 sm:py-22 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:py-30">
         <div>
           <motion.h1 {...rise(0)} className="t-display max-w-xl">
@@ -32,11 +37,11 @@ export default function Hero() {
 
           <motion.div {...rise(0.16)} className="mt-9 flex flex-wrap gap-3">
             <a className="lp-btn lp-btn-primary lp-btn-lg" href="/app">
-              Open the app
+              Open the app <ArrowRight className="h-4 w-4" />
             </a>
-            <a className="lp-btn lp-btn-ghost lp-btn-lg" href="#influence">
-              See how it works
-            </a>
+            <button className="lp-btn lp-btn-ghost lp-btn-lg" onClick={onSignIn} type="button">
+              Sign in
+            </button>
           </motion.div>
 
           <motion.p {...rise(0.22)} className="t-small mt-7">
@@ -44,6 +49,7 @@ export default function Hero() {
           </motion.p>
         </div>
 
+        {/* The ONE influence map on the whole page. */}
         <motion.div
           initial={reduce ? {} : { opacity: 0 }}
           animate={reduce ? {} : { opacity: 1 }}

@@ -52,6 +52,7 @@ export default {
           "Segoe UI",
           "sans-serif",
         ],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       letterSpacing: {
         tightest: "-0.03em",

@@ -1,15 +1,16 @@
 import Reveal from "../components/ui/Reveal.jsx";
 import SectionHead from "../components/ui/SectionHead.jsx";
 
-// Bento grid: a wide lead card, then the supporting analyses. Each card states
-// what the math is, framed as transparent analysis, never a guaranteed outcome.
+// Headline metric tiles: big tabular figures, framed as transparent analysis of
+// public data (illustrative values, not advice or a forecast).
+const TILES = [
+  { k: "Value at Risk", v: "4.2", u: "%", note: "95% 1-day, per position" },
+  { k: "Kelly sizing", v: "0.18", u: "x", note: "fraction of bankroll" },
+  { k: "Sharpe ratio", v: "1.34", u: "", note: "risk-adjusted return" },
+  { k: "Prob. of profit", v: "62", u: "%", note: "modeled, not promised" },
+];
+
 const CARDS = [
-  {
-    title: "Risk and return metrics",
-    body: "The quant library computes the core numbers behind every opportunity, so risk is measured, not guessed.",
-    metrics: ["Value at Risk", "Kelly sizing", "Sharpe ratio", "Probability of profit"],
-    wide: true,
-  },
   {
     title: "Event-study analysis",
     body: "Abnormal-return analysis measures how a stock actually moved around an event, against its own baseline, market adjusted.",
@@ -30,30 +31,7 @@ const CARDS = [
     body: "Macro, market, and behavioral indicators roll up into a single recession-risk read you can track day to day.",
     metrics: ["Yield curve", "Risk score"],
   },
-  {
-    title: "Transparent by design",
-    body: "This is analysis, not advice and not a guarantee. The math is shown so you can judge it yourself, then decide.",
-    metrics: ["Inputs shown", "No black box"],
-  },
 ];
-
-function QCard({ card }) {
-  return (
-    <Reveal className={card.wide ? "sm:col-span-2" : ""}>
-      <div className="lp-card h-full p-5 sm:p-6">
-        <h3 className="t-h3">{card.title}</h3>
-        <p className="t-body mt-2">{card.body}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {card.metrics.map((m) => (
-            <span key={m} className="lp-metric">
-              {m}
-            </span>
-          ))}
-        </div>
-      </div>
-    </Reveal>
-  );
-}
 
 export default function QuantSection() {
   return (
@@ -65,9 +43,38 @@ export default function QuantSection() {
           lead="The quant library calculates everything. Not opinions, real math, shown transparently. Every score shows its inputs and weights, so you can see exactly how a number was reached."
         />
 
-        <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {CARDS.map((c) => (
-            <QCard key={c.title} card={c} />
+        {/* headline metric tiles */}
+        <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {TILES.map((t, i) => (
+            <Reveal key={t.k} delay={i * 0.04}>
+              <div className="lp-card h-full p-5">
+                <div className="text-[12px] text-ash-500">{t.k}</div>
+                <div className="mt-2 flex items-baseline gap-0.5">
+                  <span className="num text-[30px] font-bold leading-none text-ash-100">{t.v}</span>
+                  <span className="num text-[15px] text-ash-300">{t.u}</span>
+                </div>
+                <div className="t-small mt-2">{t.note}</div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        {/* analysis cards */}
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {CARDS.map((c, i) => (
+            <Reveal key={c.title} delay={i * 0.04}>
+              <div className="lp-card h-full p-5 sm:p-6">
+                <h3 className="t-h3">{c.title}</h3>
+                <p className="t-body mt-2">{c.body}</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {c.metrics.map((m) => (
+                    <span key={m} className="lp-metric">
+                      {m}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </Reveal>
           ))}
         </div>
 
