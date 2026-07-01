@@ -30,8 +30,10 @@ export default function InfluencePillar() {
         </Reveal>
       </div>
 
-      {/* prominent full-bleed interactive map that fills the section */}
-      <div className="relative mt-7 h-[min(72vh,620px)] w-full overflow-hidden border-y border-line bg-ink-800/40">
+      {/* prominent full-bleed interactive map that fills the section. Fixed pixel
+          height (not vh) so mobile Safari's dynamic viewport can never collapse it
+          to zero and blank the canvas. */}
+      <div className="relative mt-7 h-[460px] w-full overflow-hidden border-y border-line bg-ink-800/40 sm:h-[580px]">
         <InfluenceMap />
         {/* soft top/bottom scrims so overlays stay readable */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-40"
