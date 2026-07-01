@@ -105,10 +105,11 @@ export default function InfluenceMap() {
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
       canvas.style.width = W + "px"; canvas.style.height = H + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // center-anchored field, capped so it never over-stretches
+      // center-anchored field: fill most of the container so it never reads as a
+      // small graph floating in empty black.
       cx = W * 0.5; cy = H * 0.5;
-      sx = Math.min(W * 0.92, 1180);
-      sy = Math.min(H * 0.86, 640);
+      sx = Math.min(W * 0.98, 1480);
+      sy = Math.min(H * 0.96, 900);
       S.forEach((s) => {
         s.homeX = cx + (s.hx - 0.5) * sx;
         s.homeY = cy + (s.hy - 0.5) * sy;
