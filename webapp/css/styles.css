@@ -3,25 +3,36 @@
    Premium dark fintech theme matching reference mockups
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+/* Self-hosted Inter (woff2, latin). Replaces the old Google Fonts @import, which
+   was blocked in production by the app CSP (style-src 'self') and never loaded, so
+   the app ran on the system fallback. Served from /css/fonts/ by the existing /css
+   static mount; same-origin, covered by font-src 'self'. */
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/inter-400.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/inter-500.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/inter-600.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/inter-700.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 800; font-display: swap; src: url("fonts/inter-800.woff2") format("woff2"); }
 
 :root {
-  /* ---- color tokens (DARK, app bg #121016, panels ~#13111A) ---- */
-  --bg-primary:    #121016;
-  --bg-secondary:  #15121C;
-  --bg-card:       #13111A;
-  --bg-card-2:     #100E16;
-  --bg-inner:      rgba(18,16,22,0.85);
-  --bg-hover:      rgba(148,163,184,0.06);
+  /* ---- color tokens (DARK) — crisper neutral premium dark + hairline borders.
+     Refined from the original warm #121016 canvas toward a neutral near-black.
+     Every component references these tokens, so this is a centralized, reversible
+     theme change (no per-screen edits). ---- */
+  --bg-primary:    #0B0C0F;
+  --bg-secondary:  #101216;
+  --bg-card:       #0F1115;
+  --bg-card-2:     #0C0E11;
+  --bg-inner:      rgba(12,14,17,0.85);
+  --bg-hover:      rgba(255,255,255,0.045);
 
-  --border-subtle: rgba(148,163,184,0.10);
-  --border-soft:   rgba(148,163,184,0.16);
-  --border-strong: rgba(148,163,184,0.28);
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-soft:   rgba(255,255,255,0.10);
+  --border-strong: rgba(255,255,255,0.16);
 
-  --text-primary:  #F1F5F9;
-  --text-secondary:#94A3B8;
-  --text-tertiary: #64748B;
-  --text-faint:    #475569;
+  --text-primary:  #F3F5F8;
+  --text-secondary:#98A2B0;
+  --text-tertiary: #66707E;
+  --text-faint:    #49525F;
 
   --success: #00C46A;
   --success-dim: rgba(0,196,106,0.14);
@@ -50,14 +61,20 @@
   --brand-grad-b: var(--accent-strong);
   --brand-grad:   linear-gradient(135deg, var(--info), var(--accent-strong));
 
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.28);
-  --shadow-md: 0 6px 22px rgba(0,0,0,0.34);
-  --shadow-lg: 0 18px 52px rgba(0,0,0,0.42);
+  /* Lighter, tighter elevation (depth from hairline borders, not heavy shadow). */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.30);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.32);
+  --shadow-lg: 0 16px 44px rgba(0,0,0,0.40);
 
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 22px;
+  /* Radii tightened for a crisper, more modern silhouette (was 10/14/18/22). */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 15px;
+  --radius-xl: 19px;
+
+  /* ---- motion (shared easing + duration tokens) ---- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur: 180ms;
 
   /* ---- layout ---- */
   --sidebar-w: 232px;
@@ -69,18 +86,18 @@
 
 /* ---- LIGHT THEME (body.light) ---- */
 body.light {
-  --bg-primary:    #EEF2F9;
+  --bg-primary:    #F4F6FB;
   --bg-secondary:  #FFFFFF;
   --bg-card:       #FFFFFF;
-  --bg-card-2:     #F6F8FC;
-  --bg-inner:      rgba(15,23,42,0.04);
-  --bg-hover:      rgba(15,23,42,0.04);
+  --bg-card-2:     #F7F9FD;
+  --bg-inner:      rgba(15,23,42,0.035);
+  --bg-hover:      rgba(15,23,42,0.035);
 
-  --border-subtle: rgba(15,23,42,0.09);
-  --border-soft:   rgba(15,23,42,0.14);
-  --border-strong: rgba(15,23,42,0.22);
+  --border-subtle: rgba(15,23,42,0.07);
+  --border-soft:   rgba(15,23,42,0.11);
+  --border-strong: rgba(15,23,42,0.18);
 
-  --text-primary:  #0F172A;
+  --text-primary:  #0D1526;
   --text-secondary:#475569;
   --text-tertiary: #64748B;
   --text-faint:    #94A3B8;
@@ -102,9 +119,9 @@ body.light {
   --brand-grad-b: var(--accent-strong);
   --brand-grad:   linear-gradient(135deg, var(--info), var(--accent-strong));
 
-  --shadow-sm: 0 1px 3px rgba(15,23,42,0.08);
-  --shadow-md: 0 4px 14px rgba(15,23,42,0.10);
-  --shadow-lg: 0 18px 46px rgba(15,23,42,0.18);
+  --shadow-sm: 0 1px 2px rgba(15,23,42,0.06);
+  --shadow-md: 0 4px 12px rgba(15,23,42,0.08);
+  --shadow-lg: 0 14px 40px rgba(15,23,42,0.14);
 
   background: var(--bg-primary);
   color: var(--text-primary);
@@ -326,7 +343,11 @@ html, body {
   box-shadow: var(--shadow-sm);
   display: flex; flex-direction: column;
   min-width: 0;            /* prevents overflow / keeps text aligned */
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
+/* Tasteful, jitter-free elevation: the hairline sharpens and depth lifts a touch
+   on hover. No transform, so dense dashboards never shift. */
+.card:hover { border-color: var(--border-soft); box-shadow: var(--shadow-md); }
 .card.pad-lg { padding: 22px; }
 
 .card-head {

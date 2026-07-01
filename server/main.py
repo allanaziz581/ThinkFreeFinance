@@ -134,7 +134,7 @@ _BLOCKED_SUFFIXES = ("_data.js", "news_intel.js", "member_bills.js")
 # the app relies on and is scoped so it can never reach an app or /api route.
 _APP_CSP = (
     "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-    "img-src 'self' data: https:; connect-src 'self' https://dns.google; "
+    "img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://dns.google; "
     "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 )
 _LANDING_CSP = (
