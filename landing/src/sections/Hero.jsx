@@ -66,6 +66,19 @@ export default function Hero({ onSignIn }) {
             <span className="pointer-events-none absolute left-3 top-3 rounded-ctl border border-line bg-ink-900/70 px-2 py-1 text-[10.5px] text-ash-300">
               Live influence graph, hover to explore
             </span>
+            <div className="pointer-events-none absolute bottom-3 left-3 flex flex-wrap gap-x-3 gap-y-1 rounded-ctl border border-line bg-ink-900/70 px-2.5 py-1.5 text-[10px] text-ash-300">
+              {[
+                ["Government", "#38BDF8"],
+                ["Company", "#E5E9F0"],
+                ["Political", "#EF4444"],
+                ["Financial", "#E9C46A"],
+              ].map(([k, c]) => (
+                <span key={k} className="inline-flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c }} />
+                  {k}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-3">
