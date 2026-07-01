@@ -32,7 +32,7 @@ export default function LaptopReveal() {
           style={reduce ? undefined : { y: headY, opacity: headO }}
           className="mb-8 max-w-2xl text-center"
         >
-          <div className="t-label">See it in action</div>
+          <div className="t-label">01 / The product</div>
           <h2 className="t-h2 mt-3">The whole picture, on one screen</h2>
           <p className="t-lead mx-auto mt-3 max-w-xl">
             Scroll to open ThinkFree. Everything in one place, in plain English.

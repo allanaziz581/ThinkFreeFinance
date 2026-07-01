@@ -34,7 +34,7 @@ export default function InfluencePillar() {
     <section id="influence" className="border-b border-line py-18 sm:py-22">
       <div className="lp-shell">
         <Reveal>
-          <div className="t-label">The signature view</div>
+          <div className="t-label">02 / Influence network</div>
           <h2 className="t-h2 mt-3 max-w-2xl">The Influence Map</h2>
           <p className="t-lead mt-4 max-w-2xl">
             A living map of the connections between Congress, companies, congressional trades,

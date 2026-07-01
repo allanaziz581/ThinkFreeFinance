@@ -1,5 +1,6 @@
 import { useState } from "react";
 import IntroLoader from "./components/IntroLoader.jsx";
+import TickerTape from "./components/TickerTape.jsx";
 import Nav from "./components/Nav.jsx";
 import Hero from "./sections/Hero.jsx";
 import LaptopReveal from "./components/LaptopReveal.jsx";
@@ -21,6 +22,7 @@ export default function App() {
       {/* Intro loader slides up to reveal the site, which loads underneath (item 4). */}
       {intro ? <IntroLoader onDone={() => setIntro(false)} /> : null}
 
+      <TickerTape />
       <Nav onSignIn={openSignIn} />
       <main>
         {/* the single interactive influence map lives in the hero (item 1) */}

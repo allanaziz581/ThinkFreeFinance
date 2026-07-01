@@ -41,7 +41,7 @@ export default function Pricing() {
     <section id="pricing" className="border-b border-line py-18 sm:py-22">
       <div className="lp-shell">
         <SectionHead
-          label="Plans"
+          label="05 / Pricing"
           title="Start free. Move faster when you need to."
           lead="Every plan reads the same public records and shows the same transparent math. Higher tiers just refresh the live data more often."
           center

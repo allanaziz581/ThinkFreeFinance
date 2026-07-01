@@ -23,7 +23,7 @@ export default function Supporting() {
     <section className="border-b border-line py-18 sm:py-22">
       <div className="lp-shell">
         <SectionHead
-          label="Also inside"
+          label="04 / In plain English"
           title="Everything in one place, in plain English"
           lead="No finance degree required. ThinkFree pulls it together and explains what it means for you."
         />

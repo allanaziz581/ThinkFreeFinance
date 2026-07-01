@@ -36,7 +36,7 @@ export default function QuantSection() {
     <section id="quant" className="border-b border-line py-18 sm:py-22">
       <div className="lp-shell">
         <Reveal>
-          <div className="t-label">The substance</div>
+          <div className="t-label">03 / Quant and math</div>
           <h2 className="t-h2 mt-3 max-w-3xl">
             Predictive modeling, powered by{" "}
             <span className="whitespace-nowrap rounded-ctl bg-brand-glow px-2 py-0.5 text-brand">

@@ -18,30 +18,34 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Neutral (achromatic) dark canvas. No warm tint, no chroma.
+        // Deep blue-black financial canvas (Bloomberg / Mercury "Deep Space").
+        // Cool, restrained, data-dense. A single sharp cyan accent.
         ink: {
-          900: "#0A0B0D", // page background
-          800: "#101214", // surface / card
-          700: "#14171A", // raised surface
-          600: "#181C20", // hover surface
+          900: "#070A0F", // page background (deep blue-black)
+          800: "#0C1017", // surface / card
+          700: "#11161F", // raised surface
+          600: "#161C27", // hover surface
         },
         line: {
-          DEFAULT: "rgba(255,255,255,0.08)", // hairline border
-          strong: "rgba(255,255,255,0.14)", // hover / emphasis border
+          DEFAULT: "rgba(150,180,215,0.10)", // cool hairline border
+          strong: "rgba(150,180,215,0.18)", // hover / emphasis border
         },
         ash: {
-          100: "#F4F6F8", // primary text
-          300: "#9BA3AD", // secondary text
-          500: "#6B7280", // tertiary text
+          100: "#E8EEF6", // primary text (cool white)
+          300: "#9FB0C3", // secondary text (cool gray-blue)
+          500: "#647184", // tertiary text
         },
-        // The single chromatic accent. Used sparingly (links, primary button,
-        // brand mark, a few small marks). Never as a large gradient field.
+        // The single sharp accent. Used sparingly (links, primary button, brand
+        // mark, key marks). Never as a large gradient field.
         brand: {
           DEFAULT: "#38BDF8",
           deep: "#2A93C9",
           soft: "#7DD3FC",
           glow: "rgba(56,189,248,0.10)",
         },
+        // Financial up/down for figures (used sparingly, on numerals only).
+        up: "#34D399",
+        down: "#F87171",
       },
       fontFamily: {
         sans: [
