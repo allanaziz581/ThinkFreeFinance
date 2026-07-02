@@ -43,24 +43,16 @@ export default function Hero({ onSignIn }) {
           canvas beneath; only the buttons re-enable pointer events. */}
       <div className="lp-shell pointer-events-none relative z-10 py-24">
         <div className="max-w-xl">
-          <motion.span
-            {...rise(0)}
-            className="inline-flex items-center gap-2 rounded-ctl border border-line bg-ink-900/70 px-2.5 py-1 text-[12px] text-ash-300"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-brand" />
-            Live influence network, hover to explore
-          </motion.span>
-
-          <motion.h1 {...rise(0.06)} className="t-display mt-5">
-            Map the influence.
+          <motion.h1 {...rise(0)} className="t-display">
+            See the influence.
             <br />
-            <span className="text-brand">See the math.</span>
+            <span className="text-brand">Predict the market.</span>
           </motion.h1>
 
-          <motion.p {...rise(0.14)} className="t-lead mt-6 max-w-lg">
-            ThinkFree connects Congress, companies, trades, contracts, and lobbying, runs the real
-            math in code, and puts it all in one place in plain English, so anyone can understand
-            what is going on.
+          <motion.p {...rise(0.1)} className="t-lead mt-6 max-w-lg">
+            ThinkFree maps how Congress, companies, trades, contracts, and lobbying connect, then
+            runs predictive quant analysis in code to model where the market may move, and puts it
+            all in plain English. Transparent math, not guarantees.
           </motion.p>
 
           <motion.div {...rise(0.22)} className="pointer-events-auto mt-9 flex flex-wrap gap-3">

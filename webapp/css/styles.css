@@ -140,6 +140,17 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
+/* Text selection: all content (headings, body, data, labels, values) is
+   selectable and copyable on desktop and mobile. Explicitly enabled so tappable
+   cards never suppress long-press selection. Only genuine interactive controls
+   opt out (.nav-item, plain buttons, the graph pan surface + its controls). */
+html, body { -webkit-user-select: text; -moz-user-select: text; user-select: text; -webkit-touch-callout: default; }
+.nav-item, .iw-zoom, .iw-zoom button, .iw-canvas, .switch, .logout-btn, .tab, .seg, .seg-btn {
+  -webkit-user-select: none; user-select: none;
+}
+::selection { background: rgba(56,189,248,0.28); color: var(--text-primary); }
+::-moz-selection { background: rgba(56,189,248,0.28); color: var(--text-primary); }
+
 ::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.18); border-radius: 8px; }
