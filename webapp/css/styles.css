@@ -763,6 +763,23 @@ table.tf td.num, table.tf th.num { text-align: right; font-variant-numeric: tabu
 .iw-bubble .iw-ico { width: 100%; height: 100%; display: grid; place-items: center; }
 .iw-logo { width: 56%; height: 56%; object-fit: contain; border-radius: 8px; background: #fff; padding: 4px; }
 .iw-ini { font-weight: 800; font-size: 15px; color: var(--text-primary); }
+/* clean ticker monogram inside a company node bubble: local text, no remote logos,
+   no placeholder icons. Mono for a crisp, tabular, financial look. */
+.iw-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, "Liberation Mono", monospace;
+  font-weight: 700; letter-spacing: -0.03em; line-height: 1;
+  color: #EAF0F7; text-align: center; padding: 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+/* clean ticker badge for panel chip lists (matches the node monogram) */
+.iw-tkr {
+  width: 30px; height: 26px; flex-shrink: 0; border-radius: 7px;
+  display: grid; place-items: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, "Liberation Mono", monospace;
+  font-weight: 700; font-size: 9.5px; letter-spacing: -0.04em;
+  color: var(--text-primary); background: var(--bg-inner);
+  border: 1px solid var(--border-soft);
+}
 .iw-cap { margin-top: 8px; text-align: center; max-width: 150px; }
 .iw-name { font-weight: 700; font-size: 13px; color: var(--text-primary); line-height: 1.15; }
 .iw-congress .iw-name { font-size: 15px; letter-spacing: .02em; }
