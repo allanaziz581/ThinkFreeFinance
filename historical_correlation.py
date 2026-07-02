@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ThinkFree Finance — Phase 7: Historical Correlation Engine
+ThinkFree Finance, Phase 7: Historical Correlation Engine
 
 Answers "What happened last time?" for current market events.
 
@@ -44,13 +44,13 @@ HISTORICAL_EVENTS: list[dict] = [
         "trigger_keywords": ["rate hike", "interest rate increase", "tightening", "hawkish", "federal reserve raised"],
         "historical_periods": [
             {"label": "2022 Rate Hike Cycle", "start": "2022-03-01", "end": "2023-07-01",
-             "context": "The Fed raised rates from near 0% to 5.25% — the fastest tightening in 40 years."},
+             "context": "The Fed raised rates from near 0% to 5.25%, the fastest tightening in 40 years."},
             {"label": "2018 Rate Hike Cycle", "start": "2018-01-01", "end": "2018-12-31",
              "context": "The Fed raised rates 4 times in 2018, contributing to a Q4 market selloff of ~20%."},
-            {"label": "2004–2006 Rate Hike Cycle", "start": "2004-06-01", "end": "2006-07-01",
+            {"label": "2004-2006 Rate Hike Cycle", "start": "2004-06-01", "end": "2006-07-01",
              "context": "The Fed raised rates 17 consecutive times from 1% to 5.25%. Markets remained relatively resilient."},
         ],
-        "plain_english": "When the Federal Reserve raises interest rates, borrowing costs rise for everyone. Mortgages get more expensive, businesses pay more to borrow, and consumers carry higher credit card bills. Stocks — especially growth stocks and real estate — typically come under pressure.",
+        "plain_english": "When the Federal Reserve raises interest rates, borrowing costs rise for everyone. Mortgages get more expensive, businesses pay more to borrow, and consumers carry higher credit card bills. Stocks, especially growth stocks and real estate, typically come under pressure.",
     },
     {
         "event_type": "fed_rate_cut",
@@ -64,16 +64,16 @@ HISTORICAL_EVENTS: list[dict] = [
             {"label": "2019 Preventive Cuts", "start": "2019-07-01", "end": "2020-02-01",
              "context": "The Fed cut rates three times in 2019 as a 'mid-cycle adjustment.' Markets rose ~25%."},
         ],
-        "plain_english": "Rate cuts make borrowing cheaper for everyone. Mortgages become more affordable, businesses can expand more cheaply, and consumers have lower monthly payments. Stocks — especially real estate, utilities, and growth companies — tend to benefit.",
+        "plain_english": "Rate cuts make borrowing cheaper for everyone. Mortgages become more affordable, businesses can expand more cheaply, and consumers have lower monthly payments. Stocks, especially real estate, utilities, and growth companies, tend to benefit.",
     },
     {
         "event_type": "inflation_spike",
         "label": "Inflation Surge",
         "trigger_keywords": ["inflation", "cpi", "price surge", "cost of living", "price level"],
         "historical_periods": [
-            {"label": "2021–2022 Post-COVID Inflation", "start": "2021-04-01", "end": "2023-01-01",
-             "context": "CPI peaked at 9.1% in June 2022 — the highest since 1981. Energy and commodity stocks outperformed."},
-            {"label": "1979–1982 Great Inflation", "start": "1979-01-01", "end": "1982-12-31",
+            {"label": "2021-2022 Post-COVID Inflation", "start": "2021-04-01", "end": "2023-01-01",
+             "context": "CPI peaked at 9.1% in June 2022, the highest since 1981. Energy and commodity stocks outperformed."},
+            {"label": "1979-1982 Great Inflation", "start": "1979-01-01", "end": "1982-12-31",
              "context": "Inflation reached 14.8% in 1980. The Fed raised rates to 20%, causing a severe recession but breaking inflation."},
         ],
         "plain_english": "Inflation means prices rise faster than wages, reducing purchasing power. Groceries, rent, and gas become more expensive. Savings accounts lose real value. Companies that sell physical goods or energy often do well. Growth stocks and bonds typically underperform.",
@@ -83,10 +83,10 @@ HISTORICAL_EVENTS: list[dict] = [
         "label": "Tariff / Trade War",
         "trigger_keywords": ["tariff", "trade war", "import duty", "trade barrier", "protectionist"],
         "historical_periods": [
-            {"label": "2018–2019 US-China Trade War", "start": "2018-03-01", "end": "2020-01-15",
+            {"label": "2018-2019 US-China Trade War", "start": "2018-03-01", "end": "2020-01-15",
              "context": "The US imposed tariffs on $360B of Chinese goods. Markets were volatile; supply chains shifted. A Phase 1 deal was signed Jan 2020."},
             {"label": "2002 Steel Tariffs", "start": "2002-03-01", "end": "2003-12-01",
-             "context": "The US imposed 8–30% tariffs on imported steel. Steel producers benefited; manufacturers faced higher costs. WTO ruled against the US."},
+             "context": "The US imposed 8-30% tariffs on imported steel. Steel producers benefited; manufacturers faced higher costs. WTO ruled against the US."},
         ],
         "plain_english": "Tariffs are taxes on imported goods. They raise prices for American businesses and consumers who buy those goods. Some domestic industries are protected; others that rely on imported parts face higher costs. Trade partners often retaliate.",
     },
@@ -96,22 +96,22 @@ HISTORICAL_EVENTS: list[dict] = [
         "trigger_keywords": ["recession", "economic contraction", "gdp decline", "downturn"],
         "historical_periods": [
             {"label": "2020 COVID Recession", "start": "2020-02-01", "end": "2020-09-01",
-             "context": "The sharpest recession in modern history — GDP fell 31.4% annualized in Q2 2020. Recovery was rapid due to massive stimulus."},
-            {"label": "2008–2009 Great Recession", "start": "2007-12-01", "end": "2009-06-01",
+             "context": "The sharpest recession in modern history, GDP fell 31.4% annualized in Q2 2020. Recovery was rapid due to massive stimulus."},
+            {"label": "2008-2009 Great Recession", "start": "2007-12-01", "end": "2009-06-01",
              "context": "Triggered by the housing collapse. GDP fell for 6 consecutive quarters. Unemployment peaked at 10%. S&P 500 fell 57%."},
             {"label": "2001 Dot-Com Recession", "start": "2001-03-01", "end": "2001-11-01",
              "context": "Mild recession triggered by the tech bubble burst and 9/11. GDP fell 1.1%. Nasdaq fell 78% peak to trough."},
         ],
-        "plain_english": "A recession is when the economy shrinks — businesses cut back, unemployment rises, and people spend less. Some sectors like healthcare, utilities, and consumer staples tend to hold up better. Banks and discretionary spending typically suffer most.",
+        "plain_english": "A recession is when the economy shrinks, businesses cut back, unemployment rises, and people spend less. Some sectors like healthcare, utilities, and consumer staples tend to hold up better. Banks and discretionary spending typically suffer most.",
     },
     {
         "event_type": "ai_boom",
         "label": "AI / Technology Boom",
         "trigger_keywords": ["artificial intelligence", "ai infrastructure", "generative ai", "llm", "chip demand"],
         "historical_periods": [
-            {"label": "2023–2024 Generative AI Surge", "start": "2023-01-01", "end": "2024-12-31",
+            {"label": "2023-2024 Generative AI Surge", "start": "2023-01-01", "end": "2024-12-31",
              "context": "ChatGPT's launch triggered massive AI infrastructure investment. Nvidia rose 800%+. Cloud providers surged."},
-            {"label": "1995–2000 Internet Boom", "start": "1995-01-01", "end": "2000-03-31",
+            {"label": "1995-2000 Internet Boom", "start": "1995-01-01", "end": "2000-03-31",
              "context": "The internet boom drove Nasdaq up 400%. Ultimately a bubble burst, but the underlying technology transformed the economy."},
         ],
         "plain_english": "Technology booms create wealth rapidly for those invested in the sector, but also risk overvaluation. The companies building the infrastructure (chips, data centers, energy) often outperform the end-application companies.",
@@ -136,9 +136,9 @@ HISTORICAL_EVENTS: list[dict] = [
         "trigger_keywords": ["defense spending", "military budget", "pentagon", "defense contract", "military appropriation"],
         "historical_periods": [
             {"label": "Post-9/11 Defense Buildup", "start": "2001-09-01", "end": "2005-12-31",
-             "context": "Defense spending rose from $300B to $500B. Lockheed, Raytheon, Boeing surged 50–100% over 4 years."},
+             "context": "Defense spending rose from $300B to $500B. Lockheed, Raytheon, Boeing surged 50-100% over 4 years."},
             {"label": "Ukraine War Defense Surge", "start": "2022-02-01", "end": "2024-12-31",
-             "context": "NATO countries increased defense budgets to 2%+ of GDP. US defense stocks gained 30–60%."},
+             "context": "NATO countries increased defense budgets to 2%+ of GDP. US defense stocks gained 30-60%."},
         ],
         "plain_english": "Increased defense spending directly benefits defense contractors, aerospace companies, and their supply chains. Government contracts provide predictable, long-term revenue. NATO allies tend to buy American equipment.",
     },
@@ -188,6 +188,23 @@ def detect_current_events(economic_summary: str, enriched_articles: list[dict]) 
 # Historical performance measurement
 # ---------------------------------------------------------------------------
 
+def max_drawdown_pct(prices) -> float:
+    """Largest peak-to-subsequent-trough decline, in percent (a non-positive number).
+
+    Time order matters: max drawdown is min over time of (price / running_peak - 1).
+    The old code used (global_min - global_max) / global_max, which ignores order, so a
+    series that dipped BEFORE it peaked reported a drawdown that never happened (e.g.
+    [100, 80, 120] gave -33% when the real peak-to-trough drop was only -20%, and a
+    monotonically rising series gave a spurious loss instead of 0).
+    """
+    s = pd.Series(list(prices), dtype="float64")
+    if len(s) < 2:
+        return 0.0
+    running_peak = s.cummax()
+    dd = s / running_peak - 1.0
+    return float(round(dd.min() * 100, 1))
+
+
 def measure_period_performance(ticker: str, start: str, end: str) -> dict | None:
     """Download price data and compute performance metrics for a period."""
     try:
@@ -201,18 +218,16 @@ def measure_period_performance(ticker: str, start: str, end: str) -> dict | None
 
         start_price = float(close.iloc[0])
         end_price   = float(close.iloc[-1])
-        peak_price  = float(close.max())
-        trough_price = float(close.min())
 
         total_return = (end_price - start_price) / start_price * 100
-        max_drawdown = (trough_price - peak_price) / peak_price * 100
+        max_drawdown = max_drawdown_pct(close.tolist())   # time-ordered peak-to-trough
 
         return {
             "ticker": ticker,
             "start_price": round(start_price, 2),
             "end_price":   round(end_price, 2),
             "total_return_pct": round(total_return, 1),
-            "max_drawdown_pct": round(max_drawdown, 1),
+            "max_drawdown_pct": max_drawdown,
             "trading_days": len(data),
         }
     except Exception:
@@ -299,7 +314,7 @@ def generate_historical_narrative(event: dict, analyzed_periods: list[dict]) -> 
 # ---------------------------------------------------------------------------
 
 def run_historical_correlation() -> dict:
-    print("=== ThinkFree — Phase 7: Historical Correlation Engine ===")
+    print("=== ThinkFree, Phase 7: Historical Correlation Engine ===")
 
     # Load current market context
     econ_path = BASE_DIR / "news_output" / "economic_reasoning_summary.json"
