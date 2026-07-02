@@ -107,8 +107,12 @@ def main():
             "sharpe": sharpe(prices),
         }
         rec.update(ta_block(prices))
-        rec["ql_signal"] = ("BUY" if rec["exp_return_1mo"] > 0 and rec["prob_up"] >= rec["prob_down"]
-                            else "SELL" if rec["exp_return_1mo"] < 0 and rec["prob_down"] > rec["prob_up"] else "HOLD")
+        # Direction comes from the technical signal. The QuantLib block quantifies
+        # RISK and probability, not direction: the lognormal expected return is the
+        # risk-neutral carry (spot*exp(r*T)), identical for every stock, so it carries
+        # no directional information. The old code derived ql_signal from the sign of
+        # that term, which (with the former median bug) forced high-vol names to SELL.
+        rec["ql_signal"] = rec.get("ta_signal", "HOLD")
         out[tk] = rec
         print(f"  + {tk:6} vol {rec['volatility']}% | P(+5%) {rec['prob_up']}% | VaR {rec['var95']}% | RSI {rec.get('rsi')} | {rec.get('ta_signal')}/{rec['ql_signal']}")
 

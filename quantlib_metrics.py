@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ThinkFree Finance — QuantLib Metrics Engine (Phase 8 Enhancement)
+ThinkFree Finance, QuantLib Metrics Engine (Phase 8 Enhancement)
 
 Uses QuantLib to compute risk-adjusted opportunity metrics:
   1. Annualized historical volatility from price history
@@ -11,7 +11,7 @@ Uses QuantLib to compute risk-adjusted opportunity metrics:
 
 Falls back to numpy-only equivalents if QuantLib has issues.
 
-Output: quantlib_metrics.json — merged into opportunity_scores.json by controller.
+Output: quantlib_metrics.json, merged into opportunity_scores.json by controller.
 """
 
 from __future__ import annotations
@@ -39,7 +39,8 @@ except ImportError:
 BASE_DIR    = Path(__file__).parent
 OUTPUT_PATH = BASE_DIR / "quantlib_metrics.json"
 
-RISK_FREE_RATE = 0.05     # 5% — approximation, updated from FRED when available
+from constants import RISK_FREE_RATE, KELLY_CAP  # single shared risk-free rate (^IRX)
+
 LOOKBACK_DAYS  = 252      # 1 trading year
 TARGET_HORIZON = 21       # 1 calendar month (~21 trading days)
 
@@ -129,11 +130,27 @@ def _norm_cdf(x: float) -> float:
 # ── VaR ────────────────────────────────────────────────────────────────────────
 
 def compute_var_95(prices: list[float]) -> float:
-    """Daily 95% parametric Value at Risk as a fraction of portfolio."""
+    """Daily 95% PARAMETRIC Value at Risk (fraction of position), under the NORMAL
+    assumption: 1.645 * daily_vol. Normal VaR understates fat left tails; pair it
+    with historical_var_95() below, and label it as the normal assumption in output."""
     vol = compute_annualized_vol(prices)
     daily_vol = vol / math.sqrt(252)
-    # 95% VaR = 1.645 * daily_vol
     return round(1.645 * daily_vol, 4)
+
+
+def historical_var_95(prices: list[float]) -> float:
+    """Daily 95% HISTORICAL-SIMULATION VaR (fraction of position): the empirical 5th
+    percentile of actual daily returns, reported as a positive loss magnitude. Makes
+    no distributional assumption, so it captures fat tails the parametric VaR misses."""
+    if len(prices) < 10:
+        return 0.025
+    arr = np.array(prices, dtype=float)
+    rets = np.diff(arr) / arr[:-1]
+    rets = rets[np.isfinite(rets)]
+    if len(rets) < 5:
+        return 0.025
+    q05 = float(np.percentile(rets, 5))     # 5th percentile of returns (a loss)
+    return round(abs(min(q05, 0.0)), 4)
 
 
 # ── Expected return under lognormal ────────────────────────────────────────────
@@ -144,21 +161,36 @@ def expected_return_lognormal(
     risk_free: float = RISK_FREE_RATE,
     horizon_years: float = TARGET_HORIZON / 252,
 ) -> float:
-    """Expected price under lognormal model (risk-neutral drift = r - 0.5*σ²)."""
+    """Expected (MEAN) price under the risk-neutral lognormal model: E[S_T] = S*exp(r*T).
+
+    The old code returned S*exp((r - 0.5*vol^2)*T), which is the MEDIAN (the drift of
+    log S), not the mean. For high vol that median falls below spot even when r > 0,
+    which injected a spurious downward / SELL bias into the expected-return figure.
+    The arithmetic mean of a lognormal is S*exp(r*T); the -0.5*vol^2 term cancels.
+    """
     if spot <= 0 or vol <= 0:
         return spot
-    return spot * math.exp((risk_free - 0.5 * vol**2) * horizon_years)
+    return spot * math.exp(risk_free * horizon_years)
+
+
+def median_price_path_lognormal(
+    spot: float,
+    vol: float,
+    risk_free: float = RISK_FREE_RATE,
+    horizon_years: float = TARGET_HORIZON / 252,
+) -> float:
+    """The MEDIAN lognormal path: S*exp((r - 0.5*vol^2)*T). Kept explicitly labeled
+    for anywhere that genuinely wants the median rather than the mean."""
+    if spot <= 0 or vol <= 0:
+        return spot
+    return spot * math.exp((risk_free - 0.5 * vol ** 2) * horizon_years)
 
 
 # ── Kelly criterion ─────────────────────────────────────────────────────────────
 
-def kelly_fraction(prices: list[float], risk_free: float = RISK_FREE_RATE) -> float:
-    """
-    Continuous Kelly fraction: f* = (μ - r) / σ²
-    Uses actual historical log returns so the result reflects real past performance,
-    not a fixed ±5% binary bet (which always returns 0 when win prob < 50%).
-    Capped at 0.25 (quarter-Kelly) for safety.
-    """
+def _kelly_raw(prices: list[float], risk_free: float = RISK_FREE_RATE) -> float:
+    """Full continuous Kelly fraction f* = (mu - r) / sigma^2 from historical log
+    returns. No fraction and no cap; those are applied by kelly_fraction()."""
     if len(prices) < 10:
         return 0.0
     import numpy as _np
@@ -167,8 +199,17 @@ def kelly_fraction(prices: list[float], risk_free: float = RISK_FREE_RATE) -> fl
     sigma_annual = float(_np.std(log_rets, ddof=1)) * math.sqrt(252)
     if sigma_annual <= 0:
         return 0.0
-    f = (mu_annual - risk_free) / (sigma_annual ** 2)
-    return max(0.0, min(0.25, f))
+    return (mu_annual - risk_free) / (sigma_annual ** 2)
+
+
+def kelly_fraction(prices: list[float], risk_free: float = RISK_FREE_RATE) -> float:
+    """Reported QUARTER-Kelly: the full f* is divided by 4 FIRST, then capped at
+    KELLY_CAP. The old code did min(cap, f*), which is NOT quarter-Kelly: a full f*
+    of 0.8 was reported as the 0.25 cap instead of 0.8/4 = 0.20. Quarter-Kelly is the
+    conservative sizing convention, so scale then cap.
+    """
+    f_quarter = max(0.0, _kelly_raw(prices, risk_free) / 4.0)
+    return min(KELLY_CAP, f_quarter)
 
 
 # ── Fetch prices ───────────────────────────────────────────────────────────────
@@ -264,7 +305,7 @@ def _plain_english_ql(
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def run_quantlib_metrics() -> dict:
-    print("=== ThinkFree — QuantLib Metrics Engine ===")
+    print("=== ThinkFree, QuantLib Metrics Engine ===")
     print(f"  QuantLib available: {_QL_AVAILABLE}")
 
     signals_path = BASE_DIR / "Module_2_Technical_Analysis" / "signal_output_phase3.json"
@@ -283,7 +324,7 @@ def run_quantlib_metrics() -> dict:
     )[:15]
 
     if not prioritized:
-        print("  No BUY/SELL signals found — sampling first 10 signals.")
+        print("  No BUY/SELL signals found, sampling first 10 signals.")
         prioritized = signals[:10]
 
     print(f"  Computing QuantLib metrics for {len(prioritized)} tickers...")
@@ -309,7 +350,7 @@ def run_quantlib_metrics() -> dict:
             "Probability of profit uses the Black-Scholes lognormal model (N(d2)). "
             "VaR is parametric at 95% confidence using annualized vol / sqrt(252). "
             "Kelly fraction sizes positions to maximize log-expected-wealth. "
-            "All figures are theoretical estimates — not guarantees. Not investment advice."
+            "All figures are theoretical estimates, not guarantees. Not investment advice."
         ),
     }
 
