@@ -1,11 +1,15 @@
 import Reveal from "../components/ui/Reveal.jsx";
 import { Code2 } from "lucide-react";
 
+// Metric capabilities, not fixed values. We intentionally do not print point
+// figures here: they change with the live data and would go stale, and a fixed
+// number on a landing reads as a promise. Each card names what the Quant library
+// computes and what it means.
 const TILES = [
-  { k: "Value at Risk", v: "4.2", u: "%", note: "95% 1-day, per position" },
-  { k: "Kelly sizing", v: "0.18", u: "x", note: "fraction of bankroll" },
-  { k: "Sharpe ratio", v: "1.34", u: "", note: "risk-adjusted return" },
-  { k: "Prob. of profit", v: "62", u: "%", note: "modeled, not promised" },
+  { k: "Value at Risk", note: "95% one-day downside, per position" },
+  { k: "Historical hit rate", note: "how often it gained this much before" },
+  { k: "Sharpe ratio", note: "return per unit of risk" },
+  { k: "Expected return", note: "true mean outcome, modeled" },
 ];
 
 const CARDS = [
@@ -54,17 +58,13 @@ export default function QuantSection() {
           </div>
         </Reveal>
 
-        {/* headline metric tiles */}
+        {/* metric capability tiles (no point figures: they change and would go stale) */}
         <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {TILES.map((t, i) => (
             <Reveal key={t.k} delay={i * 0.04}>
               <div className="lp-card h-full p-5">
-                <div className="text-[12px] text-ash-500">{t.k}</div>
-                <div className="mt-2 flex items-baseline gap-0.5">
-                  <span className="num text-[30px] font-bold leading-none text-ash-100">{t.v}</span>
-                  <span className="num text-[15px] text-ash-300">{t.u}</span>
-                </div>
-                <div className="t-small mt-2">{t.note}</div>
+                <div className="num text-[15px] font-semibold leading-tight text-ash-100">{t.k}</div>
+                <div className="t-body mt-2">{t.note}</div>
               </div>
             </Reveal>
           ))}

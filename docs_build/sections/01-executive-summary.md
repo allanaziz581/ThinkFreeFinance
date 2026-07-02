@@ -82,3 +82,25 @@ canonical blueprint (the project's CLAUDE.md), and the prior code base.
 - ~5,700 lines of frontend JavaScript across ~10 logic modules.
 - 30+ pinned Python libraries for the pipeline; 5 for the backend.
 - 17 generated datasets sourced from 11+ external APIs / government disclosures.
+
+## How the numbers are produced (and what AI does)
+
+Every quantitative result is **computed in code** by the Python quant engine, not
+by a language model. The AI layer is a **translator**: it turns the deterministic
+numbers into plain English and is constrained so it can phrase a figure but never
+invent one. This division of labor is central to the product's honesty claims.
+
+## Recent updates and where to find them
+
+- **Part 2B, Statistical Methodology and Corrections**, documents the current,
+  audited quant methodology (true-mean expected return, historical-frequency
+  probabilities, walk-forward point-in-time backtesting, the Sahm-rule recession
+  trigger, the excess-return politician scoreboard, and related corrections). It
+  is written as the updated approach for review before the implementing code
+  merges.
+- **Part 12B, Current State of the Live Application**, documents the production
+  deployment on Render, the tiered refresh and pricing, the Money Trail engine,
+  the QuiverQuant congressional-trade integration, the scheduler and autonomous
+  refresh, the Hedge Fund Monitor, the Data Centers and Economy trackers, the
+  Presidential feed, the security hardening, and the public landing plus the app
+  theme upgrade.
