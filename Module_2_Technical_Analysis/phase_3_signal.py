@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ThinkFree Finance — Phase 3b: Signal Generation
+ThinkFree Finance, Phase 3b: Signal Generation (momentum: RSI + MACD + SMA trend)
 Reads ta_analysis_detailed.csv, applies multi-indicator signal rules,
 and outputs signal_output_phase3.json.
 """
@@ -20,13 +20,24 @@ OUTPUT_PATH = Path(__file__).parent / "signal_output_phase3.json"
 LOOKBACK_DAYS = 5
 
 
-def analyze_row(row: pd.Series) -> dict:
-    signal     = "HOLD"
+def momentum_vote(rsi, macd, macd_signal, sma50, sma200) -> tuple:
+    """One clean MOMENTUM signal from RSI + MACD + SMA-50/200 trend.
+
+    Returns (signal, confidence, support, contradiction).
+
+    This deliberately EXCLUDES OBV, ADX, and CCI:
+      - OBV was previously voted on its raw sign (obv > 0). OBV is a cumulative running
+        total whose sign depends on an arbitrary starting point in the sampled window, so
+        the sign carries no bullish/bearish information, it was noise added to the tally.
+      - OBV, ADX, and CCI were also absent (all NaN) from the upstream ta CSV, so their
+        branches either never fired or cast phantom votes. Dropping all three makes this an
+        honest three-indicator momentum composite instead of a six-indicator vote that was
+        really only ever counting three.
+    """
     confidence = 0
-    support: list[str]       = []
+    support: list[str] = []
     contradiction: list[str] = []
 
-    rsi = row.get("rsi")
     if rsi is not None and not pd.isna(rsi):
         if rsi < 30:
             confidence += 1
@@ -37,21 +48,16 @@ def analyze_row(row: pd.Series) -> dict:
         else:
             contradiction.append("RSI in neutral zone")
 
-    macd      = row.get("macd")
-    # Accept either 'macd_signal_line' (raw) or 'macd_signal' (binary flag)
-    macd_sig  = row.get("macd_signal_line")
-    if macd is not None and macd_sig is not None and not pd.isna(macd) and not pd.isna(macd_sig):
-        if macd > macd_sig:
+    if macd is not None and macd_signal is not None and not pd.isna(macd) and not pd.isna(macd_signal):
+        if macd > macd_signal:
             confidence += 1
             support.append("MACD bullish crossover")
-        elif macd < macd_sig:
+        elif macd < macd_signal:
             confidence -= 1
             support.append("MACD bearish crossover")
         else:
             contradiction.append("MACD flat")
 
-    sma50  = row.get("sma_50")
-    sma200 = row.get("sma_200")
     if sma50 is not None and sma200 is not None and not pd.isna(sma50) and not pd.isna(sma200):
         if sma50 > sma200:
             confidence += 1
@@ -60,32 +66,19 @@ def analyze_row(row: pd.Series) -> dict:
             confidence -= 1
             support.append("SMA 50 < SMA 200 (death cross)")
 
-    obv = row.get("obv")
-    if obv is not None and not pd.isna(obv):
-        if obv > 0:
-            confidence += 1
-            support.append("OBV increasing")
-        else:
-            contradiction.append("OBV flat or decreasing")
+    signal = "BUY" if confidence >= 2 else "SELL" if confidence <= -2 else "HOLD"
+    return signal, confidence, support, contradiction
 
-    adx = row.get("adx")
-    if adx is not None and not pd.isna(adx):
-        if adx < 20:
-            contradiction.append("ADX below 20 (weak trend)")
-        else:
-            support.append("ADX shows trend strength")
 
-    cci = row.get("cci")
-    if cci is not None and not pd.isna(cci):
-        if abs(cci) < 100:
-            contradiction.append("CCI in neutral zone")
-        else:
-            support.append("CCI showing trend")
-
-    if confidence >= 2:
-        signal = "BUY"
-    elif confidence <= -2:
-        signal = "SELL"
+def analyze_row(row: pd.Series) -> dict:
+    # Accept either 'macd_signal_line' (raw) or 'macd_signal' (binary flag)
+    signal, confidence, support, contradiction = momentum_vote(
+        row.get("rsi"),
+        row.get("macd"),
+        row.get("macd_signal_line"),
+        row.get("sma_50"),
+        row.get("sma_200"),
+    )
 
     reason_parts: list[str] = []
     if signal == "BUY":
