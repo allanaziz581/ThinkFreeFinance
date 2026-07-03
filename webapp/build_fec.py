@@ -92,7 +92,7 @@ def main():
     pols = politicians()
     print(f"Fetching FEC data for {len(pols)} politicians...")
     out = {}
-    ranked = sorted(pols, key=lambda p: p.get("Est. P&L ($)", 0), reverse=True)
+    ranked = sorted(pols, key=lambda p: p.get("Mean Buy Excess vs SPY (%)") or 0, reverse=True)
     top_names = {p.get("Politician") for p in ranked[:TOP_EMPLOYER_LIMIT]}
 
     for p in pols:

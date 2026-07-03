@@ -501,7 +501,7 @@ function allTradesView() {
   openModal(`
     <div class="section-title" style="margin-top:0;">All Recent Congressional Trades (${(D.recent_trades || []).length})</div>
     <table class="tf">
-      <thead><tr><th>Politician</th><th>Ticker</th><th>Type</th><th>Date</th><th>Range</th><th class="num">Return</th><th class="num">Est. P&amp;L</th></tr></thead>
+      <thead><tr><th>Politician</th><th>Ticker</th><th>Type</th><th>Date</th><th>Range</th><th class="num">vs SPY</th><th class="num">Est. P&amp;L</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`);
 }
@@ -754,7 +754,7 @@ function stockDetail(tk) {
     })()}
 
     ${traders.length ? `<div class="section-title">Congressional Trading (${trades.length})</div>
-      <table class="tf"><thead><tr><th>Politician</th><th>Type</th><th>Date</th><th class="num">Return</th></tr></thead><tbody>
+      <table class="tf"><thead><tr><th>Politician</th><th>Type</th><th>Date</th><th class="num">vs SPY</th></tr></thead><tbody>
         ${trades.map((t) => `<tr><td>${polLink(t.politician)} <span class="tag ${esc(t.party_abbr)}">${esc(t.party_abbr)}</span></td><td class="${/sale/i.test(t.transaction) ? "txn-sell" : "txn-buy"}">${/sale/i.test(t.transaction) ? "SELL" : "BUY"}</td><td class="muted">${esc(t.date)}</td><td class="num ${colorFor(t.pct_return)}">${pct(t.pct_return)}</td></tr>`).join("")}
       </tbody></table>` : ""}
 
@@ -806,7 +806,7 @@ function billDetail(id) {
     ${traders.length ? `
       <div class="section-title">Who Traded It &amp; How They Benefited</div>
       <table class="tf">
-        <thead><tr><th>Politician</th><th>Trade</th><th>Timing vs. Bill</th><th class="num">Return</th><th class="num">Est. Profit</th></tr></thead>
+        <thead><tr><th>Politician</th><th>Trade</th><th>Timing vs. Bill</th><th class="num">vs SPY</th><th class="num">Est. Profit</th></tr></thead>
         <tbody>
           ${traders.map((t) => `
             <tr>
@@ -1203,7 +1203,7 @@ function renderPolitical() {
       <div class="card span-2 pad-lg">
         <div class="card-head"><div class="card-title">Top 10 Politicians by Estimated Trading Gains</div></div>
         <table class="tf">
-          <thead><tr><th>#</th><th>Politician</th><th>Party</th><th>State</th><th class="num">All-Time</th><th class="num">Past Mo.</th><th class="num">Return</th><th class="num">Est. P&amp;L</th><th class="num">Integrity</th><th class="num">Transp.</th></tr></thead>
+          <thead><tr><th>#</th><th>Politician</th><th>Party</th><th>State</th><th class="num">All-Time</th><th class="num">Past Mo.</th><th class="num">vs SPY</th><th class="num">Est. P&amp;L</th><th class="num">Integrity</th><th class="num">Transp.</th></tr></thead>
           <tbody>
             ${(D.politicians || []).slice(0, 10).map((p, i) => { const s = polScore3(p); return `
               <tr>
@@ -1227,7 +1227,7 @@ function renderPolitical() {
       <div class="card span-2 pad-lg">
         <div class="card-head"><div class="card-title">Recent Congressional Trades</div><div class="card-action" data-action="alltrades">View all (${(D.recent_trades || []).length})</div></div>
         <table class="tf">
-          <thead><tr><th>Politician</th><th>Ticker</th><th>Type</th><th>Date</th><th>Range</th><th class="num">Return</th><th class="num">Est. P&amp;L</th></tr></thead>
+          <thead><tr><th>Politician</th><th>Ticker</th><th>Type</th><th>Date</th><th>Range</th><th class="num">vs SPY</th><th class="num">Est. P&amp;L</th></tr></thead>
           <tbody>
             ${(D.recent_trades || []).slice(0, 14).map((t) => `
               <tr>
