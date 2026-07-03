@@ -29,12 +29,30 @@ from typing import Any, Optional
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from numeral_validation import validate_numerals, collect_numbers
+
 load_dotenv()
 
 BASE_DIR = Path(__file__).parent
 OUTPUT_PATH = BASE_DIR / "intelligence_report.json"
 
 OPENAI_MODEL = os.getenv("THINKFREE_MODEL", "gpt-4o")
+
+# The intelligence sources the briefing can draw on (see assemble_inputs / the availability
+# list). Used for the 'built from N of TOTAL sources' degradation flag.
+TOTAL_SOURCES = 8
+
+
+def _iter_report_strings(obj):
+    """Yield every string value in the report, so numeral validation sees the full prose."""
+    if isinstance(obj, str):
+        yield obj
+    elif isinstance(obj, dict):
+        for v in obj.values():
+            yield from _iter_report_strings(v)
+    elif isinstance(obj, (list, tuple)):
+        for v in obj:
+            yield from _iter_report_strings(v)
 
 
 # ------------------------------------------------------------------
@@ -452,6 +470,26 @@ def run_chef_gpt() -> dict:
     # Stamp metadata
     report["generated_at"] = datetime.utcnow().isoformat() + "Z"
     report["data_sources_used"] = available
+
+    # Numeral set-membership validation: flag any number in the briefing that is not within
+    # tolerance of a number in the assembled inputs (likely a hallucination). Advisory only.
+    source_numbers = collect_numbers({k: v for k, v in inputs.items() if k != "user_profile"})
+    output_text = " ".join(
+        v for v in _iter_report_strings(report)
+    )
+    validation = validate_numerals(source_numbers, output_text)
+    report["numeral_validation"] = validation
+    if not validation["ok"]:
+        print(f"[WARN] {validation['hallucinated_count']} numeral(s) in the briefing are not "
+              f"in the source data: {validation['hallucinated']}")
+
+    # Degradation flag: tell the reader how many of the sources actually contributed.
+    report["degradation_note"] = (
+        f"This briefing was built from {len(available)} of {TOTAL_SOURCES} intelligence "
+        f"sources ({', '.join(available) or 'none'})."
+        + ("" if len(available) >= TOTAL_SOURCES else " Missing sources were unavailable this run.")
+    )
+
     report["user_profile"] = inputs["user_profile"]
 
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ThinkFree Finance — Phase 6: Economic Reasoning Engine
+ThinkFree Finance, Phase 6: Economic Reasoning Engine
 Queries FAISS economic knowledge base and generates plain-English sector analysis.
 """
 
@@ -35,7 +35,7 @@ MODULE_FOLDER_PATHS = {
 }
 
 # Titles below are the EXACT `title` values stored in the FAISS metadata
-# (economic_knowledge_metadata.json) — matching is done case-insensitively and
+# (economic_knowledge_metadata.json), matching is done case-insensitively and
 # whitespace-stripped (see _title_to_module_map). Each is assigned the module of
 # the physical Economic_Books/ subfolder it was embedded from. Keeping these in
 # sync with the embedded titles is what makes module-filtered retrieval work;
@@ -158,7 +158,10 @@ Write clearly in plain English so the average person can understand. Focus on:
 - Why are these things happening (the economic causes)?
 - What are the consequences so far, and what might happen next?
 - Which sectors may be positively or negatively affected by current events, and which are unaffected?
-- What stocks would be good to buy right now, and which ones to avoid?
+
+Explain what is happening and why it matters to an ordinary person's finances. Do NOT
+recommend specific stocks to buy or sell; ThinkFree explains the economy, it is not a
+stock-picking service.
 
 At the very end, list the bullish and bearish sectors in this exact format:
 
