@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-ThinkFree Finance — Phase 8: Opportunity Scoring Engine
+ThinkFree Finance, Phase 8: Opportunity Scoring Engine
 
-Combines signals from all prior phases into a single ranked list of
-sector and ticker opportunities, scored 0–10.
+Combines signals from all prior phases into ranked sector and ticker opportunities.
+OUTLOOK (market view) and SUITABILITY (fit to the user) are reported separately.
 
 Scoring components:
   - Sector economic outlook (from Phase 6 economic reasoning)
@@ -38,17 +38,65 @@ def load_json(path: Path, default: Any = None) -> Any:
         return default
 
 
+# Canonical GICS sectors and common aliases. Economic-reasoning output and sector
+# summaries use inconsistent names ("Tech", "Infotech", "Telecom"); exact string matching
+# silently missed them, so a bullish "Tech" call never lifted "Information Technology".
+GICS_ALIASES = {
+    "information technology": "Information Technology",
+    "tech": "Information Technology",
+    "technology": "Information Technology",
+    "infotech": "Information Technology",
+    "it": "Information Technology",
+    "health care": "Health Care",
+    "healthcare": "Health Care",
+    "health": "Health Care",
+    "financials": "Financials",
+    "financial": "Financials",
+    "finance": "Financials",
+    "banks": "Financials",
+    "energy": "Energy",
+    "consumer discretionary": "Consumer Discretionary",
+    "discretionary": "Consumer Discretionary",
+    "consumer staples": "Consumer Staples",
+    "staples": "Consumer Staples",
+    "industrials": "Industrials",
+    "industrial": "Industrials",
+    "materials": "Materials",
+    "real estate": "Real Estate",
+    "reit": "Real Estate",
+    "reits": "Real Estate",
+    "utilities": "Utilities",
+    "communication services": "Communication Services",
+    "communications": "Communication Services",
+    "communication": "Communication Services",
+    "telecom": "Communication Services",
+    "telecommunications": "Communication Services",
+}
+
+
+def canonical_sector(name: str) -> str:
+    """Map a free-form sector name to its canonical GICS label. Unknown names are returned
+    title-cased so matching is at least case- and whitespace-insensitive."""
+    if not name:
+        return ""
+    key = " ".join(str(name).strip().lower().split())
+    return GICS_ALIASES.get(key, str(name).strip().title())
+
+
 def score_sector_outlook(sector: str, bullish_sectors: list, bearish_sectors: list) -> float:
-    """0.0 – 1.0 based on economic reasoning output."""
-    if sector in bullish_sectors:
+    """0.0 - 1.0 market outlook from economic reasoning, matched on canonical GICS names."""
+    csector = canonical_sector(sector)
+    bulls = {canonical_sector(s) for s in bullish_sectors}
+    bears = {canonical_sector(s) for s in bearish_sectors}
+    if csector in bulls:
         return 1.0
-    if sector in bearish_sectors:
+    if csector in bears:
         return 0.0
     return 0.5
 
 
 def score_technical_signal(ticker: str, signals: list[dict]) -> float:
-    """0.0 – 1.0 based on BUY/SELL/HOLD signal and confidence."""
+    """0.0 to 1.0 based on BUY/SELL/HOLD signal and confidence."""
     for sig in signals:
         if sig.get("ticker", "").upper() == ticker.upper():
             final = sig.get("final_signal", "HOLD")
@@ -83,16 +131,17 @@ def profile_multiplier(sector: str, profile: dict) -> float:
     DEFENSIVE_SECTORS   = {"Health Care", "Utilities", "Consumer Staples"}
     INCOME_SECTORS      = {"Real Estate", "Utilities", "Financials"}
 
+    csector = canonical_sector(sector)
     multiplier = 1.0
 
-    if risk == "high" and sector in HIGH_GROWTH_SECTORS:
+    if risk == "high" and csector in HIGH_GROWTH_SECTORS:
         multiplier = 1.2
-    elif risk == "low" and sector in DEFENSIVE_SECTORS:
+    elif risk == "low" and csector in DEFENSIVE_SECTORS:
         multiplier = 1.2
     elif risk == "moderate":
         multiplier = 1.0
 
-    if goal == "income" and sector in INCOME_SECTORS:
+    if goal == "income" and csector in INCOME_SECTORS:
         multiplier *= 1.15
 
     return min(1.5, multiplier)
@@ -119,58 +168,59 @@ def build_sector_scores(
     rec_discount = recession_discount(recession_risk_score)
 
     for sector in all_sectors:
-        # Component scores
-        outlook  = score_sector_outlook(sector, bullish_sectors, bearish_sectors)
-        rec_adj  = outlook * rec_discount
-        pm       = profile_multiplier(sector, profile)
-        raw_score = rec_adj * pm
-
-        # Final 0–10 score
-        final = min(10.0, raw_score * 10)
-
-        # Direction label
-        if final >= 7.0:
-            direction = "Bullish"
-            direction_emoji = "📈"
-        elif final >= 5.0:
-            direction = "Neutral"
-            direction_emoji = "➡️"
+        # OUTLOOK: the market view, economic outlook tempered by recession risk. This is a
+        # 0-1 conviction, kept as-is (no x10 costume that dressed a coarse heuristic up as a
+        # precise "7.3/10").
+        outlook_conviction = score_sector_outlook(sector, bullish_sectors, bearish_sectors) * rec_discount
+        csector = canonical_sector(sector)
+        bulls = {canonical_sector(s) for s in bullish_sectors}
+        bears = {canonical_sector(s) for s in bearish_sectors}
+        if csector in bulls:
+            outlook_label = "Bullish"
+        elif csector in bears:
+            outlook_label = "Bearish"
         else:
-            direction = "Bearish"
-            direction_emoji = "📉"
+            outlook_label = "Neutral"
 
-        # Plain-English rationale
+        # SUITABILITY: how well the sector fits THIS user. Reported SEPARATELY, never
+        # multiplied into the outlook, so a great-outlook sector that does not fit the user
+        # still shows a strong outlook (and vice versa).
+        pm = profile_multiplier(sector, profile)
+        if pm > 1.1:
+            suitability_label = "Good fit for your profile"
+        elif pm < 1.0:
+            suitability_label = "Less suitable for your profile"
+        else:
+            suitability_label = "Neutral fit"
+
         rationale_parts = []
-        if sector in bullish_sectors:
+        if outlook_label == "Bullish":
             rationale_parts.append("Economic analysis shows positive momentum in this sector.")
-        elif sector in bearish_sectors:
+        elif outlook_label == "Bearish":
             rationale_parts.append("Economic analysis indicates headwinds for this sector.")
         else:
             rationale_parts.append("This sector shows neutral economic signals.")
-
         if recession_risk_score > 5:
             rationale_parts.append(
                 f"Elevated recession risk ({recession_risk_score:.1f}/10) reduces conviction across all sectors."
             )
-
         if pm > 1.1:
             rationale_parts.append("This sector aligns well with your investment profile.")
 
         sector_scores.append({
-            "sector": sector,
-            "opportunity_score": round(final, 1),
-            "direction": direction,
-            "direction_emoji": direction_emoji,
+            "sector": canonical_sector(sector),
+            "outlook": {"label": outlook_label, "conviction": round(outlook_conviction, 2)},
+            "suitability": {"label": suitability_label, "factor": round(pm, 2)},
             "components": {
-                "economic_outlook": round(outlook * 10, 1),
+                "economic_outlook_0_1": round(score_sector_outlook(sector, bullish_sectors, bearish_sectors), 2),
                 "recession_discount": round(rec_discount, 2),
-                "profile_match": round(pm, 2),
+                "profile_factor": round(pm, 2),
             },
             "rationale": " ".join(rationale_parts),
         })
 
-    # Sort by score descending
-    sector_scores.sort(key=lambda x: x["opportunity_score"], reverse=True)
+    # Rank on market OUTLOOK conviction (not a blend with personal suitability).
+    sector_scores.sort(key=lambda x: x["outlook"]["conviction"], reverse=True)
     return sector_scores
 
 
@@ -195,40 +245,31 @@ def build_ticker_scores(
         confidence = sig.get("confidence_score", 0)
         reasoning  = sig.get("reasoning", "")
 
-        tech_score = score_technical_signal(ticker, signals)
+        # Signal conviction: the technical strength tempered by recession risk, 0-1.
+        # No x10 costume, and the DIRECTION is the actual technical signal, not a label
+        # re-derived from the score (which used to flip a real BUY to "Sell Signal"
+        # whenever the discounted score fell below a threshold).
+        signal_conviction = score_technical_signal(ticker, signals) * rec_discount_val
 
-        # Combine with recession discount
-        base = tech_score * rec_discount_val
-
-        # Risk profile adjustment
+        # Suitability adjustment is reported separately, not folded into the signal.
         if profile.get("risk_tolerance") == "low" and final_sig == "BUY":
-            base *= 0.85  # conservative investors get lower scores for aggressive buys
+            suitability_note = "Aggressive buy: weigh against your lower risk tolerance."
         elif profile.get("risk_tolerance") == "high" and final_sig == "SELL":
-            base *= 0.85
-
-        final = min(10.0, base * 10)
-
-        if final >= 7.0:
-            direction = "Buy Signal"
-            emoji = "🟢"
-        elif final >= 5.0:
-            direction = "Neutral / Hold"
-            emoji = "🟡"
+            suitability_note = "Exit signal: may be conservative for your higher risk tolerance."
         else:
-            direction = "Sell Signal"
-            emoji = "🔴"
+            suitability_note = "No profile-specific caveat."
 
         ticker_scores.append({
             "ticker": ticker,
-            "opportunity_score": round(final, 1),
-            "signal": final_sig,
-            "direction": direction,
-            "direction_emoji": emoji,
+            "signal": final_sig,                 # the actual signal, never relabelled
+            "signal_conviction": round(signal_conviction, 2),
             "confidence": confidence,
+            "suitability_note": suitability_note,
             "plain_english_signal": _signal_to_plain_english(ticker, final_sig, confidence, reasoning),
         })
 
-    ticker_scores.sort(key=lambda x: x["opportunity_score"], reverse=True)
+    # Rank by how decisive the signal is (conviction), keeping the actual BUY/SELL/HOLD.
+    ticker_scores.sort(key=lambda x: x["signal_conviction"], reverse=True)
     return ticker_scores[:25]  # Top 25
 
 
@@ -253,7 +294,7 @@ def _signal_to_plain_english(ticker: str, signal: str, confidence: int, reasonin
 
 
 def run_opportunity_scoring() -> dict:
-    print("=== ThinkFree — Phase 8: Opportunity Scoring ===")
+    print("=== ThinkFree, Phase 8: Opportunity Scoring ===")
 
     # Load all inputs
     econ       = load_json(BASE_DIR / "news_output" / "economic_reasoning_summary.json", {})
@@ -288,10 +329,11 @@ def run_opportunity_scoring() -> dict:
         "sector_opportunities": sector_scores,
         "ticker_opportunities": ticker_scores,
         "methodology": (
-            "Opportunity scores combine economic sector outlook, recession risk discount, "
-            "technical signal alignment, and user profile compatibility. "
-            "Scores are 0–10 where 10 = strongest opportunity alignment. "
-            "This is not investment advice."
+            "OUTLOOK and SUITABILITY are reported separately, never multiplied into one "
+            "number. Outlook is the economic sector view tempered by recession risk (a 0-1 "
+            "conviction). Suitability is how well the sector or signal fits your profile. "
+            "Ticker direction is the actual technical signal, not a label derived from a "
+            "score. This is not investment advice."
         ),
     }
 
@@ -299,10 +341,10 @@ def run_opportunity_scoring() -> dict:
         json.dump(output, f, indent=2, ensure_ascii=False)
 
     top_sector = sector_scores[0]["sector"] if sector_scores else "N/A"
-    top_score  = sector_scores[0]["opportunity_score"] if sector_scores else 0
+    top_conv   = sector_scores[0]["outlook"]["conviction"] if sector_scores else 0
 
     print(f"\nOpportunity scoring complete:")
-    print(f"  Top sector: {top_sector} ({top_score}/10)")
+    print(f"  Top sector by outlook: {top_sector} (conviction {top_conv})")
     print(f"  Sectors scored: {len(sector_scores)}")
     print(f"  Tickers scored: {len(ticker_scores)}")
     print(f"\nSaved to: {OUTPUT_PATH}")

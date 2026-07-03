@@ -241,10 +241,20 @@ def build_prompt(inputs: dict) -> str:
         rec_used = opportunity.get("recession_risk_used", "N/A")
         sector_opps = opportunity.get("sector_opportunities", [])
         ticker_opps = opportunity.get("ticker_opportunities", [])
-        top_sectors = [f"{s.get('sector')} ({s.get('opportunity_score')}/10 {s.get('direction_emoji', '')})" for s in sector_opps[:5]]
-        top_tickers_buy = [f"{t.get('ticker')} ({t.get('opportunity_score')}/10)" for t in ticker_opps if t.get("signal") == "BUY"][:3]
+        # Outlook and suitability are separate: show the outlook label/conviction, and the
+        # suitability separately, never a single blended 0-10 score.
+        top_sectors = [
+            f"{s.get('sector')} (outlook {(s.get('outlook') or {}).get('label', 'Neutral')}, "
+            f"conviction {(s.get('outlook') or {}).get('conviction', 0)}; "
+            f"{(s.get('suitability') or {}).get('label', 'Neutral fit')})"
+            for s in sector_opps[:5]
+        ]
+        top_tickers_buy = [
+            f"{t.get('ticker')} (signal {t.get('signal')}, conviction {t.get('signal_conviction', 0)})"
+            for t in ticker_opps if t.get("signal") == "BUY"
+        ][:3]
         opportunity_text = (
-            f"Top scoring sectors: {', '.join(top_sectors) or 'None'}\n"
+            f"Top sectors by outlook: {', '.join(top_sectors) or 'None'}\n"
             f"Top buy-signal tickers: {', '.join(top_tickers_buy) or 'None'}\n"
             f"Recession discount applied: {rec_used}/10"
         )

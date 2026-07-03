@@ -95,8 +95,8 @@ def credibility_tier(score: float) -> str:
 def _clean_str(s: str) -> str:
     """Remove em/en dashes from displayed text (UI rule: no em/en dashes).
     Uses \\u escapes so the source itself contains no em/en dash characters."""
-    s = s.replace(" — ", ", ").replace("—", ", ")   # em dash -> comma
-    s = s.replace(" – ", " to ").replace("–", "-")  # en dash -> hyphen
+    s = s.replace("\u2014", ", ").replace("\u2015", ", ")   # em dash / horizontal bar -> comma
+    s = s.replace("\u2013", "-").replace("\u2012", "-")       # en dash / figure dash -> hyphen
     # tidy artifacts
     while "  " in s:
         s = s.replace("  ", " ")
@@ -637,10 +637,15 @@ def build():
     # ---- opportunities ----
     sectors = []
     for s in (opp.get("sector_opportunities", []) if isinstance(opp, dict) else [])[:8]:
+        # Outlook and suitability are separate now. The bar renders the market OUTLOOK
+        # conviction (0-1) on the existing 0-10 visual scale; suitability is shown apart.
+        outlook = s.get("outlook", {}) if isinstance(s.get("outlook"), dict) else {}
+        suitability = s.get("suitability", {}) if isinstance(s.get("suitability"), dict) else {}
         sectors.append({
             "sector": s.get("sector", ""),
-            "score": s.get("opportunity_score", 0),
-            "direction": s.get("direction", ""),
+            "score": round((outlook.get("conviction", 0) or 0) * 10, 1),
+            "direction": outlook.get("label", ""),
+            "suitability": suitability.get("label", ""),
             "rationale": s.get("rationale", ""),
         })
     # Ticker signals derived from REAL per-ticker quant signals (RSI/MACD/trend/
@@ -701,8 +706,8 @@ def build():
     if not tickers_opp:
         for s in (opp.get("ticker_opportunities", []) if isinstance(opp, dict) else [])[:8]:
             tickers_opp.append({"ticker": s.get("ticker", s.get("symbol", "")),
-                                "score": s.get("opportunity_score", 0),
-                                "direction": s.get("direction", ""), "why": ""})
+                                "score": round((s.get("signal_conviction", 0) or 0) * 10, 1),
+                                "direction": s.get("signal", ""), "why": ""})
 
     # ---- historical parallels ----
     parallels = []
