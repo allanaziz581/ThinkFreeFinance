@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ThinkFree Finance — Chef GPT Intelligence Synthesis (Phase 11)
+ThinkFree Finance, Chef GPT Intelligence Synthesis (Phase 11)
 
 Reads all available pipeline outputs and generates a plain-English intelligence
 briefing tailored to the user's risk profile.
@@ -50,7 +50,7 @@ def load_json(path: Path, default: Any = None) -> Any:
 
 
 # ------------------------------------------------------------------
-# Input assembler — collects all phase outputs
+# Input assembler, collects all phase outputs
 # ------------------------------------------------------------------
 
 def assemble_inputs() -> dict:
@@ -68,9 +68,13 @@ def assemble_inputs() -> dict:
         BASE_DIR / "Module_2_Technical_Analysis" / "signal_output_phase3.json", []
     )
 
-    backtest_metrics = load_json(
-        BASE_DIR / "Module_2_Technical_Analysis" / "results_run" / "summary_metrics.json", {}
-    )
+    # Backtest metrics are SUPPRESSED. The existing results_run/summary_metrics.json came
+    # from a look-ahead-contaminated run (the universe was drawn from TODAY's sector
+    # membership and backtested over the past year, which leaks survivorship and
+    # composition the strategy could not have known at the time). It is archived, not
+    # loaded. A clean point-in-time re-run is a documented follow-up (see
+    # Module_2_Technical_Analysis/BACKTEST_STATUS.md); until then the briefing cites no
+    # backtest CAGR/Sharpe.
 
     recession_data = load_json(BASE_DIR / "recession_signals_output.json", {})
 
@@ -90,7 +94,6 @@ def assemble_inputs() -> dict:
         "economic_reasoning": economic_reasoning,
         "sector_summaries": sector_summaries,
         "technical_signals": technical_signals,
-        "backtest_metrics": backtest_metrics,
         "recession_data": recession_data,
         "political_trades": political_trades,
         "historical_parallels": historical_parallels,
@@ -108,7 +111,6 @@ def build_prompt(inputs: dict) -> str:
     econ = inputs["economic_reasoning"]
     sectors = inputs["sector_summaries"]
     signals = inputs["technical_signals"]
-    backtest = inputs["backtest_metrics"]
     recession = inputs["recession_data"]
     political = inputs["political_trades"]
     historical = inputs["historical_parallels"]
@@ -155,16 +157,6 @@ def build_prompt(inputs: dict) -> str:
     if not signal_text:
         signal_text = "No strong buy or sell signals detected today."
 
-    # Backtest
-    if backtest:
-        backtest_text = (
-            f"Historical backtest on current signals: CAGR {backtest.get('CAGR %', 'N/A')}%, "
-            f"Sharpe ratio {backtest.get('Sharpe', 'N/A')}, "
-            f"Max drawdown {backtest.get('Max Drawdown %', 'N/A')}%."
-        )
-    else:
-        backtest_text = "Backtest data not yet available."
-
     # Recession
     recession_risk = recession.get("recession_risk", {})
     recession_score = recession_risk.get("score", "N/A")
@@ -198,7 +190,7 @@ def build_prompt(inputs: dict) -> str:
                 rep = trade.get("Representative", "")
                 tx = trade.get("Transaction", "")
                 if ticker:
-                    political_text += f"- {rep} — {tx} {ticker}\n"
+                    political_text += f"- {rep}, {tx} {ticker}\n"
         political_text += (
             "\nIMPORTANT: All political intelligence is based entirely on publicly available "
             "financial disclosures. This identifies timing relationships only and does not "
@@ -232,7 +224,7 @@ def build_prompt(inputs: dict) -> str:
                 for l in losers
             )
             historical_text += (
-                f"Event: {event_type} — Analogue: {period_name} ({period_dates})\n"
+                f"Event: {event_type}, Analogue: {period_name} ({period_dates})\n"
                 f"What happened: {narrative}\n"
             )
             if winner_str:
@@ -246,7 +238,7 @@ def build_prompt(inputs: dict) -> str:
     # Opportunity scores summary
     opportunity_text = ""
     if opportunity:
-        rec_used = opportunity.get("recession_risk_used", "—")
+        rec_used = opportunity.get("recession_risk_used", "N/A")
         sector_opps = opportunity.get("sector_opportunities", [])
         ticker_opps = opportunity.get("ticker_opportunities", [])
         top_sectors = [f"{s.get('sector')} ({s.get('opportunity_score')}/10 {s.get('direction_emoji', '')})" for s in sector_opps[:5]]
@@ -300,7 +292,7 @@ def build_prompt(inputs: dict) -> str:
             "what_to_watch": "<one sentence on the most important indicator to monitor>",
         },
         "what_it_means_for_you": "<2-3 sentences tailored specifically to the user's age, risk tolerance, and goals>",
-        "bottom_line": "<one sentence — the single most important takeaway from today's intelligence>",
+        "bottom_line": "<one sentence, the single most important takeaway from today's intelligence>",
         "disclaimer": "ThinkFree provides financial intelligence and economic education for informational purposes only. This is not investment advice. All investment decisions are yours to make.",
     }, indent=2)
 
@@ -324,7 +316,7 @@ def build_prompt(inputs: dict) -> str:
     else:
         quantlib_text = "QuantLib risk metrics not yet available."
 
-    prompt = f"""You are ThinkFree's AI financial analyst. Your job is to translate complex financial and economic events into plain English that any person can understand — including someone who has never studied finance, economics, or investing.
+    prompt = f"""You are ThinkFree's AI financial analyst. Your job is to translate complex financial and economic events into plain English that any person can understand, including someone who has never studied finance, economics, or investing.
 
 Write for a blue-collar worker, a small business owner, a renter, a recent college graduate, or anyone trying to understand how the news might affect their wallet. Use simple words. When you must use a financial term, define it immediately in plain language.
 
@@ -350,17 +342,14 @@ TODAY'S MARKET INTELLIGENCE:
 ===== OPPORTUNITY SCORES (Combined Signal Ranking) =====
 {opportunity_text}
 
-===== STRATEGY VALIDATION =====
-{backtest_text}
-
 ===== RECESSION INDICATORS =====
 {recession_text}
 
-===== HISTORICAL PARALLELS — WHAT HAPPENED LAST TIME? =====
+===== HISTORICAL PARALLELS, WHAT HAPPENED LAST TIME? =====
 {historical_text}
 
 YOUR TASK:
-Write a complete intelligence briefing in the JSON format below. Every section must answer the question in plain English that anyone can understand. Use a friendly, informative tone — like a knowledgeable friend explaining the news over coffee, not a Wall Street analyst writing a report.
+Write a complete intelligence briefing in the JSON format below. Every section must answer the question in plain English that anyone can understand. Use a friendly, informative tone, like a knowledgeable friend explaining the news over coffee, not a Wall Street analyst writing a report.
 
 For every major event, apply the 8-question framework:
 1. What happened? (plain facts)
@@ -369,8 +358,8 @@ For every major event, apply the 8-question framework:
 4. Who is negatively affected? (specific groups who may be hurt)
 5. How does this affect consumers? (rent, groceries, gas, credit cards, loans, jobs)
 6. How does this affect businesses? (which types win or lose)
-7. How does this affect markets? (sectors, stocks, bonds — plain English)
-8. What happened historically? (use the historical parallels data above — cite actual periods and measured returns)
+7. How does this affect markets? (sectors, stocks, bonds, plain English)
+8. What happened historically? (use the historical parallels data above, cite actual periods and measured returns)
 
 In the historical_context field: be specific. Name the actual historical period (e.g., "During the 2022 rate hike cycle..."), describe what happened, and mention measured sector performance if available.
 
@@ -391,7 +380,7 @@ def run_chef_gpt() -> dict:
             "OPENAI_API_KEY not set. Add your API key to .env and try again."
         )
 
-    print("=== ThinkFree — Chef GPT Intelligence Synthesis ===")
+    print("=== ThinkFree, Chef GPT Intelligence Synthesis ===")
     print("Loading pipeline outputs...")
     inputs = assemble_inputs()
 
@@ -406,8 +395,6 @@ def run_chef_gpt() -> dict:
         available.append("Recession Indicators")
     if inputs["political_trades"]:
         available.append("Political Intelligence")
-    if inputs["backtest_metrics"]:
-        available.append("Backtest Results")
     if inputs["historical_parallels"]:
         available.append("Historical Parallels")
     if inputs["opportunity_scores"]:
@@ -415,7 +402,7 @@ def run_chef_gpt() -> dict:
     if inputs.get("quantlib_metrics"):
         available.append("QuantLib Risk Metrics")
 
-    print(f"Available data sources: {', '.join(available) if available else 'Minimal — run more pipeline phases first'}")
+    print(f"Available data sources: {', '.join(available) if available else 'Minimal, run more pipeline phases first'}")
 
     print("Building intelligence prompt...")
     prompt = build_prompt(inputs)
@@ -456,7 +443,7 @@ def run_chef_gpt() -> dict:
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
 
-    print(f"\n✅ Intelligence report generated: {OUTPUT_PATH}")
+    print(f"\nIntelligence report generated: {OUTPUT_PATH}")
     if "headline" in report:
         print(f"\nHeadline: {report['headline']}")
     if "bottom_line" in report:
