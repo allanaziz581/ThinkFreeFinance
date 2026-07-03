@@ -72,10 +72,12 @@
     trades.forEach((t) => { if (/sale/i.test(t.transaction)) sells++; else if (/purchase|buy/i.test(t.transaction)) buys++; });
     const socialScore = clamp(50 + (buys + sells ? (buys - sells) / (buys + sells) * 40 : 0), 8, 92);
 
-    // Quant forecast: QuantLib Black-Scholes expected return + 1-month probability
-    // of a 5% move. Falls back to a momentum proxy only when QuantLib has no data.
+    // Quant forecast: how often this stock historically gained vs lost 5% in a month
+    // (real 5-year frequency, not a risk-neutral option probability). Falls back to a
+    // momentum proxy only when QuantLib has no data.
+    const histTilt = q ? ((q.hist_up_5pct_1mo || 0) - (q.hist_down_5pct_1mo || 0)) : 0;
     const patternScore = q
-      ? clamp(50 + q.exp_return_1mo * 9 + (q.prob_up - q.prob_down) * 1.2, 8, 92)
+      ? clamp(50 + q.exp_return_1mo * 9 + histTilt * 1.2, 8, 92)
       : clamp(50 + chg * 3 + (sec && sectorChg[sec] ? sectorChg[sec] * 2 : 0), 10, 92);
 
     // Technical momentum: real RSI + MACD + SMA-50/200 composite (ta library),
@@ -202,7 +204,7 @@
     const q = Q[tk];
     const quantInputs = q ? [
       { label: "QuantLib Volatility", value: q.volatility + "%/yr" },
-      { label: "1-Mo Upside Prob (Black-Scholes)", value: q.prob_up + "%" },
+      { label: `+5% in 1mo, historical frequency (past ${q.hist_lookback_years || 5}yr)`, value: q.hist_up_5pct_1mo != null ? q.hist_up_5pct_1mo + "%" : "n/a" },
       { label: "Daily VaR (95%)", value: q.var95 + "%" },
       { label: "Expected Return (1mo)", value: (q.exp_return_1mo > 0 ? "+" : "") + q.exp_return_1mo + "%" },
       { label: "Sharpe Ratio", value: q.sharpe },
@@ -234,7 +236,7 @@
         rows, total: `${p.score}/100`,
       },
       sources: [
-        { label: "QuantLib - volatility, Black-Scholes probability, VaR, Kelly" },
+        { label: "QuantLib - volatility, VaR, lognormal; 5yr historical 5% move frequency" },
         { label: "Technical indicators (RSI, MACD, SMA 50/200) via ta library" },
         { label: "Market data (Finnhub quotes, VIX, indices)" },
         { label: "News sentiment analysis" },

@@ -4,10 +4,14 @@ ThinkFree Finance, QuantLib Metrics Engine (Phase 8 Enhancement)
 
 Uses QuantLib to compute risk-adjusted opportunity metrics:
   1. Annualized historical volatility from price history
-  2. Black-Scholes probability of profit (lognormal implied upside)
-  3. Risk-adjusted expected return (Kelly-based sizing)
-  4. Sharpe ratio from historical returns
-  5. Value at Risk (VaR) at 95% confidence
+  2. Historical frequency of a 5% monthly move (fraction of past rolling 21-day windows
+     over ~5 years). Replaces the old Black-Scholes N(d2) risk-neutral probability, which
+     is not a real-world probability and is no longer reported.
+  3. Lognormal expected price E[S_T] = spot * exp(r * T)
+  4. Value at Risk (VaR) at 95% confidence (parametric and historical)
+
+Kelly position sizing is computed internally but is NOT reported to users anywhere.
+Falls back to numpy-only equivalents if QuantLib has issues.
 
 Falls back to numpy-only equivalents if QuantLib has issues.
 
@@ -61,6 +65,43 @@ def compute_annualized_vol(prices: list[float]) -> float:
 
 # ── Black-Scholes probability of profit ────────────────────────────────────────
 
+def historical_move_frequency(
+    prices: list[float],
+    horizon_days: int = TARGET_HORIZON,
+    threshold: float = 0.05,
+    direction: str = "up",
+) -> tuple[float | None, int]:
+    """Empirical fraction of past rolling `horizon_days` windows that met the threshold.
+
+    direction 'up':   window return >= +threshold
+    direction 'down': window return <= -threshold
+
+    This is a plain historical count over the supplied series (intended to be 5+ years),
+    NOT a model. It replaces the Black-Scholes N(d2) risk-neutral probability, which is an
+    option-pricing artifact (it prices under the risk-neutral measure at the risk-free
+    drift) and is not the real-world chance of a move. Returns (frequency, n_windows);
+    frequency is None when there are too few windows. No confidence interval is produced.
+    """
+    s = [float(p) for p in prices]
+    n = len(s)
+    if n <= horizon_days:
+        return (None, 0)
+    hits = 0
+    total = 0
+    for i in range(n - horizon_days):
+        if s[i] <= 0:
+            continue
+        r = s[i + horizon_days] / s[i] - 1.0
+        total += 1
+        if direction == "up" and r >= threshold:
+            hits += 1
+        elif direction == "down" and r <= -threshold:
+            hits += 1
+    if total == 0:
+        return (None, 0)
+    return (hits / total, total)
+
+
 def bs_prob_above_target(
     spot: float,
     target: float,
@@ -68,10 +109,10 @@ def bs_prob_above_target(
     risk_free: float = RISK_FREE_RATE,
     time_years: float = TARGET_HORIZON / 252,
 ) -> float:
-    """
-    Probability (under risk-neutral measure) that price exceeds `target` at expiry.
-    Uses the N(d2) term from Black-Scholes, which gives the risk-neutral probability
-    of the option expiring in-the-money.
+    """DEPRECATED, NOT displayed. Risk-neutral N(d2) probability that price exceeds
+    `target` at expiry. This is an option-pricing artifact under the risk-neutral measure,
+    not a real-world probability, so it is no longer surfaced to users anywhere. Kept only
+    so nothing that still imports it breaks; use historical_move_frequency() instead.
     """
     if spot <= 0 or target <= 0 or vol <= 0 or time_years <= 0:
         return 0.5
@@ -230,6 +271,23 @@ def fetch_recent_prices(ticker: str, days: int = LOOKBACK_DAYS) -> list[float]:
         return []
 
 
+def fetch_history(ticker: str, period: str = "5y") -> list[float]:
+    """Full daily close series over `period` (default 5 years) for the historical-frequency
+    calculation, which needs a long real-world sample rather than the 1-year vol window."""
+    if not _YF_AVAILABLE:
+        return []
+    try:
+        df = yf.download(ticker, period=period, interval="1d", progress=False, auto_adjust=True)
+        if df is None or df.empty:
+            return []
+        close = df["Close"]
+        if hasattr(close, "squeeze"):
+            close = close.squeeze()
+        return [float(p) for p in close.dropna().tolist()]
+    except Exception:
+        return []
+
+
 # ── Per-ticker QuantLib metrics ────────────────────────────────────────────────
 
 def compute_ticker_metrics(ticker: str, signal: dict) -> dict:
@@ -239,19 +297,17 @@ def compute_ticker_metrics(ticker: str, signal: dict) -> dict:
         spot    = prices[-1]
         vol     = compute_annualized_vol(prices)
         var_95  = compute_var_95(prices)
-        # Use 5% upside as "target" for prob calculation
-        target_bull = spot * 1.05
-        target_bear = spot * 0.95
-        prob_up   = bs_prob_above_target(spot, target_bull, vol)
-        prob_down = 1 - bs_prob_above_target(spot, target_bear, vol)
         exp_price = expected_return_lognormal(spot, vol)
         exp_return_pct = ((exp_price / spot) - 1) * 100 if spot > 0 else 0.0
-        kelly = kelly_fraction(prices)
     else:
         spot, vol, var_95 = 0.0, 0.30, 0.025
-        prob_up, prob_down = 0.5, 0.5
         exp_return_pct = 0.0
-        kelly = 0.0
+
+    # Real-world historical frequency over 5 years (NOT the N(d2) risk-neutral prob).
+    history = fetch_history(ticker, period="5y")
+    freq_up, n_up = historical_move_frequency(history, TARGET_HORIZON, 0.05, "up")
+    freq_down, _  = historical_move_frequency(history, TARGET_HORIZON, 0.05, "down")
+    lookback_years = round(len(history) / 252, 1) if history else 0.0
 
     final_sig = signal.get("final_signal", "HOLD")
 
@@ -260,45 +316,47 @@ def compute_ticker_metrics(ticker: str, signal: dict) -> dict:
         "current_price":           round(spot, 2),
         "annualized_volatility":   round(vol * 100, 1),         # as %
         "var_95_daily":            round(var_95 * 100, 2),       # as % of position
-        "prob_5pct_upside_1mo":    round(prob_up * 100, 1),      # as %
-        "prob_5pct_downside_1mo":  round(prob_down * 100, 1),    # as %
+        # Historical frequency of a >= +/-5% move over a 1-month (21 trading day) window.
+        "hist_freq_up_5pct_1mo":   round(freq_up * 100, 1) if freq_up is not None else None,
+        "hist_freq_down_5pct_1mo": round(freq_down * 100, 1) if freq_down is not None else None,
+        "hist_lookback_years":     lookback_years,
+        "hist_windows_counted":    n_up,
         "expected_return_1mo_pct": round(exp_return_pct, 2),
-        "kelly_fraction":          round(kelly * 100, 1),        # as % of portfolio
         "technical_signal":        final_sig,
-        "plain_english": _plain_english_ql(ticker, final_sig, vol, prob_up, var_95, kelly),
+        "plain_english": _plain_english_ql(ticker, final_sig, vol, freq_up, var_95, lookback_years),
         "disclaimer": "QuantLib metrics are theoretical estimates, not guaranteed outcomes. Not investment advice.",
     }
 
 
 def _plain_english_ql(
-    ticker: str, signal: str, vol: float, prob_up: float, var_95: float, kelly: float
+    ticker: str, signal: str, vol: float, freq_up: float | None, var_95: float, lookback_years: float
 ) -> str:
     vol_pct  = vol * 100
     var_pct  = var_95 * 100
-    prob_pct = prob_up * 100
-    kel_pct  = kelly * 100
-
     vol_label = "low" if vol_pct < 20 else ("moderate" if vol_pct < 40 else "high")
+
+    if freq_up is not None and lookback_years >= 1:
+        freq_txt = (
+            f"Over the past {lookback_years:.0f} years, {freq_up * 100:.0f}% of 1-month periods "
+            f"gained 5% or more."
+        )
+    else:
+        freq_txt = "Not enough price history to measure how often a 5% monthly gain occurred."
 
     if signal == "BUY":
         return (
-            f"{ticker} has {vol_label} volatility ({vol_pct:.1f}%/yr). "
-            f"Based on its price history, there is roughly a {prob_pct:.0f}% theoretical probability "
-            f"of a 5% gain over the next month under normal conditions. "
-            f"Daily loss risk at 95% confidence: {var_pct:.1f}% of position. "
-            f"Suggested position size (Kelly): up to {kel_pct:.1f}% of portfolio."
+            f"{ticker} has {vol_label} volatility ({vol_pct:.1f}%/yr). {freq_txt} "
+            f"Daily loss risk at 95% confidence: {var_pct:.1f}% of position."
         )
     elif signal == "SELL":
         return (
             f"{ticker} shows technical weakness with {vol_label} volatility ({vol_pct:.1f}%/yr). "
-            f"Theoretical upside probability over 1 month: {prob_pct:.0f}%. "
-            f"Daily loss risk at 95% confidence: {var_pct:.1f}% of position."
+            f"{freq_txt} Daily loss risk at 95% confidence: {var_pct:.1f}% of position."
         )
     else:
         return (
             f"{ticker} signals are mixed. Volatility: {vol_pct:.1f}%/yr ({vol_label}). "
-            f"Theoretical 1-month upside probability: {prob_pct:.0f}%. "
-            f"No strong directional conviction."
+            f"{freq_txt} No strong directional conviction."
         )
 
 
@@ -337,7 +395,7 @@ def run_quantlib_metrics() -> dict:
         print(f"    → {ticker} ({sig.get('final_signal', '?')})", end="", flush=True)
         metrics = compute_ticker_metrics(ticker, sig)
         results.append(metrics)
-        print(f"  vol={metrics['annualized_volatility']}%  P(+5%)={metrics['prob_5pct_upside_1mo']}%")
+        print(f"  vol={metrics['annualized_volatility']}%  hist P(+5%/1mo)={metrics['hist_freq_up_5pct_1mo']}%")
 
     output = {
         "generated_at":       datetime.utcnow().isoformat() + "Z",
@@ -347,9 +405,12 @@ def run_quantlib_metrics() -> dict:
         "ticker_metrics":     results,
         "methodology": (
             "Volatility is computed from 252-day log returns. "
-            "Probability of profit uses the Black-Scholes lognormal model (N(d2)). "
+            "The chance of a 5% monthly move is the HISTORICAL FREQUENCY: the fraction of "
+            "past rolling 21-trading-day windows (over roughly 5 years) that gained or lost "
+            "5% or more. It is a real-world count, not the Black-Scholes N(d2) risk-neutral "
+            "probability, which is no longer reported. "
             "VaR is parametric at 95% confidence using annualized vol / sqrt(252). "
-            "Kelly fraction sizes positions to maximize log-expected-wealth. "
+            "Position-sizing (Kelly) figures are not reported. "
             "All figures are theoretical estimates, not guarantees. Not investment advice."
         ),
     }

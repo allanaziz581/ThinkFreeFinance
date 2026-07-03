@@ -301,17 +301,21 @@ def build_prompt(inputs: dict) -> str:
     quantlib_text = ""
     if quantlib and quantlib.get("ticker_metrics"):
         top_ql = quantlib["ticker_metrics"][:5]
-        quantlib_text = "QuantLib Black-Scholes risk metrics (top signals):\n"
+        quantlib_text = "QuantLib risk metrics (top signals):\n"
         for t in top_ql:
             ticker = t.get("ticker", "?")
             signal = t.get("technical_signal", "")
-            prob   = t.get("prob_5pct_upside_1mo", 0)
+            freq   = t.get("hist_freq_up_5pct_1mo")
+            years  = t.get("hist_lookback_years", 0)
             vol    = t.get("annualized_volatility", 0)
             var95  = t.get("var_95_daily", 0)
-            kelly  = t.get("kelly_fraction", 0)
+            freq_txt = (
+                f"over the past {years:.0f}yr {freq:.0f}% of 1-month periods gained 5%+"
+                if freq is not None else "insufficient history for a 5% frequency"
+            )
             quantlib_text += (
-                f"- {ticker} ({signal}): P(+5% in 1mo)={prob:.0f}%  Vol={vol:.0f}%/yr  "
-                f"Daily VaR(95%)={var95:.2f}%  Kelly={kelly:.1f}% of portfolio\n"
+                f"- {ticker} ({signal}): {freq_txt}. Vol={vol:.0f}%/yr  "
+                f"Daily VaR(95%)={var95:.2f}%\n"
             )
     else:
         quantlib_text = "QuantLib risk metrics not yet available."
@@ -336,7 +340,7 @@ TODAY'S MARKET INTELLIGENCE:
 ===== MARKET SIGNALS =====
 {signal_text}
 
-===== QUANTLIB RISK METRICS (Black-Scholes) =====
+===== QUANTLIB RISK METRICS (volatility, VaR, historical 5% frequency) =====
 {quantlib_text}
 
 ===== OPPORTUNITY SCORES (Combined Signal Ranking) =====

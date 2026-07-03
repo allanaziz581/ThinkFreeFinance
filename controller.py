@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ThinkFree Finance — Pipeline Controller (Phase 12)
+ThinkFree Finance, Pipeline Controller (Phase 12)
 
 Runs the full intelligence pipeline from data collection through to the
 Chef GPT final report. Each phase is run in sequence. Failed phases are
@@ -84,7 +84,7 @@ PIPELINE = [
     {
         "id": 5,
         "name": "GPT Summarization",
-        "description": "Summarizes clustered articles using GPT — preserves all financial data",
+        "description": "Summarizes clustered articles using GPT, preserves all financial data",
         "script": BASE_DIR / "Profile" / "GPT_article_clustering_summary.py",
         "output_check": BASE_DIR / "news_output" / "sector_summaries.json",
         "skip_if_output_exists": False,
@@ -114,7 +114,7 @@ PIPELINE = [
     {
         "id": 7,
         "name": "Historical Correlation Engine",
-        "description": "Finds historical market analogues — what happened last time this occurred?",
+        "description": "Finds historical market analogues, what happened last time this occurred?",
         "script": BASE_DIR / "historical_correlation.py",
         "output_check": BASE_DIR / "historical_parallels.json",
         "skip_if_output_exists": False,
@@ -144,7 +144,7 @@ PIPELINE = [
     {
         "id": "8.7",
         "name": "QuantLib Risk Metrics",
-        "description": "Black-Scholes probability of profit, VaR (95%), and Kelly position sizing per ticker",
+        "description": "Volatility, VaR (95%), and the 5-year historical frequency of a 5% monthly move per ticker",
         "script": BASE_DIR / "quantlib_metrics.py",
         "output_check": BASE_DIR / "quantlib_metrics.json",
         "skip_if_output_exists": False,
@@ -154,7 +154,7 @@ PIPELINE = [
     {
         "id": "8.9",
         "name": "Opportunity Scoring",
-        "description": "Ranks sectors and tickers 0–10 based on all available signals",
+        "description": "Ranks sectors and tickers 0-10 based on all available signals",
         "script": BASE_DIR / "opportunity_score.py",
         "output_check": BASE_DIR / "opportunity_scores.json",
         "skip_if_output_exists": False,
@@ -174,7 +174,7 @@ PIPELINE = [
     {
         "id": 13,
         "name": "Recession Signals",
-        "description": "Computes recession risk score (0–10) from yield curve, VIX, and macro data",
+        "description": "Computes recession risk score (0-10) from yield curve, VIX, and macro data",
         "script": BASE_DIR / "recession_signals.py",
         "output_check": BASE_DIR / "recession_signals_output.json",
         "skip_if_output_exists": False,
@@ -184,7 +184,7 @@ PIPELINE = [
     {
         "id": 10,
         "name": "Portfolio Tracker",
-        "description": "Simulated paper trading portfolio — tracks positions, P&L, and exposure based on signals",
+        "description": "Simulated paper trading portfolio, tracks positions, P&L, and exposure based on signals",
         "script": BASE_DIR / "portfolio_tracker.py",
         "output_check": BASE_DIR / "portfolio_snapshot.json",
         "skip_if_output_exists": False,
@@ -193,7 +193,7 @@ PIPELINE = [
     },
     {
         "id": 11,
-        "name": "Chef GPT — Intelligence Synthesis",
+        "name": "Chef GPT, Intelligence Synthesis",
         "description": "Synthesizes all data into your personalized plain-English intelligence briefing",
         "script": BASE_DIR / "chef_gpt.py",
         "output_check": BASE_DIR / "intelligence_report.json",
@@ -242,7 +242,7 @@ def run_phase(step: dict, state: dict) -> bool:
 
     print()
     print("=" * 65)
-    print(f"  Phase {step['id']} — {step['name']}")
+    print(f"  Phase {step['id']}, {step['name']}")
     print(f"  {step['description']}")
     print("=" * 65)
 
@@ -263,13 +263,13 @@ def run_phase(step: dict, state: dict) -> bool:
 
     success = result.returncode == 0
     if success:
-        log(f"✅ Phase {step['id']} completed successfully.")
+        log(f"Phase {step['id']} completed successfully.")
         if phase_id not in state["completed"]:
             state["completed"].append(phase_id)
         if phase_id in state["failed"]:
             state["failed"].remove(phase_id)
     else:
-        log(f"❌ Phase {step['id']} failed (exit code {result.returncode}).")
+        log(f"Phase {step['id']} failed (exit code {result.returncode}).")
         if phase_id not in state["failed"]:
             state["failed"].append(phase_id)
 
@@ -281,7 +281,7 @@ def run_audit_checkpoint(agent: str) -> bool:
     """Run a verification agent checkpoint. Returns True if PASS or agent unavailable."""
     agent_script = BASE_DIR / "agents" / "verification_runner.py"
     if not agent_script.exists():
-        return True  # Agents not yet installed — non-blocking
+        return True  # Agents not yet installed, non-blocking
 
     log(f"Running {agent} verification checkpoint...")
     result = subprocess.run(
@@ -290,9 +290,9 @@ def run_audit_checkpoint(agent: str) -> bool:
         capture_output=False,
     )
     if result.returncode != 0:
-        log(f"⚠️  {agent} checkpoint flagged issues. Check pipeline_audit.json for details.")
+        log(f" {agent} checkpoint flagged issues. Check pipeline_audit.json for details.")
         return False
-    log(f"✅ {agent} checkpoint passed.")
+    log(f"{agent} checkpoint passed.")
     return True
 
 
@@ -303,14 +303,14 @@ def check_env() -> bool:
 
     warnings = []
     if not os.getenv("OPENAI_API_KEY"):
-        warnings.append("OPENAI_API_KEY — required for GPT summarization and Chef GPT")
+        warnings.append("OPENAI_API_KEY, required for GPT summarization and Chef GPT")
     if not os.getenv("FINNHUB_API_KEY"):
-        warnings.append("FINNHUB_API_KEY — required for financial data scraping")
+        warnings.append("FINNHUB_API_KEY, required for financial data scraping")
     if not os.getenv("QUIVERQUANT_API_KEY"):
-        warnings.append("QUIVERQUANT_API_KEY — required for political intelligence layer")
+        warnings.append("QUIVERQUANT_API_KEY, required for political intelligence layer")
 
     if warnings:
-        print("\n⚠️  MISSING API KEYS — Some phases will be skipped or fail:")
+        print("\n MISSING API KEYS, Some phases will be skipped or fail:")
         for w in warnings:
             print(f"   • {w}")
         print("   Add these to your .env file. See .env.example for guidance.\n")
@@ -324,7 +324,7 @@ def check_env() -> bool:
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="ThinkFree Finance — Full Pipeline Controller",
+        description="ThinkFree Finance, Full Pipeline Controller",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -349,8 +349,8 @@ def list_phases() -> None:
     print("\nThinkFree Pipeline Phases:")
     print("-" * 65)
     for step in PIPELINE:
-        exists = "✅" if output_exists(step) else "  "
-        print(f"  {exists} Phase {step['id']:>4} — {step['name']}")
+        exists = "OK" if output_exists(step) else "  "
+        print(f"  {exists} Phase {step['id']:>4}, {step['name']}")
         print(f"              {step['description']}")
     print()
 
@@ -363,7 +363,7 @@ def main() -> None:
         return
 
     print("\n" + "=" * 65)
-    print("  ThinkFree Finance — AI Intelligence Platform")
+    print("  ThinkFree Finance, AI Intelligence Platform")
     print("  Pipeline Controller")
     print("=" * 65)
 
@@ -384,7 +384,7 @@ def main() -> None:
     if args.chef_only:
         chef_step = next(s for s in PIPELINE if s["id"] == 11)
         run_phase(chef_step, state)
-        print("\n✅ Chef GPT complete. Launch dashboard: streamlit run dashboard/app.py")
+        print("\nChef GPT complete. Launch dashboard: streamlit run dashboard/app.py")
         return
 
     # --phase: run a single phase
