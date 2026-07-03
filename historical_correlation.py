@@ -165,20 +165,84 @@ SECTOR_ETFS = {
     "Gold": "GLD",
 }
 
+# The SPDR sector ETFs (XLK, XLE, ...) launched 1998-12-22; SPY launched 1993-01-29.
+# Periods that predate these cannot be measured with the ETFs, so for older periods we
+# fall back to the S&P 500 index (^GSPC, price return, available from the 1950s) and say
+# so, rather than silently showing an empty or ETF-only picture.
+SPY_INCEPTION = "1993-02-01"
+ETF_INCEPTION = "1998-12-22"
+
+
+def broad_market_proxy(start: str) -> str:
+    """SPY once it exists, otherwise the ^GSPC index (price return) for older periods."""
+    return "SPY" if start >= SPY_INCEPTION else "^GSPC"
+
+
+def sector_data_available(start: str) -> bool:
+    """Sector ETFs only exist for periods starting on/after their 1998 inception."""
+    return start >= ETF_INCEPTION
+
 # ---------------------------------------------------------------------------
 # Event detection
 # ---------------------------------------------------------------------------
 
+import re
+
+# Words that flip the meaning of the sentence they appear in. If the only sentence
+# mentioning an event keyword is negated ("the Fed did NOT raise rates"), that keyword
+# is not real evidence the event is happening.
+NEGATION_WORDS = {
+    "no", "not", "never", "without", "avoided", "avoid", "avoids", "denied", "deny",
+    "denies", "unlikely", "against", "ruled out", "rules out", "rule out", "isn't",
+    "aren't", "wasn't", "weren't", "won't", "wouldn't", "doesn't", "didn't", "don't",
+    "hasn't", "haven't", "cannot", "can't", "declined", "reject", "rejected", "n't",
+}
+
+
+def _split_sentences(text: str) -> list[str]:
+    return [s.strip() for s in re.split(r"[.!?\n]+", text) if s.strip()]
+
+
+def _sentence_is_negated(sentence: str) -> bool:
+    low = sentence.lower()
+    tokens = set(re.findall(r"[a-z']+", low))
+    if tokens & NEGATION_WORDS:
+        return True
+    # multi-word negations ("ruled out") won't survive tokenisation, check the raw string
+    return any(neg in low for neg in NEGATION_WORDS if " " in neg)
+
+
+def event_matches(text: str, keywords: list[str]) -> bool:
+    """An event is only 'detected' when at least TWO distinct trigger keywords appear AND
+    at least one of them sits in a sentence that is not negated.
+
+    The old code fired on a single substring match anywhere in the blob, so one incidental
+    phrase (or a sentence saying the event did NOT happen) was enough to attach a whole
+    historical event. Requiring two distinct keywords plus a non-negated sentence makes a
+    'no historical parallel today' result the normal, expected outcome.
+    """
+    low = text.lower()
+    hits = {kw for kw in keywords if kw in low}
+    if len(hits) < 2:
+        return False
+    sentences = _split_sentences(text)
+    for kw in hits:
+        for sent in sentences:
+            if kw in sent.lower() and not _sentence_is_negated(sent):
+                return True
+    return False
+
+
 def detect_current_events(economic_summary: str, enriched_articles: list[dict]) -> list[dict]:
     """Find which historical event types are relevant to today's news."""
-    combined_text = economic_summary.lower()
+    combined_text = economic_summary
     for art in enriched_articles[:50]:
-        combined_text += " " + art.get("title", "").lower()
-        combined_text += " " + art.get("summary", "").lower()
+        combined_text += " " + art.get("title", "")
+        combined_text += " " + art.get("summary", "")
 
     detected = []
     for event in HISTORICAL_EVENTS:
-        if any(kw in combined_text for kw in event["trigger_keywords"]):
+        if event_matches(combined_text, event["trigger_keywords"]):
             detected.append(event)
 
     return detected
@@ -240,19 +304,28 @@ def analyze_historical_period(period: dict) -> dict:
     end   = period["end"]
 
     performances = {}
-    print(f"    Fetching data for {period['label']} ({start} → {end})...")
+    print(f"    Fetching data for {period['label']} ({start} to {end})...")
 
-    # Sample key sectors (limit API calls)
-    sample_etfs = {
-        "Broad Market": "SPY",
-        "Technology": "XLK",
-        "Energy": "XLE",
-        "Financials": "XLF",
-        "Health Care": "XLV",
-        "Consumer Staples": "XLP",
-        "Bonds": "TLT",
-        "Gold": "GLD",
-    }
+    # Broad market always uses the best available proxy for the era. Sector granularity
+    # only exists once the sector ETFs launched (Dec 1998); for older periods we show the
+    # index alone and flag the limitation instead of pretending sector data existed.
+    sample_etfs = {"Broad Market": broad_market_proxy(start)}
+    data_note = ""
+    if sector_data_available(start):
+        sample_etfs.update({
+            "Technology": "XLK",
+            "Energy": "XLE",
+            "Financials": "XLF",
+            "Health Care": "XLV",
+            "Consumer Staples": "XLP",
+            "Bonds": "TLT",
+            "Gold": "GLD",
+        })
+    else:
+        data_note = (
+            f"Sector ETFs did not exist before {ETF_INCEPTION[:4]}; only the broad market "
+            f"index ({sample_etfs['Broad Market']}, price return) is shown for this period."
+        )
 
     for label, ticker in sample_etfs.items():
         perf = measure_period_performance(ticker, start, end)
@@ -274,6 +347,7 @@ def analyze_historical_period(period: dict) -> dict:
         "sector_performance": performances,
         "winners": winners,
         "losers":  losers,
+        "data_note": data_note,
     }
 
 
@@ -295,7 +369,9 @@ def generate_historical_narrative(event: dict, analyzed_periods: list[dict]) -> 
 
         spy_ret = period.get("sector_performance", {}).get("Broad Market", {}).get("total_return_pct", "N/A")
 
-        lines.append(f"• **{label}**: {context}")
+        lines.append(f"- **{label}**: {context}")
+        if period.get("data_note"):
+            lines.append(f"  Note: {period['data_note']}")
         if spy_ret != "N/A":
             direction = "rose" if spy_ret > 0 else "fell"
             lines.append(f"  Overall market {direction} {abs(spy_ret):.1f}%.")
@@ -342,8 +418,18 @@ def run_historical_correlation() -> dict:
     print(f"Detected {len(detected_events)} relevant event type(s): {[e['event_type'] for e in detected_events]}")
 
     if not detected_events:
-        detected_events = [HISTORICAL_EVENTS[0]]  # Default: always show at least one
-        print("[INFO] No specific events detected. Using default: Fed Rate context.")
+        # No strong parallel is a normal, honest outcome, do NOT force a default event.
+        print("[INFO] No strong historical parallel to today's news.")
+        output = {
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "events_analyzed": 0,
+            "message": "No strong historical parallel to today's news.",
+            "historical_parallels": [],
+        }
+        with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
+            json.dump(output, f, indent=2, ensure_ascii=False)
+        print(f"Saved to: {OUTPUT_PATH}")
+        return output
 
     # Analyze historical periods for each detected event
     results = []
@@ -379,36 +465,51 @@ def run_historical_correlation() -> dict:
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
 
-    print(f"\n✅ Historical correlation complete. {len(results)} event type(s) analyzed.")
+    print(f"\nHistorical correlation complete. {len(results)} event type(s) analyzed.")
     print(f"Saved to: {OUTPUT_PATH}")
 
     return output
 
 
 def _extract_key_takeaway(event_type: str, periods: list[dict]) -> str:
-    """Extract the single most useful insight from analyzed historical periods."""
+    """Summarise each comparable period on its own terms, never as a single average.
+
+    Averaging across historical episodes (as the old code did) invents a number that
+    happened in none of them, and lets one outlier dominate. Instead we report each
+    period's outcome and the overall range, so the reader sees the dispersion.
+    """
     if not periods:
         return "Insufficient historical data for this event type."
 
-    all_returns = []
+    per_period = []
     for p in periods:
         spy = p.get("sector_performance", {}).get("Broad Market", {})
         ret = spy.get("total_return_pct")
         if ret is not None:
-            all_returns.append(ret)
+            per_period.append((p.get("label", "period"), ret))
 
-    if not all_returns:
-        return "Historical market data was not available for this period."
+    if not per_period:
+        return "Historical market data was not available for these periods."
 
-    avg = sum(all_returns) / len(all_returns)
-    if avg > 10:
-        direction = f"markets generally rose an average of {avg:.1f}%"
-    elif avg < -10:
-        direction = f"markets generally fell an average of {abs(avg):.1f}%"
-    else:
-        direction = f"markets were mixed, averaging {avg:+.1f}%"
+    parts = [
+        f"{label}: the market {'rose' if r > 0 else 'fell'} {abs(r):.1f}%"
+        for label, r in per_period
+    ]
+    if len(per_period) == 1:
+        return (
+            f"In the one comparable period, {parts[0]}. "
+            "Past outcomes do not guarantee future results."
+        )
 
-    return f"In similar historical periods, {direction}. Past outcomes do not guarantee future results."
+    lo = min(r for _, r in per_period)
+    hi = max(r for _, r in per_period)
+    return (
+        "Each comparable period differed. "
+        + "; ".join(parts)
+        + f". Across these separate episodes the market ranged from {lo:+.1f}% to "
+        f"{hi:+.1f}% (each period reported on its own, not blended into one figure). "
+        "Past outcomes do not guarantee future results."
+    )
 
 
 if __name__ == "__main__":
