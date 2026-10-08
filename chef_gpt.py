@@ -55,6 +55,12 @@ def _iter_report_strings(obj):
             yield from _iter_report_strings(v)
 
 
+def report_prose(report):
+    """Exclude bookkeeping timestamps/source labels from factual prose checks."""
+    return " ".join(_iter_report_strings({k: v for k, v in report.items()
+                                          if k not in {"generated_at", "data_sources_used", "numeral_validation"}}))
+
+
 # ------------------------------------------------------------------
 # Safe file loader
 # ------------------------------------------------------------------
@@ -474,10 +480,8 @@ def run_chef_gpt() -> dict:
     # Numeral set-membership validation: flag any number in the briefing that is not within
     # tolerance of a number in the assembled inputs (likely a hallucination). Advisory only.
     source_numbers = collect_numbers({k: v for k, v in inputs.items() if k != "user_profile"})
-    output_text = " ".join(
-        v for v in _iter_report_strings(report)
-    )
-    validation = validate_numerals(source_numbers, output_text)
+    output_text = report_prose(report)
+    validation = validate_numerals(source_numbers, output_text, strict=True)
     report["numeral_validation"] = validation
     if not validation["ok"]:
         print(f"[WARN] {validation['hallucinated_count']} numeral(s) in the briefing are not "

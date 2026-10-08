@@ -67,12 +67,7 @@ _fails: dict[str, deque] = {}
 
 
 def _client_ip(request: Request) -> str:
-    """Best-effort client IP. Honors the first X-Forwarded-For hop set by the
-    host's proxy (Render/Railway/Cloudflare), falling back to the socket peer."""
-    fwd = request.headers.get("x-forwarded-for")
-    if fwd:
-        return fwd.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
+    return security.client_ip(request, config.TRUSTED_PROXY_CIDRS)
 
 
 def _check_locked(key: str, max_fails: int, window: int) -> None:
@@ -368,16 +363,7 @@ def login(body: LoginBody, request: Request, response: Response):
 
 def _consume_recovery(email: str, user: dict, code: str) -> bool:
     """Check and burn a one-time recovery code (stored only as sha256 hashes)."""
-    try:
-        codes = json.loads(user.get("recovery_codes") or "[]")
-    except Exception:
-        codes = []
-    h = security.hash_code(code)
-    if h in codes:
-        codes.remove(h)
-        db.set_recovery_codes(email, json.dumps(codes))
-        return True
-    return False
+    return db.consume_recovery_code(email, security.hash_code(code))
 
 
 @router.post("/logout")
@@ -445,7 +431,9 @@ def mfa_setup(request: Request, user: dict = Depends(current_user), _csrf: None 
     secret, and return the otpauth URI and the plaintext recovery codes ONCE."""
     secret = security.gen_totp_secret()
     recovery = security.gen_recovery_codes()
-    db.set_mfa_secret(user["email"], secret, json.dumps([security.hash_code(c) for c in recovery]))
+    if not db.begin_mfa_setup(user["email"], secret,
+                              json.dumps([security.hash_code(c) for c in recovery])):
+        raise HTTPException(status_code=409, detail="MFA is already enabled. Disable it using your current code before setting up a replacement.")
     _audit(request, user["email"], "mfa_setup", "secret issued")
     return {
         "secret": secret,
@@ -461,9 +449,14 @@ def mfa_enable(body: MfaEnableBody, request: Request, user: dict = Depends(curre
     fresh = db.get_user(user["email"])
     if not fresh or not fresh.get("mfa_secret"):
         raise HTTPException(status_code=400, detail="Start MFA setup first")
+    factor_key = f"mfa:{user['email']}"
+    _check_locked(factor_key, _LOGIN_MAX_FAILS, _LOGIN_WINDOW)
     if not security.verify_totp(fresh["mfa_secret"], body.code):
+        _record_fail(factor_key)
         raise HTTPException(status_code=400, detail="That code is not valid. Try again.")
-    db.set_mfa_enabled(user["email"], True)
+    if not db.confirm_mfa_setup(user["email"], fresh["mfa_secret"]):
+        raise HTTPException(status_code=409, detail="MFA setup changed. Start again.")
+    _clear_fails(factor_key)
     _audit(request, user["email"], "mfa_enabled", "")
     return {"ok": True, "mfa_enabled": True}
 
@@ -476,10 +469,13 @@ def mfa_disable(body: MfaEnableBody, request: Request, user: dict = Depends(curr
     fresh = db.get_user(user["email"])
     if not fresh or not fresh.get("mfa_enabled"):
         return {"ok": True, "mfa_enabled": False}
+    factor_key = f"mfa:{user['email']}"
+    _check_locked(factor_key, _LOGIN_MAX_FAILS, _LOGIN_WINDOW)
     if not security.verify_totp(fresh.get("mfa_secret") or "", body.code):
+        _record_fail(factor_key)
         raise HTTPException(status_code=400, detail="That code is not valid.")
-    db.set_mfa_enabled(user["email"], False)
-    db.set_mfa_secret(user["email"], None, None)
+    db.disable_mfa(user["email"])
+    _clear_fails(factor_key)
     _audit(request, user["email"], "mfa_disabled", "")
     return {"ok": True, "mfa_enabled": False}
 

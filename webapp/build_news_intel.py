@@ -23,10 +23,14 @@ import json
 import os
 import sys
 import urllib.request
+from datetime import datetime, timezone
 from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from dotenv import load_dotenv
+from numeral_validation import collect_numbers, validate_numerals
 JS = Path(__file__).resolve().parent / "js"
 OUT = JS / "news_intel.js"
 MODEL = os.getenv("THINKFREE_NEWS_MODEL", "gpt-4o-mini")
@@ -34,10 +38,24 @@ MAX_NEWS_PER_SECTOR = 8   # thinning: only the most important stories per sector
 
 # read OPENAI_API_KEY straight from .env (the openai SDK hangs on import in this env;
 # urllib to the REST endpoint is what the other build scripts use)
-OPENAI_KEY = None
-for _l in open(ROOT / ".env", encoding="utf-8"):
-    if _l.startswith("OPENAI_API_KEY="):
-        OPENAI_KEY = _l.strip().split("=", 1)[1]
+load_dotenv(ROOT / ".env")
+OPENAI_KEY = os.getenv("OPENAI_API_KEY")
+
+
+def checked_summary(summary, why, sources, missing_sources=()):
+    """Fail closed for unsupported numeric values; expose limits to the reader.
+
+    Callers must scope sources to the ticker/sector being summarized. This is
+    not an entailment or truth detector. Raw rejected prose is not published.
+    """
+    summary = summary if isinstance(summary, str) else ""
+    why = why if isinstance(why, str) else ""
+    result = validate_numerals(collect_numbers(sources), summary + " " + why, strict=True)
+    result["status"] = "checked" if result["ok"] and sources and summary else "withheld"
+    result["missing_sources"] = list(missing_sources)
+    if result["status"] == "withheld":
+        summary, why = "Summary unavailable: source checks need review.", ""
+    return {"summary": summary, "what_it_means": why, "source_check": result}
 
 
 def chat_json(system, user, model, timeout=60):
@@ -119,7 +137,7 @@ def main():
         return imp * 2 + cred
 
     if not OPENAI_KEY:
-        print("ERROR: OPENAI_API_KEY missing"); return
+        raise SystemExit("OPENAI_API_KEY is required to regenerate summaries; existing output was not changed.")
 
     limit = None
     if "--limit-sectors" in sys.argv:
@@ -183,15 +201,24 @@ def main():
             data = chat_json(SYSTEM, user, MODEL)
             calls += 1
             if data.get("sector_summary"):
-                out_sectors[sec] = {"summary": data["sector_summary"], "stories": len(by_sector[sec])}
+                source_context = {"news": brief, "sector": sec_context, "economy": (econ.get("summary", "") or "")[:400]}
+                missing = [name for name, value in (("sector context", sec_context),
+                           ("economic context", source_context["economy"])) if not value]
+                out_sectors[sec] = {**checked_summary(data["sector_summary"], "", source_context, missing),
+                                    "stories": len(by_sector[sec])}
             for tk, v in (data.get("tickers") or {}).items():
                 if isinstance(v, dict) and v.get("summary"):
-                    out_tickers[tk] = {"summary": v.get("summary"), "what_it_means": v.get("what_it_means", ""), "sector": sec}
+                    ticker_sources = [item for item in brief if item["ticker"] == tk]
+                    out_tickers[tk] = {**checked_summary(v.get("summary"), v.get("what_it_means", ""),
+                                           ticker_sources, [] if ticker_sources else ["ticker-specific news"]), "sector": sec}
             print(f"  + {sec:24} {len(items)} stories -> summary + {len(data.get('tickers') or {})} tickers")
         except Exception as e:  # noqa: BLE001
             print(f"  x {sec}: {e}")
 
+    if not out_sectors and not out_tickers:
+        raise SystemExit("No summaries were generated; existing output was not changed.")
     data_out = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "source": "ThinkFree pipeline: local TA/QuantLib/economic analysis -> Chef GPT translation",
         "model": MODEL, "api_calls": calls,
         "bySector": out_sectors, "byTicker": out_tickers,

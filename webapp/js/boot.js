@@ -146,6 +146,8 @@
       // extra serial round-trip.
       var results = await Promise.all([api("/api/data/bundle"), api("/api/data/live")]);
       var bundle = results[0], live = results[1];
+      if (!bundle.ok || !bundle.data) throw new Error("Dashboard data is unavailable. Please log in again or retry.");
+      if (!live.ok && live.status !== 429) throw new Error("Live data is unavailable. Please retry.");
       if (bundle.ok && bundle.data) Object.assign(window, bundle.data);
       // Honors server-side market-hours pause.
       if (live.ok && live.data && !live.data.paused) Object.assign(window, live.data);
@@ -165,7 +167,10 @@
       await loadInOrder(LOGIC_SCRIPTS);
       // app.js assigns window.TF.init synchronously on eval; guard just in case.
       if (!(window.TF && window.TF.init)) throw new Error("ThinkFree app failed to initialize");
-    })();
+    })().catch(function (error) {
+      appLoadedPromise = null; // A transient failure must remain retryable.
+      throw error;
+    });
     return appLoadedPromise;
   }
 

@@ -229,7 +229,13 @@ def embed_articles(articles: list[dict]) -> np.ndarray | None:
 
 def cluster_with_embeddings(articles: list[dict], embeddings: np.ndarray) -> dict[int, list[int]]:
     n = len(articles)
-    n_clusters = max(5, min(n // 10, 50))  # 5–50 clusters
+    if len(embeddings) != n:
+        raise ValueError("Each article must have one embedding")
+    if n == 0:
+        return {}
+    if n == 1:
+        return {0: [0]}
+    n_clusters = min(n, max(5, min(n // 10, 50)))
 
     print(f"  Clustering into {n_clusters} groups...")
     model = AgglomerativeClustering(

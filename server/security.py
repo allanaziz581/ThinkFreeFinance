@@ -17,6 +17,8 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import ipaddress
+import json
 import re
 import secrets
 import struct
@@ -92,13 +94,45 @@ def csrf_ok(cookie_token: str | None, header_token: str | None) -> bool:
 
 
 # --------------------------------------------------------------------------
-# Audit log hashing -- each entry chains to the previous one's hash, so any
-# later edit or deletion of a row breaks the chain (tamper-evident logging).
+# Audit hashing detects covered-field edits/interior deletion. A database writer
+# can truncate/recompute history; detecting that requires an external checkpoint.
 # --------------------------------------------------------------------------
 
-def audit_hash(prev_hash: str, ts: int, email: str, action: str, detail: str) -> str:
-    payload = f"{prev_hash}|{ts}|{email}|{action}|{detail}"
+def audit_hash(prev_hash: str, ts: int, email: str, action: str, detail: str,
+               ip: str = "", version: int = 1) -> str:
+    # v1 remains readable for existing records; never silently re-sign history.
+    if version == 1:
+        payload = f"{prev_hash}|{ts}|{email}|{action}|{detail}"
+    elif version == 2:
+        payload = json.dumps([2, prev_hash, ts, email, action, detail, ip],
+                             separators=(",", ":"), ensure_ascii=True)
+    else:
+        raise ValueError("Unsupported audit hash version")
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def client_ip(request, trusted_proxies=()) -> str:
+    """Trust forwarding headers only from explicitly configured proxy networks.
+
+    Walk right to left, discarding trusted hops, so a client-supplied prefix
+    cannot select its rate-limit identity. Uvicorn must use --no-proxy-headers.
+    """
+    peer = request.client.host if request.client else "unknown"
+    try:
+        address = ipaddress.ip_address(peer)
+    except ValueError:
+        return peer
+    if not any(address in net for net in trusted_proxies):
+        return peer
+    hops = request.headers.get("x-forwarded-for", "").split(",")
+    for hop in reversed(hops):
+        try:
+            address = ipaddress.ip_address(hop.strip())
+        except ValueError:
+            return peer
+        if not any(address in net for net in trusted_proxies):
+            return str(address)
+    return str(address)
 
 
 # --------------------------------------------------------------------------

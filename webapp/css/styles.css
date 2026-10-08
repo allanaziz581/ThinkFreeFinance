@@ -1911,3 +1911,8 @@ pre { overflow-x: auto; }
 @media (prefers-reduced-motion: reduce) {
   .iw-node, .iw-scene { transition: none; }
 }
+
+/* Native modal keeps account-security controls keyboard accessible. */
+dialog.security-dialog { margin: auto; max-height: 90vh; overflow: auto; color: var(--text, #eee); background: var(--surface, #141820); border: 1px solid #586579; }
+dialog.security-dialog::backdrop { background: rgba(0,0,0,.65); }
+.security-recovery { white-space: pre-wrap; user-select: all; }

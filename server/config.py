@@ -8,6 +8,7 @@ file the browser can download.
 from __future__ import annotations
 
 import os
+import ipaddress
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -43,6 +44,11 @@ BETA_KEY = _get("TF_BETA_KEY", "THINKFREE-BETA-2026")
 
 # Production flag flips on Secure cookies and HSTS. Keep it off for local http.
 PRODUCTION = _get("TF_PRODUCTION", "0") == "1"
+
+# Empty means forwarding headers are ignored. Configure only the actual ingress
+# networks; never trust all addresses. See README for the deployment contract.
+TRUSTED_PROXY_CIDRS = tuple(ipaddress.ip_network(v.strip()) for v in
+                           _get("TF_TRUSTED_PROXY_CIDRS").split(",") if v.strip())
 
 # Origins allowed to call the API from a browser (same-origin by default).
 ALLOWED_ORIGINS = [o.strip() for o in _get("TF_ALLOWED_ORIGINS", "http://localhost:8000").split(",") if o.strip()]

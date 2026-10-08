@@ -130,6 +130,8 @@
   // POST. In server mode the server validates it; the local cyrb53 check is only
   // a soft pre-check for static mode.
   let betaKeyEntered = "";
+  // Kept only in memory during the second-factor challenge, never in storage.
+  let pendingLogin = null;
 
   // adoptServerUser -- the server stores only the five raw profile answers; the
   // UI expects the enriched shape (risk_tolerance, profile_id) that computeProfile
@@ -213,6 +215,13 @@
         <input class="auth-in" id="au-pass" type="password" placeholder="Password" autocomplete="current-password">
         <button class="auth-btn" data-act="login">Log in</button>
         <div class="auth-alt">Have a beta invite key? <a data-act="to-beta">Enter it &rsaquo;</a></div>`;
+    } else if (view === "mfa") {
+      body = `<h2 class="auth-h">Verify your login</h2>
+        <p class="auth-p">Enter the code from your authenticator, or a recovery code.</p>
+        <div class="auth-err" id="auth-err" role="alert"></div>
+        <input class="auth-in" id="au-otp" aria-label="Authenticator or recovery code" placeholder="Authenticator or recovery code" autocomplete="one-time-code">
+        <button class="auth-btn" data-act="verify-mfa">Verify and log in</button>
+        <button class="auth-btn auth-btn-ghost" data-act="to-login">Back to login</button>`;
     } else if (view === "beta") {
       body = `<h2 class="auth-h">Beta access</h2><p class="auth-p">ThinkFree is in closed beta. Enter your invite key to create an account.</p>
         <div class="auth-err" id="auth-err"></div>
@@ -260,7 +269,7 @@
   // already set from the API response, so we never touch localStorage.
   function enter(email) {
     if (!SERVER()) { LS.session = email; currentUser = accountFor(); }
-    unlock(true);
+    return unlock(true);
   }
 
   // applyA11y -- toggles the a11y-mode class on <body>, which CSS uses to
@@ -301,7 +310,9 @@
       if (window.TFBoot && window.TFBoot.ensureAppLoaded) await window.TFBoot.ensureAppLoaded();
     } catch (e) {
       if (loadingOv) loadingOv.remove();
-      err && err("Could not load your dashboard. Please refresh and try again.");
+      unlocked = false;
+      showGate("login");
+      err("Could not load your dashboard. Please log in again or retry.");
       return;
     }
     if (loadingOv) loadingOv.remove();
@@ -334,7 +345,7 @@
       const t = e.target.closest("[data-act]"); if (!t || !gate || gate.style.display === "none") return;
       const a = t.dataset.act;
       if (a === "to-beta") return render("beta");
-      if (a === "to-login") return render("login");
+      if (a === "to-login") { pendingLogin = null; return render("login"); }
       if (a === "verify") {
         const key = val("au-key").trim();
         // Server mode: no client-side key check (no plaintext key in the bundle);
@@ -410,16 +421,37 @@
       if (a === "login") {
         const email = val("au-email").trim().toLowerCase(), pass = val("au-pass");
         if (SERVER()) {
-          const res = await window.TFBoot.api("/api/auth/login", { method: "POST", body: { email, password: pass } });
-          if (!res.ok) return err((res.data && res.data.detail) || "Email or password is incorrect.");
-          currentUser = adoptServerUser(res.data.user);
-          return enter(email);
+          pendingLogin = { email, password: pass };
+          return submitLogin(t, pendingLogin);
         }
         const acc = LS.accounts[email];
         if (!acc || acc.pass !== cyrb53(pass)) return err("Email or password is incorrect.");
         return enter(email);
       }
+      if (a === "verify-mfa") {
+        if (!pendingLogin) return render("login");
+        const code = val("au-otp").trim();
+        if (!code) return err("Enter your authenticator or recovery code.");
+        return submitLogin(t, Object.assign({}, pendingLogin,
+          code.includes("-") ? { recovery: code } : { otp: code }));
+      }
     });
+  }
+
+  async function submitLogin(button, body) {
+    if (button.disabled) return;
+    button.disabled = true;
+    try {
+      const res = await window.TFBoot.api("/api/auth/login", { method: "POST", body });
+      if (!res.ok) return err((res.data && res.data.detail) || "Could not log in.");
+      if (res.data && res.data.mfa_required) return render("mfa");
+      if (!(res.data && res.data.user)) return err("Login did not complete. Please try again.");
+      currentUser = adoptServerUser(res.data.user);
+      pendingLogin = null;
+      return enter(body.email);
+    } catch (e) {
+      err("Could not connect. Please try again.");
+    } finally { button.disabled = false; }
   }
 
   // applyUser -- writes the current user's name, plan label, and avatar initial
@@ -571,6 +603,7 @@
   // Re-locks in place (no location.reload) because reloading synchronously
   // re-parses ~6 MB of data scripts and trips Chrome's "page unresponsive" warning.
   function logout() {
+    pendingLogin = null;
     // Server mode: clear the httpOnly session cookie server-side (fire-and-forget;
     // the UI proceeds regardless). Static mode: clear the localStorage session.
     if (SERVER()) { try { window.TFBoot.api("/api/auth/logout", { method: "POST" }); } catch (e) {} }

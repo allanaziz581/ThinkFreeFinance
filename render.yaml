@@ -29,7 +29,7 @@ services:
     buildCommand: "pip install -r server/requirements.txt && python scripts/extract_data_to_json.py && bash scripts/build_landing.sh"
     # main.py uses bare imports (import config, import db, ...), so the app dir is
     # server/ and the module is main:app.
-    startCommand: "uvicorn main:app --app-dir server --host 0.0.0.0 --port $PORT"
+    startCommand: "uvicorn main:app --app-dir server --no-proxy-headers --host 0.0.0.0 --port $PORT"
     healthCheckPath: /healthz
     # Persistent disk so the SQLite user store (accounts/sessions) survives the
     # daily refresh redeploys. Without this, every redeploy wipes all accounts.

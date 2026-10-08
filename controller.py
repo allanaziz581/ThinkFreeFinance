@@ -380,10 +380,16 @@ def main() -> None:
             log("Verification agents not available. Run from project root.")
             sys.exit(1)
 
+    # Every generation entry point runs the same preflight unless explicitly skipped.
+    if not args.skip_audit and not run_audit_checkpoint("security"):
+        log("Security audit failed. Pipeline halted.")
+        raise SystemExit(1)
+
     # --chef-only: run only the final synthesis
     if args.chef_only:
         chef_step = next(s for s in PIPELINE if s["id"] == 11)
-        run_phase(chef_step, state)
+        if not run_phase(chef_step, state):
+            raise SystemExit(1)
         print("\nChef GPT complete. Launch dashboard: streamlit run dashboard/app.py")
         return
 
@@ -394,7 +400,11 @@ def main() -> None:
         if not step:
             print(f"Phase '{target_id}' not found. Use --list to see available phases.")
             sys.exit(1)
-        run_phase(step, state)
+        if not run_phase(step, state):
+            raise SystemExit(1)
+        if step.get("audit_checkpoint") and not args.skip_audit:
+            if not run_audit_checkpoint(step["audit_checkpoint"]):
+                raise SystemExit(1)
         return
 
     # Determine which phases to run
@@ -406,10 +416,6 @@ def main() -> None:
             sys.exit(1)
         start_idx = ids.index(args.from_phase)
         steps_to_run = PIPELINE[start_idx:]
-
-    # Run security audit before pipeline begins (non-blocking)
-    if not args.skip_audit:
-        run_audit_checkpoint("security")
 
     log("Starting full pipeline run...")
     failed_required = False
@@ -424,7 +430,10 @@ def main() -> None:
         # Run audit checkpoint after this phase if configured
         checkpoint = step.get("audit_checkpoint")
         if success and checkpoint and not args.skip_audit:
-            run_audit_checkpoint(checkpoint)
+            if not run_audit_checkpoint(checkpoint):
+                log(f"{checkpoint} audit failed. Pipeline halted.")
+                failed_required = True
+                break
 
         if not success and step.get("required", False):
             log(f"\nRequired phase {step['id']} failed. Pipeline halted.")
@@ -445,6 +454,8 @@ def main() -> None:
         print("  Launch the dashboard:")
         print("  streamlit run dashboard/app.py")
     print("=" * 65)
+    if failed_required:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

@@ -63,3 +63,10 @@ webapp/js/auth_seed.js
 # Scheduler runtime artifacts (logs + pid)
 scheduler/logs/
 scheduler/scheduler.pid
+
+# Local verification output and authentication stores
+.pytest_cache/
+pipeline_audit.json
+server/users.db*
+review-results/
+run_metrics/

@@ -128,18 +128,25 @@ function ensureStateData(cb) {
 /* Chef GPT news intelligence (in-app plain-English summaries by ticker + sector) */
 const NEWS_INTEL = window.NEWS_INTEL || { bySector: {}, byTicker: {} };
 const NI_SECTOR_ALIAS = { Technology: "Information Technology", Healthcare: "Health Care", "Financial Services": "Financials", Telecommunications: "Communication Services" };
+function summaryCheckNote(v) {
+  const check = v.source_check;
+  if (!check) return "Automated source checks were not recorded for this saved summary.";
+  if (check.status === "withheld") return "This summary was withheld because its source checks need review.";
+  const note = check.checked ? "Numeric values matched the supplied sources; meaning and attribution still need independent review." : "No numeric claims were found to check.";
+  return note + ((check.missing_sources || []).length ? " Missing: " + check.missing_sources.join(", ") + "." : "");
+}
 function tfNewsSummary(kind, key) {
   if (kind === "ticker") {
     const v = (NEWS_INTEL.byTicker || {})[key]; if (!v) return "";
     return `<div class="tf-summary"><div class="tf-summary-h"><span class="tf-summary-badge">ThinkFree Summary</span></div>
       <div class="tf-summary-body">${esc(v.summary)}</div>${v.what_it_means ? `<div class="tf-summary-why"><b>What it means for you:</b> ${esc(v.what_it_means)}</div>` : ""}
-      <div class="tf-summary-foot">Plain-English summary from our economic model + technical analysis, written by Chef GPT. Not financial advice.</div></div>`;
+      <div class="tf-summary-foot">${esc(summaryCheckNote(v))} Not financial advice.</div></div>`;
   }
   const sec = (NEWS_INTEL.bySector || {})[key] || (NEWS_INTEL.bySector || {})[NI_SECTOR_ALIAS[key] || key];
   if (!sec) return "";
   return `<div class="tf-summary"><div class="tf-summary-h"><span class="tf-summary-badge">ThinkFree Summary</span><span class="faint">${esc(key)}</span></div>
     <div class="tf-summary-body">${esc(sec.summary)}</div>
-    <div class="tf-summary-foot">Plain-English summary from our economic model + technical analysis, written by Chef GPT. Not financial advice.</div></div>`;
+    <div class="tf-summary-foot">${esc(summaryCheckNote(sec))} Not financial advice.</div></div>`;
 }
 const STATE_ABBR = { Alabama:"AL",Alaska:"AK",Arizona:"AZ",Arkansas:"AR",California:"CA",Colorado:"CO",Connecticut:"CT",Delaware:"DE",Florida:"FL",Georgia:"GA",Hawaii:"HI",Idaho:"ID",Illinois:"IL",Indiana:"IN",Iowa:"IA",Kansas:"KS",Kentucky:"KY",Louisiana:"LA",Maine:"ME",Maryland:"MD",Massachusetts:"MA",Michigan:"MI",Minnesota:"MN",Mississippi:"MS",Missouri:"MO",Montana:"MT",Nebraska:"NE",Nevada:"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND",Ohio:"OH",Oklahoma:"OK",Oregon:"OR",Pennsylvania:"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD",Tennessee:"TN",Texas:"TX",Utah:"UT",Vermont:"VT",Virginia:"VA",Washington:"WA","West Virginia":"WV",Wisconsin:"WI",Wyoming:"WY","District of Columbia":"DC" };
 const money0 = (n) => n == null ? "n/a" : "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });

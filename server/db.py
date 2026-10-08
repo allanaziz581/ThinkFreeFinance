@@ -76,8 +76,8 @@ def init_db() -> None:
             )
             """
         )
-        # Tamper-evident audit log: each row chains to the previous row's hash, so
-        # editing or deleting any row breaks the chain (verify_audit_chain detects it).
+        # Hash chain detects edits to covered fields and interior deletion.
+        # Detecting truncation/recomputed history requires an external trusted checkpoint.
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS audit_log (
@@ -106,6 +106,9 @@ def init_db() -> None:
             )
             """
         )
+        audit_cols = {r["name"] for r in conn.execute("PRAGMA table_info(audit_log)")}
+        if "hash_version" not in audit_cols:
+            conn.execute("ALTER TABLE audit_log ADD COLUMN hash_version INTEGER NOT NULL DEFAULT 1")
         conn.commit()
 
 
@@ -246,6 +249,49 @@ def set_tier(email: str, tier: str) -> None:
 
 # ----- MFA (TOTP) -----
 
+def begin_mfa_setup(email: str, secret: str, recovery_json: str) -> bool:
+    """Stage a factor only while MFA is disabled; cannot replace an active one."""
+    with _connect() as conn:
+        cur = conn.execute(
+            "UPDATE users SET mfa_secret = ?, recovery_codes = ? WHERE email = ? AND mfa_enabled = 0",
+            (secret, recovery_json, email.lower()),
+        )
+        conn.commit()
+        return cur.rowcount == 1
+
+
+def confirm_mfa_setup(email: str, expected_secret: str) -> bool:
+    with _connect() as conn:
+        cur = conn.execute(
+            "UPDATE users SET mfa_enabled = 1 WHERE email = ? AND mfa_secret = ? AND mfa_enabled = 0",
+            (email.lower(), expected_secret),
+        )
+        conn.commit()
+        return cur.rowcount == 1
+
+
+def disable_mfa(email: str) -> None:
+    with _connect() as conn:
+        conn.execute("UPDATE users SET mfa_enabled = 0, mfa_secret = NULL, recovery_codes = NULL WHERE email = ?",
+                     (email.lower(),))
+        conn.commit()
+
+
+def consume_recovery_code(email: str, code_hash: str) -> bool:
+    """Serialize check-and-remove so concurrent requests cannot reuse a code."""
+    with _connect() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        row = conn.execute("SELECT recovery_codes FROM users WHERE email = ? AND mfa_enabled = 1",
+                           (email.lower(),)).fetchone()
+        codes = json.loads(row["recovery_codes"] or "[]") if row else []
+        if code_hash not in codes:
+            return False
+        codes.remove(code_hash)
+        conn.execute("UPDATE users SET recovery_codes = ? WHERE email = ?",
+                     (json.dumps(codes), email.lower()))
+        conn.commit()
+        return True
+
 def set_mfa_secret(email: str, secret: str | None, recovery_json: str | None) -> None:
     """Store a pending TOTP secret (not yet enabled) and hashed recovery codes."""
     with _connect() as conn:
@@ -346,12 +392,13 @@ def audit_append(ts: int, email: str | None, action: str, detail: str, ip: str, 
     """Append a hash-chained audit entry. hash_fn(prev, ts, email, action, detail)
     is injected from security.py to keep the crypto in one place."""
     with _connect() as conn:
+        conn.execute("BEGIN IMMEDIATE")
         prev = _last_audit_hash(conn)
-        row_hash = hash_fn(prev, ts, email or "", action, detail)
+        row_hash = hash_fn(prev, ts, email or "", action, detail, ip or "", version=2)
         conn.execute(
-            "INSERT INTO audit_log (ts, email, action, detail, ip, prev_hash, row_hash) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (ts, email, action, detail, ip, prev, row_hash),
+            "INSERT INTO audit_log (ts, email, action, detail, ip, prev_hash, row_hash, hash_version) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (ts, email, action, detail, ip, prev, row_hash, 2),
         )
         conn.commit()
 
@@ -359,7 +406,7 @@ def audit_append(ts: int, email: str | None, action: str, detail: str, ip: str, 
 def audit_tail(limit: int = 200) -> list:
     with _connect() as conn:
         rows = conn.execute(
-            "SELECT id, ts, email, action, detail, ip, prev_hash, row_hash "
+            "SELECT id, ts, email, action, detail, ip, prev_hash, row_hash, hash_version "
             "FROM audit_log ORDER BY id DESC LIMIT ?",
             (int(limit),),
         ).fetchall()
@@ -371,13 +418,16 @@ def verify_audit_chain(hash_fn) -> bool:
     (i.e. a row was edited or deleted) -- the tamper-evidence check."""
     with _connect() as conn:
         rows = conn.execute(
-            "SELECT ts, email, action, detail, prev_hash, row_hash FROM audit_log ORDER BY id ASC"
+            "SELECT ts, email, action, detail, ip, prev_hash, row_hash, hash_version FROM audit_log ORDER BY id ASC"
         ).fetchall()
     prev = "genesis"
     for r in rows:
         if r["prev_hash"] != prev:
             return False
-        expect = hash_fn(prev, r["ts"], r["email"] or "", r["action"], r["detail"] or "")
+        if r["hash_version"] not in (1, 2):
+            return False
+        expect = hash_fn(prev, r["ts"], r["email"] or "", r["action"], r["detail"] or "",
+                         r["ip"] or "", version=r["hash_version"])
         if expect != r["row_hash"]:
             return False
         prev = r["row_hash"]

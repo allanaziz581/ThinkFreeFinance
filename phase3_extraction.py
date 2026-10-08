@@ -18,6 +18,8 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
+from pipeline_metrics import record_extraction
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -292,6 +294,7 @@ def enrich_article(article: dict) -> dict:
 def run_extraction() -> list[dict]:
     print("=== ThinkFree — Phase 3: NLP Extraction ===")
 
+    started = time.perf_counter()
     raw_articles = load_articles_with_fallback()
     print(f"Loaded {len(raw_articles)} articles.")
 
@@ -300,11 +303,13 @@ def run_extraction() -> list[dict]:
         return []
 
     enriched = []
+    processed_articles = []
     for i, article in enumerate(raw_articles):
         if i % 100 == 0:
             print(f"  Processing {i}/{len(raw_articles)}...")
         try:
             enriched.append(enrich_article(article))
+            processed_articles.append(article)
         except Exception as e:
             print(f"  [WARN] Failed to enrich article {i}: {e}")
 
@@ -326,6 +331,8 @@ def run_extraction() -> list[dict]:
     print(f"  VADER sentiment: {'enabled' if VADER_AVAILABLE else 'keyword fallback'}")
     print(f"\nSaved to: {OUTPUT_PATH}")
 
+    record_extraction(raw_articles, processed_articles, time.perf_counter() - started,
+                      Path(__file__).resolve().parent / "run_metrics")
     return enriched
 
 

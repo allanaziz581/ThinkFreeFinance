@@ -1,0 +1,15 @@
+# Offline review/tests; excludes paid API calls and large model downloads.
+-r server/requirements.txt
+pytest==9.1.1
+httpx==0.28.1
+numpy==1.26.4
+pandas==3.0.6
+yfinance==1.7.0
+openai==3.26.1
+scipy==1.17.1
+QuantLib==1.43
+tqdm==4.70.1
+ta==0.11.0
+scikit-learn==1.9.1
+faiss-cpu==1.15.1
+TA-Lib==0.8.1

@@ -8,9 +8,10 @@ in a generated text is a MEMBER of the set of numerals in the source it was buil
 comparing NORMALIZED values with a rounding tolerance rather than raw string tokens (so
 "12.3%" matches a source "12.34%", and "$1,200" matches "1200").
 
-It is intentionally conservative: years, small counts, and list ordinals are ignored, and
-a number counts as validated if it is within tolerance of ANY source number. The result is
-advisory, it flags likely hallucinations for a human, it does not silently rewrite output.
+The legacy default ignores bare years and small counts, but always checks explicit
+percentages and dollar amounts. Production report/news callers use strict=True to
+also check years/counts. Matching a value does not verify its attribution or meaning.
+Callers decide whether to flag or withhold an output; this module never rewrites it.
 """
 from __future__ import annotations
 
@@ -62,6 +63,7 @@ def validate_numerals(
     output_text: str,
     abs_tol: float = 0.1,
     rel_tol: float = 0.01,
+    strict: bool = False,
 ) -> dict:
     """Check that every non-ignorable numeral in output_text is within tolerance of some
     number in the source.
@@ -76,7 +78,11 @@ def validate_numerals(
     else:
         source = [float(x) for x in source_numbers]
 
-    candidates = [v for v in extract_numerals(output_text) if not _is_ignorable(v)]
+    # Small financial amounts/percentages are claims, not list ordinals.
+    financial = extract_numerals(" ".join(re.findall(
+        r"[-+]?\$[\d,]+(?:\.\d+)?|[-+]?[\d,]+(?:\.\d+)?\s*%", output_text)))
+    candidates = [v for v in extract_numerals(output_text)
+                  if strict or v in financial or not _is_ignorable(v)]
     hallucinated = [v for v in candidates if not _matches_any(v, source, abs_tol, rel_tol)]
 
     return {
@@ -85,6 +91,7 @@ def validate_numerals(
         "matched": len(candidates) - len(hallucinated),
         "hallucinated": hallucinated,
         "hallucinated_count": len(hallucinated),
+        "scope": "numeric value membership only; does not verify attribution, units, or meaning",
     }
 
 

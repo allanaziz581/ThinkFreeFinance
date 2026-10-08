@@ -28,6 +28,7 @@ import config
 import db
 import auth
 import data
+import security
 
 # Refuse to boot with the placeholder signing key, so a misconfigured production
 # deploy fails loudly instead of running with a guessable secret.
@@ -110,13 +111,13 @@ app.add_middleware(
     allow_origins=config.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "X-CSRF-Token"],
 )
 
 # Filenames that must never be served directly (they hold the bulk data). Even if
 # copies still exist under webapp/js during the migration, the server 404s them so
 # the data is only reachable through the authenticated /api/data/* endpoints.
-_BLOCKED_SUFFIXES = ("_data.js", "news_intel.js", "member_bills.js")
+_BLOCKED_SUFFIXES = ("_data.js", "news_intel.js", "member_bills.js", "/data.js")
 
 # ---------------------------------------------------------------------------
 # Content-Security-Policy: two scoped policies, never one relaxed global one.
@@ -176,8 +177,7 @@ async def security_and_blocklist(request: Request, call_next):
 
     # Global flood protection (skip the health probe so the LB is never throttled).
     if path != "/healthz":
-        ip = request.headers.get("x-forwarded-for", "")
-        ip = ip.split(",")[0].strip() if ip else (request.client.host if request.client else "unknown")
+        ip = security.client_ip(request, config.TRUSTED_PROXY_CIDRS)
         if _throttled(ip):
             return JSONResponse({"detail": "Too many requests"}, status_code=429,
                                 headers={"Retry-After": str(_GLOBAL_WINDOW)})
