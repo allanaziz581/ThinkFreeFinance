@@ -1,14 +1,15 @@
 # ThinkFree Finance
 
-Why I Built ThinkFree Finance
+## What it is
+
+A financial-information project combining Python news processing, economic-reference retrieval, generated explanations, public-record dashboards, and a FastAPI website. It is a research/engineering prototype. Generated explanations and derived statistics need independent review.
+
+## Why I built ThinkFree Finance
 
 I built ThinkFree Finance because I wanted to help the average person understand decisions that affect their life. I had teachers, single parents, and people working long shifts in mind...people whose budgets are affected by economic and political decisions but who may not have the time to investigate them. I wanted to make that information easier to access, understand, and question, especially for people who often get the short end of the stick.
 The project brings together legislative activity, lobbying information, disclosed stock trades, and economic news. I built Python processing pipelines, article clustering and retrieval components, and language-model explanations to make those records easier to explore. My goal was to help readers follow financial interests, examine public decisions, and ask informed questions about how those decisions might affect their households. Public accountability and consistent standards across political affiliations were central to that goal.
 Building the platform also meant taking responsibility for how software could influence people's judgment. A relationship between public records doesn't prove wrongdoing, and a confident AI-generated explanation can still mislead. I worked on numerical consistency checks, missing-source disclosures, and regression tests, and excluded backtest results affected by survivorship bias and in-sample tuning rather than presenting them as reliable evidence. These safeguards don't guarantee accuracy, but they help make uncertainty visible and avoid giving readers more confidence than the evidence supports.
-For the implementation and limitations of these checks, see Reproduce the checks and the Resume/evidence map below.
-
-What is ThinkFree Finance:
-A financial-information project combining Python news processing, economic-reference retrieval, generated explanations, public-record dashboards, and a FastAPI website. It is a research/engineering prototype. Generated explanations and derived statistics need independent review.
+For the implementation and limitations of these checks, see [Reproduce the checks](#reproduce-the-checks) and the [Capability/evidence map](#capabilityevidence-map) below.
 
 ## Reproduce the checks
 
@@ -42,7 +43,7 @@ Open `http://127.0.0.1:8000/app`. The sidebar's **Account security** control sup
 
 The browser serves committed data snapshots extracted into `private_data/`. Running the website does not regenerate every upstream dataset or AI summary. Its in-process economy refresher and separate deployment scheduler have different scopes. See `scheduler/README.md` and `server/refresher.py`; do not infer current data merely from a live web page.
 
-## Resume/evidence map
+## Capability/evidence map
 
 | Capability | Implementation | Reproducible evidence / limit |
 | --- | --- | --- |
@@ -52,9 +53,13 @@ The browser serves committed data snapshots extracted into `private_data/`. Runn
 | Embedding clustering | `phase4_clustering.py` | Small-batch regression tests exercise clustering with synthetic vectors; sentence-transformer execution needs the full pipeline environment |
 | FAISS economic-reference retrieval | `retrieval_index.py`, `GPT_Economy/Reasoning_Report.py` | Round-trip/source mapping tests; full retrieval requires reference assets and embedding API access |
 | Website security controls | `server/auth.py`, `server/security.py`, `server/db.py`, `webapp/js/auth.js` | API tests plus JavaScript flow tests cover access, CSRF, MFA, recovery, revocation, audit fields and proxy-header handling |
-| Article volume | `phase3_extraction.py`, `pipeline_metrics.py` | Future actual extraction runs produce records; historical 1,000+ articles/day needs dated operating evidence |
+| Article volume | `phase3_extraction.py`, `pipeline_metrics.py` | Each completed extraction run writes dated counts; no historical daily volume is claimed without those records |
 
-A repository does not independently establish authorship, dates of work, historical throughput, production availability, or research impact. The changes documented in [FIXLOG.md](FIXLOG.md) were made during the October 2026 review; do not describe new capabilities as having existed earlier without evidence. Explain your own contribution and any development assistance accurately.
+The changes documented in [FIXLOG.md](FIXLOG.md) were made during an October 2026 security and reliability review. Historical article throughput is not claimed here; the evidence for it is the dated run records described under [Observed throughput](#observed-throughput).
+
+## My contribution
+
+I designed and built ThinkFree Finance from April 2025 to February 2026, including the scraping and extraction pipelines, embedding clustering, FAISS retrieval, generated-report workflows, and public-record dashboards. In October 2026, I ran a security and reliability review of the platform and made the fixes recorded in [FIXLOG.md](FIXLOG.md). I used AI coding assistants throughout development and the review; the product direction, design decisions, testing, and verification of results were my own.
 
 ## Run the AI pipeline
 
