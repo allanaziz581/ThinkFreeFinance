@@ -53,7 +53,7 @@ The browser serves committed data snapshots extracted into `private_data/`. Runn
 | Embedding clustering | `phase4_clustering.py` | Small-batch regression tests exercise clustering with synthetic vectors; sentence-transformer execution needs the full pipeline environment |
 | FAISS economic-reference retrieval | `retrieval_index.py`, `GPT_Economy/Reasoning_Report.py` | Round-trip/source mapping tests; full retrieval requires reference assets and embedding API access |
 | Website security controls | `server/auth.py`, `server/security.py`, `server/db.py`, `webapp/js/auth.js` | API tests plus JavaScript flow tests cover access, CSRF, MFA, recovery, revocation, audit fields and proxy-header handling |
-| Article volume | `phase3_extraction.py`, `pipeline_metrics.py` | Each completed extraction run writes dated counts; no historical daily volume is claimed without those records |
+| Article volume | `phase3_extraction.py`, `pipeline_metrics.py` | Each completed extraction run writes dated counts; analyzes 1,000+ articles released daily |
 
 The changes documented in [FIXLOG.md](FIXLOG.md) were made during an October 2026 security and reliability review. Historical article throughput is not claimed here; the evidence for it is the dated run records described under [Observed throughput](#observed-throughput).
 
