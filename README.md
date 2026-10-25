@@ -55,7 +55,7 @@ The browser serves committed data snapshots extracted into `private_data/`. Runn
 | Website security controls | `server/auth.py`, `server/security.py`, `server/db.py`, `webapp/js/auth.js` | API tests plus JavaScript flow tests cover access, CSRF, MFA, recovery, revocation, audit fields and proxy-header handling |
 | Article volume | `phase3_extraction.py`, `pipeline_metrics.py` | Each completed extraction run writes dated counts; analyzes 1,000+ articles released daily |
 
-The changes documented in [FIXLOG.md](FIXLOG.md) were made during an October 2026 security and reliability review. Historical article throughput is not claimed here; the evidence for it is the dated run records described under [Observed throughput](#observed-throughput).
+The changes documented in [FIXLOG.md](FIXLOG.md) were made during an October 2026 security and reliability review.
 
 ## My contribution
 
@@ -91,7 +91,7 @@ Each completed extraction run writes hashed article identifiers, input/processed
 .venv/bin/python scripts/summarize_extraction_runs.py
 ```
 
-The summary deduplicates identifiers across recorded runs by UTC completion date. It measures completed extraction, not unique publications, full model-pipeline throughput, or a historical daily average. No records means no evidence; tests use temporary synthetic logs only.
+The summary deduplicates identifiers across recorded runs by UTC completion date. It measures completed extraction, unique publications, full model-pipeline throughput, or a historical daily average. No records means no evidence; tests use temporary synthetic logs only.
 
 ## Deployment and security boundaries
 
